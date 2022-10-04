@@ -1,0 +1,319 @@
+﻿AppType=StandardJava
+Build1=Default,b4j.webapi
+File1=category.html
+File2=help.html
+File3=index.html
+File4=index3.html
+File5=login.html
+File6=main.html
+File7=starter.html
+FileGroup1=Default Group
+FileGroup2=Default Group
+FileGroup3=Default Group
+FileGroup4=Default Group
+FileGroup5=Default Group
+FileGroup6=Default Group
+FileGroup7=Default Group
+Group=Default Group
+Library1=byteconverter
+Library2=encryption
+Library3=javaobject
+Library4=jcore
+Library5=jnet
+Library6=jserver
+Library7=json
+Library8=jsql
+Library9=jstringutils
+Module1=AdminHandler
+Module10=HomeHandler
+Module11=HttpsFilter
+Module12=JSONWebToken
+Module13=MiniORM
+Module14=PasswordHandler
+Module15=ProductHandler
+Module16=Utility
+Module17=WebUtils
+Module2=AuthenticationHandler
+Module3=BasicAuthFilter
+Module4=CategoryHandler
+Module5=ConnectHandler
+Module6=CorsFilter
+Module7=DataConnector
+Module8=HelloHandler
+Module9=HelpHandler
+NumberOfFiles=7
+NumberOfLibraries=9
+NumberOfModules=17
+Version=9.8
+@EndOfDesignText@
+' Name: 			REST API Server Template
+' Description: 		Non-UI application (console / server application)
+' Version: 			2.00 (Beta 1)
+
+'Click to create Publish.zip: ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&Args=-cMf&Args=Publish.zip&Args=www&Args=*.jar&Args=*.ini&Args=*.db&Args=help.html&Args=help.js&Args=comments.txt
+
+#Region Project Attributes 
+	#CommandLineArgs:
+	#MergeLibraries: True 
+#End Region
+
+#Region AdditionalJar
+' MySQL connector
+' #AdditionalJar: mysql-connector-java-5.1.49
+' SQLite connector
+#AdditionalJar: sqlite-jdbc-3.39.3.0
+' JSON Web Token
+#AdditionalJar: java-jwt-4.0.0
+#AdditionalJar: jackson-core-2.13.3
+#AdditionalJar: jackson-databind-2.13.3
+#AdditionalJar: jackson-annotations-2.13.3
+#End Region
+
+Sub Process_Globals
+	Public srvr As Server
+	Public DB As DataConnector
+	Public JWT As JSONWebToken
+	Public ROOT_PATH As String = "/"
+	Public DEFAULT_URL As String = "http://127.0.0.1"
+	Public ROOT_URL As String = DEFAULT_URL
+	Public SERVER_PORT As Int = "2000"
+	Public SSL_PORT As Int
+	Public TIMEZONE As Int
+	Public SERVER_TIME As String
+	Public Config As Map = CreateMap()
+	Public Queries As Map
+	Public Element As Element
+	Public SimpleResponse As Boolean
+	Public SimpleResponseFormat As String
+	Public Auth As Auth
+	Public const VERSION As String = "2.00 beta 1"
+	Public const PREFIX As String = "WebAPI_v200_"
+	Type Element (Root As Int, First As Int, Second As Int, Third As Int, Fourth As Int, Max_Elements As Int)
+	Type Auth (User As String, Password As String)
+End Sub
+
+Sub AppStart (Args() As String)
+	srvr.Initialize("")		' Create the server
+	ConfigureServer			' Configure the server
+	srvr.Start				' Start the server
+	ShowWelcomeText
+	StartMessageLoop
+End Sub
+
+Private Sub ConfigureServer
+	ConfigureURL								' Configure URL
+	ConfigurePort								' Configure Server Port
+	ConfigureSSL								' Configure SSL Port
+	ConfigureElements							' Configure URL structures
+	ConfigureRoutes								' Add Server Handlers
+	ConfigureResponse							' Configure JSON Response
+	ConfigureBasicAuth							' Basic Authentication
+	ConfigureToken								' JWT Token
+	ConfigureCORS								' CrossOriginFilter
+	ConfigureStaticFiles 						' Configure Static Files Folder and Allow Browsing Permission
+	ConfigureTimezone							' Adjust timezone if server located in different timezone
+	ConfigureDatabase							' Configure Database and queries
+End Sub
+
+#Region ConfigureURL
+Public Sub ConfigureURL
+	' Read environment settings
+	Config = Utility.ReadMapFile(File.DirApp, "config.ini")
+	
+	' Setting global variables value
+	ROOT_PATH = Config.Get("ROOT_PATH")
+	DEFAULT_URL = Config.Get("ROOT_URL")
+	ROOT_URL = DEFAULT_URL & ":" & SERVER_PORT
+	Config.Put("ROOT_URL", ROOT_URL)
+End Sub
+#End Region
+
+#Region ConfigurePort
+Public Sub ConfigurePort
+	SERVER_PORT = Config.Get("ServerPort")
+	If SERVER_PORT = 0 Then
+		Log($"Server Port is not set!"$)
+		Log($"Application is terminated."$)
+		ExitApplication
+	End If
+	ROOT_URL = DEFAULT_URL
+	If SERVER_PORT <> 80 Then
+		ROOT_URL = ROOT_URL & ":" & SERVER_PORT
+	End If
+	Config.Put("ROOT_URL", ROOT_URL)
+	srvr.Port = SERVER_PORT	
+End Sub
+#End Region
+
+#Region ConfigureSSL
+Public Sub ConfigureSSL
+	SSL_PORT = Config.Get("SSLPort") : If IsNumber(SSL_PORT) = False Then SSL_PORT = 0
+	If SSL_PORT = 0 Then Return
+	
+	Dim KeyStoreDir As String = Config.Get("SSL_KEYSTORE_DIR")
+	Dim KeyStoreFile As String = Config.Get("SSL_KEYSTORE_FILE")
+	Dim KeyStorePassword As String = Config.Get("SSL_KEYSTORE_PASSWORD")
+	Dim ssl As SslConfiguration
+	
+	ssl.Initialize
+	ssl.SetKeyStorePath(KeyStoreDir, KeyStoreFile)
+	ssl.KeyStorePassword = KeyStorePassword
+	'ssl.KeyManagerPassword = ""
+	srvr.SetSslConfiguration(ssl, SSL_PORT)
+	'add filter to redirect all traffic from http to https (optional)
+	srvr.AddFilter("/*", "HttpsFilter", False)
+
+	ROOT_URL = DEFAULT_URL & ":" & SSL_PORT
+	Config.Put("ROOT_URL", ROOT_URL)
+End Sub
+#End Region
+
+#Region ConfigureElements
+Public Sub ConfigureElements
+	Element.Initialize
+	If ROOT_PATH <> "/" Then ' If webroot is using subdirectory
+		srvr.AddHandler(ROOT_PATH, "HomeHandler", False)
+		Element.Root = 1
+		Element.First = 2
+		Element.Second = 3
+		Element.Third = 4
+		Element.Fourth = 5
+		'Element.Max_Elements = 6
+		Element.Max_Elements = 5
+	Else
+		Element.Root = 0
+		Element.First = 1
+		Element.Second = 2
+		Element.Third = 3
+		Element.Fourth = 4
+		'Element.Max_Elements = 5
+		Element.Max_Elements = 4
+	End If
+End Sub
+#End Region
+
+#Region ConfigureRoutes
+Public Sub ConfigureRoutes
+	srvr.AddHandler(ROOT_PATH & "categories", "CategoryHandler", False)
+	srvr.AddHandler(ROOT_PATH & "category/*", "CategoryHandler", False)
+	srvr.AddHandler("/category/*", "CategoryHandler", False)
+	
+	srvr.AddHandler(ROOT_PATH & "products", "ProductHandler", False)
+	srvr.AddHandler(ROOT_PATH & "product/*", "ProductHandler", False)
+	
+	'srvr.AddHandler(ROOT_PATH & "accounts", "AuthenticationHandler", False)
+	srvr.AddHandler(ROOT_PATH & "account/*", "AuthenticationHandler", False)
+	srvr.AddHandler(ROOT_PATH & "password/*", "PasswordHandler", False)
+	
+	'srvr.AddHandler(ROOT_PATH & "upload/*", "UploadHandler", False)
+	
+	srvr.AddHandler(ROOT_PATH & "hello/*", "HelloHandler", False)
+	
+	srvr.AddHandler("", "HomeHandler", False)									' Add a home page
+	srvr.AddHandler("/help/*", "HelpHandler", False) 							' Add a help page
+	srvr.AddHandler("/connect", "ConnectHandler", False)
+	
+	srvr.AddHandler("/login", "AdminHandler", False)						' Add login page
+	srvr.AddHandler("/dashboard", "AdminHandler", False)					' Add dashboard page
+	srvr.AddHandler("/starter", "AdminHandler", False)						' Add starter page
+End Sub
+#End Region
+
+#Region ConfigureResponse
+Public Sub ConfigureResponse
+	' If set to True then response is returning JSON without standard structure
+	' Note: HelpHandler only works with standard JSON response format, unless explicitly set in handler
+	'SimpleResponse = True
+	'SimpleResponseFormat = "Map"
+End Sub
+#End Region
+
+#Region ConfigureCORS
+Public Sub ConfigureCORS
+	' Note: If you have enabled JWT then you may not need this
+	#Region Example
+	' allowedOrigins = "*" or "http://google.com"
+	' allowedMethods = "*" or "GET,POST,HEAD"
+	' allowedHeaders = "*" or "X-Requested-With,Content-Type,Accept,Origin"
+	' Eg. ConfigureCORS(ROOT_PATH & "user/*", "*", "", "")
+	' Reference: https://www.b4x.com/android/forum/threads/jetty-cross-origin-filter-to-be-added-to-jserver-library.85641/
+	#End Region
+	Dim Paths As List
+	Paths.Initialize
+	
+	Paths.Add(CreateMap("path": "/*", "origins": "*", "methods": "*", "headers": "*"))
+	
+	For Each Item As Map In Paths
+		Dim cors As CorsFilter
+		cors.Initialize(Item.Get("path"), _
+		CreateMap( _
+		"allowedOrigins": Item.Get("origins"), _
+		"allowedMethods": Item.Get("methods"), _
+		"allowedHeaders": Item.Get("headers"), _
+		"allowCredentials": "true", _
+		"preflightMaxAge": 1800, _
+		"chainPreflight": "false"))
+		cors.AddToServer(srvr)
+	Next
+End Sub
+#End Region
+
+#Region ConfigureStaticFiles
+Public Sub ConfigureStaticFiles
+	srvr.StaticFilesFolder = File.Combine(File.DirApp, "www")
+	srvr.SetStaticFilesOptions(CreateMap("dirAllowed": False))
+End Sub
+#End Region
+
+#Region ConfigureBasicAuth
+Public Sub ConfigureBasicAuth
+	Private Paths As List
+	Paths.Initialize
+	
+	Paths.AddAll(Array As String(ROOT_PATH & "account/*"))
+	Paths.AddAll(Array As String(ROOT_PATH & "password/*"))
+	
+	For Each path In Paths
+		'Log(path)
+		srvr.AddFilter(path, "BasicAuthFilter", False)
+	Next
+	Auth.User = "aeric"
+	Auth.Password = "secret"
+End Sub
+#End Region
+
+#Region ConfigureJWTToken
+Public Sub ConfigureToken
+	JWT.Initialize("HMAC256", "secret", False)
+End Sub
+#End Region
+
+#Region ConfigureDatabase
+Public Sub ConfigureDatabase
+	' Load database queries
+	If Config.Get("DbType").As(String).EqualsIgnoreCase("mysql") Then
+		Queries = Utility.ReadMapFile(File.DirApp, "queries-mysql.ini")
+	End If
+	If Config.Get("DbType").As(String).EqualsIgnoreCase("sqlite") Then
+		Queries = Utility.ReadMapFile(File.DirApp, "queries-sqlite.ini")
+	End If
+	
+	DB.Initialize			' Initialize a database connector object
+End Sub
+#End Region
+
+#Region ConfigureTimezone
+Public Sub ConfigureTimezone
+	TIMEZONE = Config.Get("TimeZone") : If IsNumber(TIMEZONE) = False Then TIMEZONE = 0
+End Sub
+#End Region
+
+#Region ShowWelcomeText
+Public Sub ShowWelcomeText
+	Config.Put("VERSION", VERSION)
+	Log($"Web API server (version = ${VERSION}) is running on port ${srvr.Port}"$)
+	Log($"Open the following URL from your web browser"$)
+	Log(ROOT_URL & ROOT_PATH)
+	' Open a web browser and navigate to: http://127.0.0.1:20000/v1/
+End Sub
+#End Region

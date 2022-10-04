@@ -1,0 +1,596 @@
+
+		<div class="row mt-3">
+            <div class="col-md-12">
+                <h6 class="text-uppercase text-primary"><strong>Category</strong></h6>
+            </div>
+		</div>
+		<button class="collapsible" style="background-color: #d4edda"><span class="badge badge-success p-1">GET</span> /api/categories</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>List all categories</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">Not required</label></p>					
+	                					
+					<p><strong>Response</strong><br/>
+	                200 Success<br/>404 Not Found<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="GET">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input disabled id="pathbtnCategoryGetCategories" class="form-control data-path" style="background-color: #F0F9FF; font-size: small" value="/api/categories"></p>	                
+										
+	                <button id="btnCategoryGetCategories" class="button btn-success col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnCategoryGetCategories" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnCategoryGetCategories" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<button class="collapsible" style="background-color: #d4edda"><span class="badge badge-success p-1">GET</span> /api/category/:cid</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Get a category by id</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">cid [Int]</label></p>					
+	                					
+					<p><strong>Response</strong><br/>
+	                200 Success<br/>404 Not Found<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="GET">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input  id="pathbtnCategoryGetCategory" class="form-control data-path" style="background-color: #FFFFFF; font-size: small" value="/api/category/:cid"></p>	                
+										
+	                <button id="btnCategoryGetCategory" class="button btn-success col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnCategoryGetCategory" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnCategoryGetCategory" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<button class="collapsible" style="background-color: #fff3cd"><span class="badge badge-warning p-1">POST</span> /api/category</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Add a new category</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">Not required</label></p>					
+	                Body: <p class="form-control" style="height: fit-content; background-color: #F0F9FF; font-size: small">{<br>&nbsp; "name": "category_name"<br>}</p>					
+					<p><strong>Response</strong><br/>
+	                201 Created<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="POST">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input disabled id="pathbtnCategoryPostCategory" class="form-control data-path" style="background-color: #F0F9FF; font-size: small" value="/api/category"></p>	                
+					Body: <textarea id="bodybtnCategoryPostCategory" rows="6" class="form-control data-body" style="background-color: #FFFFFF; font-size: small"></textarea></p>					
+	                <button id="btnCategoryPostCategory" class="button btn-warning col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnCategoryPostCategory" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnCategoryPostCategory" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<button class="collapsible" style="background-color: #cce5ff"><span class="badge badge-primary p-1">PUT</span> /api/category/:cid</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Update an existing category by id</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">cid [Int]</label></p>					
+	                Body: <p class="form-control" style="height: fit-content; background-color: #F0F9FF; font-size: small">{<br>&nbsp; "name": "category_name"<br>}</p>					
+					<p><strong>Response</strong><br/>
+	                200 Success<br/>404 Not Found<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="PUT">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input  id="pathbtnCategoryPutCategory" class="form-control data-path" style="background-color: #FFFFFF; font-size: small" value="/api/category/:cid"></p>	                
+					Body: <textarea id="bodybtnCategoryPutCategory" rows="6" class="form-control data-body" style="background-color: #FFFFFF; font-size: small"></textarea></p>					
+	                <button id="btnCategoryPutCategory" class="button btn-primary col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnCategoryPutCategory" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnCategoryPutCategory" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<button class="collapsible" style="background-color: #f8d7da"><span class="badge badge-danger p-1">DELETE</span> /api/category/:cid</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Delete a category by id</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">cid [Int]</label></p>					
+	                					
+					<p><strong>Response</strong><br/>
+	                200 Success<br/>404 Not Found<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="DELETE">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input  id="pathbtnCategoryDeleteCategory" class="form-control data-path" style="background-color: #FFFFFF; font-size: small" value="/api/category/:cid"></p>	                
+										
+	                <button id="btnCategoryDeleteCategory" class="button btn-danger col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnCategoryDeleteCategory" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnCategoryDeleteCategory" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<div class="row mt-3">
+            <div class="col-md-12">
+                <h6 class="text-uppercase text-primary"><strong>Product</strong></h6>
+            </div>
+		</div>
+		<button class="collapsible" style="background-color: #d4edda"><span class="badge badge-success p-1">GET</span> /api/products</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>List all products</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">Not required</label></p>					
+	                					
+					<p><strong>Response</strong><br/>
+	                200 Success<br/>404 Not Found<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="GET">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input disabled id="pathbtnProductGetProducts" class="form-control data-path" style="background-color: #F0F9FF; font-size: small" value="/api/products"></p>	                
+										
+	                <button id="btnProductGetProducts" class="button btn-success col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnProductGetProducts" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnProductGetProducts" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<button class="collapsible" style="background-color: #d4edda"><span class="badge badge-success p-1">GET</span> /api/product/:pid</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Get a product by id</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">pid [Int]</label></p>					
+	                					
+					<p><strong>Response</strong><br/>
+	                200 Success<br/>404 Not Found<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="GET">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input  id="pathbtnProductGetProduct" class="form-control data-path" style="background-color: #FFFFFF; font-size: small" value="/api/product/:pid"></p>	                
+										
+	                <button id="btnProductGetProduct" class="button btn-success col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnProductGetProduct" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnProductGetProduct" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<button class="collapsible" style="background-color: #fff3cd"><span class="badge badge-warning p-1">POST</span> /api/product</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Add a new product</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">Not required</label></p>					
+	                Body: <p class="form-control" style="height: fit-content; background-color: #F0F9FF; font-size: small">{<br>&nbsp; "cat_id": "category_id",<br>&nbsp; "code": "product_code",<br>&nbsp; "name": "product_name",<br>&nbsp; "price": "product_price"<br>}</p>					
+					<p><strong>Response</strong><br/>
+	                201 Created<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="POST">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input disabled id="pathbtnProductPostProduct" class="form-control data-path" style="background-color: #F0F9FF; font-size: small" value="/api/product"></p>	                
+					Body: <textarea id="bodybtnProductPostProduct" rows="6" class="form-control data-body" style="background-color: #FFFFFF; font-size: small"></textarea></p>					
+	                <button id="btnProductPostProduct" class="button btn-warning col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnProductPostProduct" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnProductPostProduct" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<button class="collapsible" style="background-color: #cce5ff"><span class="badge badge-primary p-1">PUT</span> /api/product/:pid</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Update an existing product by id</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">pid [Int]</label></p>					
+	                Body: <p class="form-control" style="height: fit-content; background-color: #F0F9FF; font-size: small">{<br>&nbsp; "cat_id": "category_id",<br>&nbsp; "code": "product_code",<br>&nbsp; "name": "product_name",<br>&nbsp; "price": "product_price"<br>}</p>					
+					<p><strong>Response</strong><br/>
+	                200 Success<br/>404 Not Found<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="PUT">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input  id="pathbtnProductPutProduct" class="form-control data-path" style="background-color: #FFFFFF; font-size: small" value="/api/product/:pid"></p>	                
+					Body: <textarea id="bodybtnProductPutProduct" rows="6" class="form-control data-body" style="background-color: #FFFFFF; font-size: small"></textarea></p>					
+	                <button id="btnProductPutProduct" class="button btn-primary col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnProductPutProduct" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnProductPutProduct" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<button class="collapsible" style="background-color: #f8d7da"><span class="badge badge-danger p-1">DELETE</span> /api/product/:pid</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Delete a product by id</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">pid [Int]</label></p>					
+	                					
+					<p><strong>Response</strong><br/>
+	                200 Success<br/>404 Not Found<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="DELETE">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input  id="pathbtnProductDeleteProduct" class="form-control data-path" style="background-color: #FFFFFF; font-size: small" value="/api/product/:pid"></p>	                
+										
+	                <button id="btnProductDeleteProduct" class="button btn-danger col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnProductDeleteProduct" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnProductDeleteProduct" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<div class="row mt-3">
+            <div class="col-md-12">
+                <h6 class="text-uppercase text-primary"><strong>Authentication</strong></h6>
+            </div>
+		</div>
+		<button class="collapsible" style="background-color: #fff3cd"><span class="badge badge-warning p-1">POST</span> /api/account/register</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Register a new account</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">Not required</label></p>					
+	                Body: <p class="form-control" style="height: fit-content; background-color: #F0F9FF; font-size: small">{<br>&nbsp; "eml": "email",<br>&nbsp; "pwd": "password",<br>&nbsp; "name": "name"<br>}</p>					
+					<p><strong>Response</strong><br/>
+	                201 Created<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="POST">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input disabled id="pathbtnAuthenticationPostRegisterAccount" class="form-control data-path" style="background-color: #F0F9FF; font-size: small" value="/api/account/register"></p>	                
+					Body: <textarea id="bodybtnAuthenticationPostRegisterAccount" rows="6" class="form-control data-body" style="background-color: #FFFFFF; font-size: small"></textarea></p>					
+	                <button id="btnAuthenticationPostRegisterAccount" class="button btn-warning col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnAuthenticationPostRegisterAccount" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnAuthenticationPostRegisterAccount" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<button class="collapsible" style="background-color: #d4edda"><span class="badge badge-success p-1">GET</span> /api/account/activate/:code</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Activate user by given activation code</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">code [String]</label></p>					
+	                					
+					<p><strong>Response</strong><br/>
+	                200 Success<br/>404 Not Found<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="GET">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input  id="pathbtnAuthenticationGetActivateUser" class="form-control data-path" style="background-color: #FFFFFF; font-size: small" value="/api/account/activate/:code?format=json"></p>	                
+										
+	                <button id="btnAuthenticationGetActivateUser" class="button btn-success col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnAuthenticationGetActivateUser" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnAuthenticationGetActivateUser" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<button class="collapsible" style="background-color: #fff3cd"><span class="badge badge-warning p-1">POST</span> /api/account/authenticate</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Authenticate account with email and password to return basic user profile and access token</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">Not required</label></p>					
+	                Body: <p class="form-control" style="height: fit-content; background-color: #F0F9FF; font-size: small">{<br>&nbsp; "email": "email",<br>&nbsp; "password": "password"<br>}</p>					
+					<p><strong>Response</strong><br/>
+	                201 Created<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="POST">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input disabled id="pathbtnAuthenticationPostAuthenticate" class="form-control data-path" style="background-color: #F0F9FF; font-size: small" value="/api/account/authenticate"></p>	                
+					Body: <textarea id="bodybtnAuthenticationPostAuthenticate" rows="6" class="form-control data-body" style="background-color: #FFFFFF; font-size: small"></textarea></p>					
+	                <button id="btnAuthenticationPostAuthenticate" class="button btn-warning col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnAuthenticationPostAuthenticate" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnAuthenticationPostAuthenticate" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<button class="collapsible" style="background-color: #fff3cd"><span class="badge badge-warning p-1">POST</span> /api/account/refresh-token</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Refresh access token using cookie</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">Not required</label></p>					
+	                Body: <p class="form-control" style="height: fit-content; background-color: #F0F9FF; font-size: small">{<br>&nbsp; "refresh-token": "refresh-token"<br>}</p>					
+					<p><strong>Response</strong><br/>
+	                201 Created<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="POST">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input disabled id="pathbtnAuthenticationPostRefreshToken" class="form-control data-path" style="background-color: #F0F9FF; font-size: small" value="/api/account/refresh-token"></p>	                
+					Body: <textarea id="bodybtnAuthenticationPostRefreshToken" rows="6" class="form-control data-body" style="background-color: #FFFFFF; font-size: small"></textarea></p>					
+	                <button id="btnAuthenticationPostRefreshToken" class="button btn-warning col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnAuthenticationPostRefreshToken" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnAuthenticationPostRefreshToken" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<div class="row mt-3">
+            <div class="col-md-12">
+                <h6 class="text-uppercase text-primary"><strong>Password</strong></h6>
+            </div>
+		</div>
+		<button class="collapsible" style="background-color: #fff3cd"><span class="badge badge-warning p-1">POST</span> /api/password/change</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Change password</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">Not required</label></p>					
+	                Body: <p class="form-control" style="height: fit-content; background-color: #F0F9FF; font-size: small">{<br>&nbsp; "eml": "user_email",<br>&nbsp; "old": "current_password",<br>&nbsp; "new": "new_password"<br>}</p>					
+					<p><strong>Response</strong><br/>
+	                201 Created<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="POST">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input disabled id="pathbtnPasswordPostChangePassword" class="form-control data-path" style="background-color: #F0F9FF; font-size: small" value="/api/password/change"></p>	                
+					Body: <textarea id="bodybtnPasswordPostChangePassword" rows="6" class="form-control data-body" style="background-color: #FFFFFF; font-size: small"></textarea></p>					
+	                <button id="btnPasswordPostChangePassword" class="button btn-warning col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnPasswordPostChangePassword" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnPasswordPostChangePassword" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<button class="collapsible" style="background-color: #fff3cd"><span class="badge badge-warning p-1">POST</span> /api/password/reset</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Reset password</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">Not required</label></p>					
+	                Body: <p class="form-control" style="height: fit-content; background-color: #F0F9FF; font-size: small">{<br>&nbsp; "eml": "user_email"<br>}</p>					
+					<p><strong>Response</strong><br/>
+	                201 Created<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="POST">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input disabled id="pathbtnPasswordPostResetPassword" class="form-control data-path" style="background-color: #F0F9FF; font-size: small" value="/api/password/reset"></p>	                
+					Body: <textarea id="bodybtnPasswordPostResetPassword" rows="6" class="form-control data-body" style="background-color: #FFFFFF; font-size: small"></textarea></p>					
+	                <button id="btnPasswordPostResetPassword" class="button btn-warning col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnPasswordPostResetPassword" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnPasswordPostResetPassword" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<button class="collapsible" style="background-color: #d4edda"><span class="badge badge-success p-1">GET</span> /api/password/confirm-reset/:code</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Confirm Reset password by given verification code</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">code [String]</label></p>					
+	                					
+					<p><strong>Response</strong><br/>
+	                200 Success<br/>404 Not Found<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="GET">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input  id="pathbtnPasswordGetConfirmReset" class="form-control data-path" style="background-color: #FFFFFF; font-size: small" value="/api/password/confirm-reset/:code?format=json"></p>	                
+										
+	                <button id="btnPasswordGetConfirmReset" class="button btn-success col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnPasswordGetConfirmReset" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnPasswordGetConfirmReset" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<div class="row mt-3">
+            <div class="col-md-12">
+                <h6 class="text-uppercase text-primary"><strong>Hello</strong></h6>
+            </div>
+		</div>
+		<button class="collapsible" style="background-color: #d4edda"><span class="badge badge-success p-1">GET</span> /api/hello/this-is-a-slug</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Return slug as message</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">slug [String]</label></p>					
+	                					
+					<p><strong>Response</strong><br/>
+	                200 Success<br/>404 Not Found<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="GET">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input  id="pathbtnHelloGetShowMessage" class="form-control data-path" style="background-color: #FFFFFF; font-size: small" value="/api/hello/this-is-a-slug"></p>	                
+										
+	                <button id="btnHelloGetShowMessage" class="button btn-success col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnHelloGetShowMessage" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnHelloGetShowMessage" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
+		<button class="collapsible" style="background-color: #d4edda"><span class="badge badge-success p-1">GET</span> /api/hello</button>
+        <div class="details">
+			<div class="row">
+	            <div class="col-md-3 p-3">
+	                <p>Return hello-world as message</p>
+					<p><strong>Parameters</strong><br/>
+	                Path: <label class="form-control" style="background-color: #F0F9FF; font-size: small">Not required</label></p>					
+	                					
+					<p><strong>Response</strong><br/>
+	                200 Success<br/>404 Not Found<br/>400 Bad Request<br/>422 Error Execute Query</p>
+	            </div>
+	            <div class="col-md-3 p-3">
+					<p>&nbsp;</p>
+	                <p></p>
+					<form id="form1" method="GET">
+					<p><strong>Parameters</strong><br/>
+	                Path: <input disabled id="pathbtnHelloGetShowHelloWorld" class="form-control data-path" style="background-color: #F0F9FF; font-size: small" value="/api/hello"></p>	                
+										
+	                <button id="btnHelloGetShowHelloWorld" class="button btn-success col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	            	</form>								
+				</div>
+				<div class="col-md-6 p-3">
+					<p>&nbsp;</p>
+					<p><strong>Response</strong>
+					<br/>					
+					<textarea rows="10" id="responsebtnHelloGetShowHelloWorld" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alertbtnHelloGetShowHelloWorld" class="alert alert-default" role="alert" style="display: block"></div>
+				</div>
+			</div>
+        </div>
