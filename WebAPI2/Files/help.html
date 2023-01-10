@@ -1,0 +1,31 @@
+<div class="content m-3">
+    <div class="p-2">
+        <div class="row">
+            <div class="mx-3" style="float: left">
+                <img src="$ROOT_URL$/assets/img/loading.webp" width="60px" height="60px" />
+            </div>
+            <div>
+                <h3 class="mb-0">$HOME_TITLE$</h3>
+                <span class="small">Version: $VERSION$</span>
+            </div>
+        </div>
+        @DOCVIEW@
+    </div>
+</div>
+
+<script>
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < coll.length; i++) {
+      coll[i].addEventListener("click", function() {
+        this.classList.toggle("active");
+        var details = this.nextElementSibling;
+        if (details.style.maxHeight){
+          details.style.maxHeight = null;
+      } else {
+          details.style.maxHeight = details.scrollHeight + "px";
+      } 
+  });
+  }
+</script>
