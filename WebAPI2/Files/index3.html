@@ -8,11 +8,11 @@
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css">
   <!-- IonIcons -->
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
   <!-- Theme style -->
-  <link rel="stylesheet" href="dist/css/adminlte.min.css">
+  <link rel="stylesheet" href="../dist/css/adminlte.min.css">
 </head>
 <!--
 `body` tag options:
@@ -34,10 +34,10 @@
       </li>
       <li class="nav-item d-none d-sm-inline-block">
         <!-- <a href="index3.html" class="nav-link">Home</a> -->
-        <a href="/" class="nav-link">Home</a>
+        <a href="/web/" class="nav-link">Home</a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="#" class="nav-link">Contact</a>
+        <a href="/web/change-password" class="nav-link">Change Password</a>
       </li>
     </ul>
 
@@ -75,7 +75,7 @@
           <a href="#" class="dropdown-item">
             <!-- Message Start -->
             <div class="media">
-              <img src="dist/img/user1-128x128.jpg" alt="User Avatar" class="img-size-50 mr-3 img-circle">
+              <img src="../dist/img/user1-128x128.jpg" alt="User Avatar" class="img-size-50 mr-3 img-circle">
               <div class="media-body">
                 <h3 class="dropdown-item-title">
                   Brad Diesel
@@ -91,7 +91,7 @@
           <a href="#" class="dropdown-item">
             <!-- Message Start -->
             <div class="media">
-              <img src="dist/img/user8-128x128.jpg" alt="User Avatar" class="img-size-50 img-circle mr-3">
+              <img src="../dist/img/user8-128x128.jpg" alt="User Avatar" class="img-size-50 img-circle mr-3">
               <div class="media-body">
                 <h3 class="dropdown-item-title">
                   John Pierce
@@ -107,7 +107,7 @@
           <a href="#" class="dropdown-item">
             <!-- Message Start -->
             <div class="media">
-              <img src="dist/img/user3-128x128.jpg" alt="User Avatar" class="img-size-50 img-circle mr-3">
+              <img src="../dist/img/user3-128x128.jpg" alt="User Avatar" class="img-size-50 img-circle mr-3">
               <div class="media-body">
                 <h3 class="dropdown-item-title">
                   Nora Silvester
@@ -156,6 +156,11 @@
         </a>
       </li>
       <li class="nav-item">
+        <a class="nav-link" data-widget="fullscreen" href="/web/logout" role="button">
+          <i class="fas fa-sign-out-alt"></i>
+        </a>
+      </li>
+      <li class="nav-item">
         <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">
           <i class="fas fa-th-large"></i>
         </a>
@@ -168,8 +173,8 @@
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
     <!-- <a href="index3.html" class="brand-link"> -->
-    <a href="/dashboard" class="brand-link">
-      <img src="dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+    <a href="/web/dashboard" class="brand-link">
+      <img src="../dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
       <span class="brand-text font-weight-light">AdminLTE 3</span>
     </a>
 
@@ -178,7 +183,7 @@
       <!-- Sidebar user panel (optional) -->
       <div class="user-panel mt-3 pb-3 mb-3 d-flex">
         <div class="image">
-          <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+          <img src="../dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
         </div>
         <div class="info">
           <a href="#" class="d-block">$user_name$</a>
@@ -204,14 +209,14 @@
                with font-awesome or any other icon font library -->
           <li class="nav-item">
             <!-- <a href="./index3.html" class="nav-link active"> -->
-            <a href="/dashboard" class="nav-link active">
+            <a href="/web/dashboard" class="nav-link active">
               <i class="nav-icon fas fa-tachometer-alt"></i>
               <p>Dashboard v3</p>
             </a>
           </li>
           <li class="nav-item">
             <!-- <a href="starter.html" class="nav-link"> -->
-            <a href="/starter" class="nav-link">
+            <a href="/web/starter" class="nav-link">
               <i class="far fa-circle nav-icon"></i>
               <p>Starter Page</p>
             </a>
@@ -253,7 +258,7 @@
           </div><!-- /.col -->
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="/">Home</a></li>
+              <li class="breadcrumb-item"><a href="/web/">Home</a></li>
               <li class="breadcrumb-item active">Dashboard v3</li>
             </ol>
           </div><!-- /.col -->
@@ -331,7 +336,7 @@
                   <tbody>
                   <tr>
                     <td>
-                      <img src="dist/img/default-150x150.png" alt="Product 1" class="img-circle img-size-32 mr-2">
+                      <img src="../dist/img/default-150x150.png" alt="Product 1" class="img-circle img-size-32 mr-2">
                       Some Product
                     </td>
                     <td>$13 USD</td>
@@ -350,7 +355,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <img src="dist/img/default-150x150.png" alt="Product 1" class="img-circle img-size-32 mr-2">
+                      <img src="../dist/img/default-150x150.png" alt="Product 1" class="img-circle img-size-32 mr-2">
                       Another Product
                     </td>
                     <td>$29 USD</td>
@@ -369,7 +374,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <img src="dist/img/default-150x150.png" alt="Product 1" class="img-circle img-size-32 mr-2">
+                      <img src="../dist/img/default-150x150.png" alt="Product 1" class="img-circle img-size-32 mr-2">
                       Amazing Product
                     </td>
                     <td>$1,230 USD</td>
@@ -388,7 +393,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <img src="dist/img/default-150x150.png" alt="Product 1" class="img-circle img-size-32 mr-2">
+                      <img src="../dist/img/default-150x150.png" alt="Product 1" class="img-circle img-size-32 mr-2">
                       Perfect Item
                       <span class="badge bg-danger">NEW</span>
                     </td>
@@ -536,18 +541,18 @@
 
 <!-- jQuery -->
 <!-- <script src="plugins/jquery/jquery.min.js"></script> -->
-<script src="assets/js/jquery.min.js"></script>
+<script src="../assets/js/jquery.min.js"></script>
 <!-- Bootstrap -->
 <!-- <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script> -->
-<script src="assets/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/bootstrap.bundle.min.js"></script>
 <!-- AdminLTE -->
-<script src="dist/js/adminlte.min.js"></script>
+<script src="../dist/js/adminlte.min.js"></script>
 
 <!-- OPTIONAL SCRIPTS -->
-<script src="plugins/chart.js/Chart.min.js"></script>
+<script src="../plugins/chart.js/Chart.min.js"></script>
 <!-- AdminLTE for demo purposes -->
-<!-- <script src="dist/js/demo.js"></script> -->
+<!-- <script src="../dist/js/demo.js"></script> -->
 <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
-<script src="dist/js/pages/dashboard3.js"></script>
+<script src="../dist/js/pages/dashboard3.js"></script>
 </body>
 </html>

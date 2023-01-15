@@ -28,9 +28,23 @@ Public Sub CheckAllowedVerb (SupportedMethods As List, Method As String) As Bool
 	Return True
 End Sub
 
-Public Sub GetAPIPathElements (Path As String) As String()
-	Dim part() As String = Regex.Split("\/", Path)
-	Return part
+Public Sub CheckInteger (Input As Object) As Boolean
+	Try
+		Return Input > -1
+	Catch
+		Log(LastException.Message)
+		Return False
+	End Try
+End Sub
+
+Public Sub GetApiPathElements (Path As String) As String()
+	Dim element() As String = Regex.Split("\/", Path)
+	Return element
+End Sub
+
+Public Sub GetUriElements (Uri As String) As String()
+	Dim element() As String = Regex.Split("\/", Uri)
+	Return element
 End Sub
 
 Public Sub BuildHtml (strHTML As String, Settings As Map) As String
@@ -42,6 +56,13 @@ End Sub
 Public Sub BuildView (strHTML As String, View As String) As String
 	' Replace @VIEW@ tag with new content
 	strHTML = strHTML.Replace("@VIEW@", View)
+	Return strHTML
+End Sub
+
+Public Sub BuildCsrfToken (strHTML As String, Content As String) As String
+	' Replace meta name="csrf-token" tag with new content
+	Dim strMetaTag As String = $"<meta name="csrf-token" content="${Content}">"$
+	strHTML = strHTML.Replace($"<meta name="csrf-token" content="">"$, strMetaTag)
 	Return strHTML
 End Sub
 
@@ -76,6 +97,7 @@ End Sub
 '	End If
 '	Return strHTML
 'End Sub
+
 Public Sub BuildScript (strHTML As String, Script As String) As String
 	' Replace @SCRIPT@ tag with new content
 	strHTML = strHTML.Replace("@SCRIPT@", Script)
@@ -211,11 +233,10 @@ Public Sub RequestMultipartData (Request As ServletRequest) As Map
 	Return data
 End Sub
 
-Public Sub RequestBasicAuth (req As ServletRequest) As Map
+Public Sub RequestBasicAuth (Auths As List) As Map
 	Dim client As Map = CreateMap("CLIENT_ID": "", "CLIENT_SECRET": "")
-	Dim auths As List = req.GetHeaders("Authorization")
-	If auths.Size > 0 Then
-		Dim auth As String = auths.Get(0)
+	If Auths.Size > 0 Then
+		Dim auth As String = Auths.Get(0)
 		If auth.StartsWith("Basic") Then
 			Dim b64 As String = auth.SubString("Basic ".Length)
 			Dim su As StringUtils
@@ -231,6 +252,7 @@ Public Sub RequestBasicAuth (req As ServletRequest) As Map
 	Return client
 End Sub
 
+' Get Access Token from Header
 Public Sub RequestAccessToken (req As ServletRequest) As String
 	Dim token As String
 '	Dim jo As JavaObject = req
@@ -246,6 +268,39 @@ Public Sub RequestAccessToken (req As ServletRequest) As String
 	End If
 	Return token
 End Sub
+
+' Get Refresh Token from Cookie
+'Public Sub RequestRefreshToken (req As ServletRequest) 'As String
+''	Dim Munchies() As Cookie = req.GetCookies
+''	Log(Munchies)
+'	Log(req.GetCookies)
+''	Dim DeliciousCookie As List = Munchies
+''	For Each DeliciousCookie In Munchies
+''		Log(DeliciousCookie)
+''	Next
+''	For i = 0 To Munchies.Length - 1
+''		Log(Munchies(i))
+''	Next
+''	For i = 0 To DeliciousCookie.Size - 1
+''		Log(DeliciousCookie.Get(i))
+''	Next
+'	'Return Cookie
+'End Sub
+
+Public Sub RequestBearerToken (req As ServletRequest) As String
+	Dim Auths As List = req.GetHeaders("Authorization")
+	If Auths.Size > 0 Then
+		Dim auth As String = Auths.Get(0)
+		If auth.StartsWith("Bearer") Then
+			Return auth.SubString("Bearer ".Length)			
+		End If
+	End If
+	Return ""
+End Sub
+
+'Public Sub RequestCookie (req As ServletRequest) As Cookie
+'	Return req.GetCookies
+'End Sub
 
 Public Sub ReturnCookie (key As String, value As String, max_age As Int, http_only As Boolean, resp As ServletResponse)
 	Dim session_cookie As Cookie
@@ -305,12 +360,16 @@ Public Sub ReturnAuthorizationRequired (resp As ServletResponse)
 	ReturnError("Authentication required", 401, resp)
 End Sub
 
+Public Sub ReturnTokenExpired (resp As ServletResponse)
+	ReturnError("Token Expired", 401, resp)
+End Sub
+
 Public Sub ReturnMethodNotAllow (resp As ServletResponse)
 	ReturnError("Method Not Allowed", 405, resp)
 End Sub
 
-Public Sub ReturnErrorInvalidInput (resp As ServletResponse)
-	ReturnError("Error Invalid Input", 400, resp)
+Public Sub ReturnErrorUnprocessableEntity (resp As ServletResponse)
+	ReturnError("Error Unprocessable Entity", 422, resp)
 End Sub
 
 Public Sub ReturnErrorCredentialNotProvided (resp As ServletResponse)
@@ -419,26 +478,10 @@ Public Sub ReturnSimpleHttpResponse (mess As HttpResponseMessage, SimpleResponse
 	End If
 	resp.ContentType = mess.ContentType
 	
-'	Dim Map1 As Map
-'	Map1.Initialize
-'	'Map1.Put("m", mess.ResponseMessage)
-'	'Map1.Put("e", mess.ResponseError)
-'	'Map1.Put("s", mess.ResponseString)
-'	Map1.Put("r", mess.ResponseData)
-'	'Map1.Put("a", mess.ResponseCode)
-'	Select Main.SimpleResponseFormat
-'		Case "Map"
-'			resp.Write(Map2Json(Map1))
-'		Case Else ' "List"
-'			Dim Result As List
-'			Result.Initialize
-'			Result.Add(Map1)
-'			resp.Write(List2Json(Result))
-'	End Select
-	
 	Select SimpleResponseFormat
 		Case "Map"
-			resp.Write(Map2Json(mess.ResponseData.Get(0)))
+			'resp.Write(Map2Json(mess.ResponseData.Get(0)))
+			resp.Write(Map2Json(CreateMap("data": mess.ResponseData)))
 		Case Else ' "List"
 			resp.Write(List2Json(mess.ResponseData))
 	End Select
@@ -478,15 +521,8 @@ Public Sub ReturnHttpResponse (mess As HttpResponseMessage, resp As ServletRespo
 		resp.Status = mess.ResponseCode
 	End If
 	resp.ContentType = mess.ContentType
+	
 	Dim Map1 As Map = CreateMap("s": mess.ResponseString, "a": mess.ResponseCode, "r": mess.ResponseData, "m": mess.ResponseMessage, "e": mess.ResponseError)
-	
-	' Send token to client as cookie
-'	Dim munchies As Cookie
-'	munchies.Initialize(Main.PREFIX & "token", mess.ResponseData.Get(0).As(Map).Get("token") )
-'	munchies.HttpOnly = True
-'	munchies.MaxAge = 15 * 60 ' seconds
-'	resp.AddCookie(munchies)
-	
 	resp.Write(Map2Json(Map1))
 End Sub
 
@@ -510,50 +546,31 @@ Public Sub ReturnHtmlPageNotFound (resp As ServletResponse)
 	ReturnHtml(str, resp)
 End Sub
 
-Public Sub MD5 (str As String) As String
-	Dim data() As Byte
-	Dim MD As MessageDigest
-	Dim BC As ByteConverter
-
-	data = BC.StringToBytes(str, "UTF8")
-	data = MD.GetMessageDigest(data, "MD5")
-	Return BC.HexFromBytes(data).ToLowerCase
+' // Source: http://www.b4x.com/android/forum/threads/validate-a-correctly-formatted-email-address.39803/
+Public Sub Validate_Email (EmailAddress As String) As Boolean
+	Dim MatchEmail As Matcher = Regex.Matcher("^(?i)[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])$", EmailAddress)
+ 
+	If MatchEmail.Find = True Then
+		'Log(MatchEmail.Match)
+		Return True
+	Else
+		'Log("Oops, please double check your email address...")
+		Return False
+	End If
 End Sub
 
-Public Sub SHA1 (str As String) As String
-	Dim data() As Byte
-	Dim MD As MessageDigest
-	Dim BC As ByteConverter
-
-	data = BC.StringToBytes(str, "UTF8")
-	data = MD.GetMessageDigest(data, "SHA-1")
-	Return BC.HexFromBytes(data).ToLowerCase
-End Sub
-
-Public Sub SHA256 (str As String) As String
-	Dim data() As Byte
-	Dim MD As MessageDigest
-	Dim BC As ByteConverter
-
-	data = BC.StringToBytes(str, "UTF8")
-	data = MD.GetMessageDigest(data, "SHA-256")
-	Return BC.HexFromBytes(data).ToLowerCase
-End Sub
-
-Public Sub HMACSHA256 (str As String, key As String) As String
-	Dim data() As Byte
-	Dim MC As Mac
-	Dim KG As KeyGenerator
-	Dim BC As ByteConverter
-	
-	KG.Initialize("HMACSHA256")
-	KG.KeyFromBytes(key.GetBytes("UTF8"))
-	
-	MC.Initialise("HMACSHA256", KG.Key)
-	MC.Update(str.GetBytes("UTF8"))
-	
-	data = MC.Sign
-	Return BC.HexFromBytes(data).ToLowerCase
+' Check anti csrf-token variable sent from client in request header is same as variable stored in server session  
+Public Sub ValidateCsrfToken (session_name As String, header_name As String, req As ServletRequest) As Boolean
+	Dim headers As List = req.GetHeaders(header_name)
+	'Log(headers.Get(0))
+		
+	If req.GetSession.GetAttribute(session_name).As(String).EqualsIgnoreCase(headers.Get(0)) Then
+		'Log("matched")
+		Return True
+	Else
+		'Log("unmatched!")
+		Return False
+	End If
 End Sub
 
 Public Sub GUID As String
@@ -568,13 +585,6 @@ Public Sub GUID As String
 		Next
 	Next
 	Return sb.ToString
-End Sub
-
-Public Sub RandomString As String
-	RndSeed(DateTime.Now)
-	Dim gen As String = Rnd(1000, 9999)
-	gen = gen & Rnd(10000, 99999)
-	Return MD5( gen )
 End Sub
 
 Public Sub EncodeBase64 (data() As Byte) As String
@@ -596,11 +606,3 @@ Public Sub DecodeURL (str As String) As String
 	Dim su As StringUtils
 	Return su.DecodeUrl(str, "UTF8")
 End Sub
-
-'Public Sub ResizeImage
-'	Private img As ImageScaler
-'	img.Initialize
-'	img.ResizeImage(File.DirApp, File.DirApp, "Sonic.jpg", 200, 200, "AUTOMATIC")
-'	img.ResizeImage(File.DirApp, File.DirApp, "Puss.png", 300, 300, "FIT_TO_WIDTH")
-'	img.ResizeImage(File.DirApp, File.DirApp, "Logo.bmp", 150, 150, "FIT_TO_HEIGHT")
-'End Sub

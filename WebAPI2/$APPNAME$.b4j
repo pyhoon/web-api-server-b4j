@@ -1,19 +1,27 @@
 ﻿AppType=StandardJava
 Build1=Default,b4j.webapi
-File1=category.html
-File2=help.html
-File3=index.html
-File4=index3.html
-File5=login.html
-File6=main.html
-File7=starter.html
+File1=account.html
+File10=register.html
+File11=starter.html
+File2=category.html
+File3=change-password.html
+File4=forgot-password.html
+File5=help.html
+File6=index.html
+File7=index3.html
+File8=login.html
+File9=main.html
 FileGroup1=Default Group
+FileGroup10=Default Group
+FileGroup11=Default Group
 FileGroup2=Default Group
 FileGroup3=Default Group
 FileGroup4=Default Group
 FileGroup5=Default Group
 FileGroup6=Default Group
 FileGroup7=Default Group
+FileGroup8=Default Group
+FileGroup9=Default Group
 Group=Default Group
 Library1=byteconverter
 Library10=jstringutils
@@ -25,34 +33,34 @@ Library6=jrandomaccessfile
 Library7=jserver
 Library8=json
 Library9=jsql
-Module1=AccountHandler
-Module10=HelpHandler
-Module11=HomeHandler
-Module12=HttpsFilter
-Module13=JSONWebToken
+Module1=AccountController
+Module10=HomeController
+Module11=HttpsFilter
+Module12=JSONWebToken
+Module13=JWTAuthFilter
 Module14=MiniORM
-Module15=PasswordHandler
-Module16=ProductHandler
-Module17=TestHandler
-Module18=TokenAuthFilter
-Module19=Utility
-Module2=AdminHandler
+Module15=PasswordController
+Module16=PostController
+Module17=TokenAuthFilter
+Module18=Utility
+Module19=WebHandler
+Module2=ApiHandler
 Module20=WebUtils
-Module3=AuthenticationHandler
-Module4=BasicAuthFilter
-Module5=CategoryHandler
-Module6=ConnectHandler
-Module7=CorsFilter
-Module8=DataConnector
-Module9=HelloHandler
-NumberOfFiles=7
+Module3=BasicAuthFilter
+Module4=CategoryController
+Module5=CorsFilter
+Module6=DataConnector
+Module7=Encryption
+Module8=HelloController
+Module9=HelpHandler
+NumberOfFiles=11
 NumberOfLibraries=10
 NumberOfModules=20
 Version=9.8
 @EndOfDesignText@
-' Name: 			REST API Server Template
+' Name: 			Web API Server Template (Blog Edition)
 ' Description: 		Non-UI application (console / server application)
-' Version: 			2.00 (Beta 2)
+' Version: 			2.00 (Beta 3)
 
 'Click to create Publish.zip: ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&Args=-cMf&Args=Publish.zip&Args=www&Args=*.jar&Args=*.ini&Args=*.db&Args=help.html&Args=help.js&Args=comments.txt
 
@@ -64,8 +72,9 @@ Version=9.8
 #Region AdditionalJar
 ' MySQL connector
 ' #AdditionalJar: mysql-connector-java-5.1.49
+'#AdditionalJar: mysql-connector-java-8.0.30
 ' SQLite connector
-#AdditionalJar: sqlite-jdbc-3.39.3.0
+ #AdditionalJar: sqlite-jdbc-3.39.3.0
 ' SQL Express
 '#AdditionalJar: jtds-1.3.2
 
@@ -82,62 +91,71 @@ Version=9.8
 
 Sub Process_Globals
 	Public srvr As Server
+	Public AUTH As AUTH
 	Public DB As DataConnector
 	Public JAT As JSONWebToken
 	Public JRT As JSONWebToken
 	Public ROOT_URL As String
 	Public ROOT_PATH As String
-	Public API_PATH As String
+	Private API_PATH As String
+	Public API_NAME As String
+	Public API_VERSIONING As String
 	Public SERVER_PORT As Int
 	Public SSL_PORT As Int
 	Public TIMEZONE As Int
 	Public SERVER_TIME As String
-	Public Config As Map = CreateMap()
-	Public Queries As Map
+	Public Config As Map
 	Public Element As Element
+	Public Controllers As List
 	Public SimpleResponse As Boolean
 	Public SimpleResponseFormat As String
 	Public AUTHENTICATION_TYPE As String
-	Public SESSION_ENABLED As Boolean 
-	Public CLIENT_ID As String
-	Public CLIENT_SECRET As String
-	Public const VERSION As String = "2.00 beta 2"
+	Public SESSIONS_ENABLED As Boolean
+	Public COOKIES_ENABLED As Boolean
+	Public COOKIES_EXPIRATION As Long
+	Public const VERSION As String = "2.00 beta 3"
 	Public const PREFIX As String = "WebAPI_v200_"
-	Type Element (Root As Int, Path As Int, Api As Int, First As Int, Second As Int, Third As Int, Fourth As Int, Items As Map, Max_Elements As Int)
+	Public Secret As Secret
+	Type Secret (Access_Token As String, Refresh_Token As String)
+	Type ApiElement (Name As String, Versioning As Boolean)
+	Type WebElement (Root As String, Path As String)
+	Type Element (Web As WebElement, Api As ApiElement, Elements As List, PathIndex As Int, ApiVersionIndex As Int, ApiControllerIndex As Int, WebControllerIndex As Int)
 End Sub
 
 Sub AppStart (Args() As String)
+	' Read environment settings
+	Config = Utility.ReadMapFile(File.DirApp, "config.ini")
+	Config.Put("VERSION", VERSION)
+	
 	srvr.Initialize("")		' Create the server
 	ConfigureServer			' Configure the server
 	srvr.Start				' Start the server
 	ShowWelcomeText
-	
-	'Log( Utility.MD5("test") )
-	'Log( Utility.SHA1("test") )
-	'Log( Utility.SHA256("test") )
-	'Log( Utility.HMACSHA256("test", "key") )
-	'Utility.ResizeImage
 	StartMessageLoop
 End Sub
 
 Private Sub ConfigureServer
-	' Read environment settings
-	Config = Utility.ReadMapFile(File.DirApp, "config.ini")
-	
-	ConfigurePort								' Configure Server Port
-	'ConfigureSSL								' Configure SSL Port
-	ConfigureURL								' Configure URL
-	ConfigureElements							' Configure URL structures
-	ConfigureRoutes								' Add Server Handlers
-	ConfigureResponse							' Configure JSON Response
-	ConfigureSessionAuth						' Session Authentication with Cookie
-	'ConfigureBasicAuth							' Basic Authentication
-	'ConfigureTokenAuth							' Token Authentication
-	ConfigureJWTAuth							' JSON Web Token Authentication
+	ConfigurePort								' Server Port
+	ConfigureSSL								' SSL Port
 	ConfigureCORS								' CrossOriginFilter
 	ConfigureStaticFiles 						' Configure Static Files Folder and Allow Browsing Permission
 	ConfigureTimezone							' Adjust timezone if server located in different timezone
-	ConfigureDatabase							' Configure Database and queries
+	ConfigureDatabase							' Database connection and default queries
+	ConfigurePaths								' App URL / Paths
+	ConfigureElements							' Pretty URL structures / hierarchy
+	ConfigureHandlers							' Server Handlers
+	ConfigureControllers						' App Controllers
+	ConfigureSessions							' Enable Sessions
+	ConfigureCookies							' Enable Cookies
+	'ConfigureTokenAuth							' Enable Token Authentication
+	'ConfigureBasicAuth							' Enable Basic Authentication Filter
+	ConfigureJWTAuth							' Enable JSON Web Token Authentication
+	'ConfigureResponse							' JSON Response Format
+	
+	' For Basic or JWT Auth
+	AUTH.CLIENT_ID = "web-202201151435-web-api-200.computerise.net"		' username
+	AUTH.CLIENT_SECRET = "DE005AC6-58DA-254F-B16D-693D63E7275D"			' password
+	If AUTHENTICATION_TYPE <> "" Then LogColor($"Authentication: ${AUTHENTICATION_TYPE}"$, -65536)
 End Sub
 
 #Region ConfigurePort
@@ -165,136 +183,11 @@ Public Sub ConfigureSSL
 	ssl.Initialize
 	ssl.SetKeyStorePath(KeyStoreDir, KeyStoreFile)
 	ssl.KeyStorePassword = KeyStorePassword
-	'ssl.KeyManagerPassword = ""
+'	ssl.KeyManagerPassword = ""
 	srvr.SetSslConfiguration(ssl, SSL_PORT)
+	
 	'add filter to redirect all traffic from http to https (optional)
 	srvr.AddFilter("/*", "HttpsFilter", False)
-End Sub
-#End Region
-
-#Region ConfigureURL
-Public Sub ConfigureURL
-	ROOT_URL = Config.Get("ROOT_URL")
-	ROOT_PATH = Config.Get("ROOT_PATH")
-	API_PATH = Config.Get("API_PATH")
-	
-	Log(ROOT_URL)
-	Log(ROOT_PATH)
-	Log(API_PATH)
-	
-	If SERVER_PORT <> 80 Then
-		ROOT_URL = ROOT_URL & ":" & SERVER_PORT
-	End If
-	Config.Put("ROOT_URL", ROOT_URL)
-End Sub
-#End Region
-
-#Region ConfigureElements
-Public Sub ConfigureElements
-	Element.Initialize
-	Element.Items.Initialize
-	
-	Dim Path_Elements As Int
-	Dim Api_Elements As Int
-	
-	If ROOT_PATH = "" Then ROOT_PATH = "/"
-	If ROOT_PATH <> "/" Then
-		If ROOT_PATH.StartsWith("/") = False Then ROOT_PATH = "/" & ROOT_PATH
-		If ROOT_PATH.EndsWith("/") = False Then ROOT_PATH = ROOT_PATH & "/"
-		Dim Root_Elem() As String = Regex.Split("\/", ROOT_PATH)
-		Path_Elements = Root_Elem.Length - 1
-		Config.Put("ROOT_PATH", ROOT_PATH)
-	End If
-	
-	If API_PATH = "" Then API_PATH = "/"
-	If API_PATH <> "/" Then
-		API_PATH = API_PATH.Replace("//", "/")
-		If API_PATH.StartsWith("/") Then 
-			API_PATH = API_PATH.SubString(1)
-		End If
-		Dim Api_Elem() As String = Regex.Split("\/", API_PATH)
-		Api_Elements = Api_Elem.Length
-		If API_PATH.EndsWith("/") = False Then API_PATH = API_PATH & "/"
-		Config.Put("API_PATH", API_PATH)
-	End If
-	
-	Element.Root = 0 ' Root_Path_Elements
-	Element.Path = Path_Elements
-	Element.Api = Element.Path + Api_Elements
-	Element.First = Element.Path + Api_Elements + 1
-	Element.Second = Element.Path + Api_Elements + 2
-	Element.Third = Element.Path + Api_Elements + 3
-	Element.Fourth = Element.Path + Api_Elements + 4
-	Element.Items = CreateMap("Root": Element.Root, "Path": Element.Path, "Api": Element.Api, "First": Element.First, "Second": Element.Second, "Third": Element.Third, "Fourth": Element.Fourth)
-	Element.Max_Elements = Element.Fourth
-	
-	'For Each item As String In Element.Items.Keys
-	'	Log($"${item} -> ${Element.Items.Get(item)}"$)
-	'Next
-	'Log(ROOT_URL & ROOT_PATH & API_PATH)
-	
-'	If ROOT_PATH <> "/" Then ' If webroot is using subdirectory
-'		'srvr.AddHandler(ROOT_PATH, "HomeHandler", False)
-'		Element.Root = 1
-'		Element.First = 2
-'		Element.Second = 3
-'		Element.Third = 4
-'		Element.Fourth = 5
-'		'Element.Max_Elements = 6
-'		Element.Max_Elements = 5
-'	Else
-'		Element.Root = 0
-'		Element.First = 1
-'		Element.Second = 2
-'		Element.Third = 3
-'		Element.Fourth = 4
-'		'Element.Max_Elements = 5
-'		Element.Max_Elements = 4
-'	End If
-End Sub
-#End Region
-
-#Region ConfigureRoutes
-Public Sub ConfigureRoutes
-	srvr.AddHandler("", "HomeHandler", False)								' Add a home page
-	If ROOT_PATH <> "/" Then ' If webroot is using subdirectory
-		srvr.AddHandler(ROOT_PATH, "HomeHandler", False)					' Add a home page
-		' support url without trailing slash
-		Dim path As String = ROOT_PATH
-		If path.EndsWith("/") Then path = path.SubString2(0, path.Length - 1)
-		srvr.AddHandler(path, "HomeHandler", False)							' Add a home page
-	End If
-	'srvr.AddHandler(ROOT_PATH & API_PATH, "HomeHandler", False)			' Add a home page
-	srvr.AddHandler(ROOT_PATH & "help/*", "HelpHandler", False) 			' Add a help page
-	srvr.AddHandler(ROOT_PATH & "connect", "ConnectHandler", False)
-	
-	srvr.AddHandler(ROOT_PATH & "login", "AdminHandler", False)				' Add login page
-	srvr.AddHandler(ROOT_PATH & "dashboard", "AdminHandler", False)			' Add dashboard page
-	srvr.AddHandler(ROOT_PATH & "starter", "AdminHandler", False)			' Add starter page
-	
-	srvr.AddHandler(ROOT_PATH & "account/*", "AccountHandler", False)
-	srvr.AddHandler(ROOT_PATH & "password/*", "PasswordHandler", False)
-	srvr.AddHandler(ROOT_PATH & "category/*", "CategoryHandler", False)
-	
-	srvr.AddHandler(ROOT_PATH & API_PATH & "authenticate/*", "AuthenticationHandler", False)
-	srvr.AddHandler(ROOT_PATH & API_PATH & "account/*", "AccountHandler", False)
-	srvr.AddHandler(ROOT_PATH & API_PATH & "password/*", "PasswordHandler", False)
-	srvr.AddHandler(ROOT_PATH & API_PATH & "categories", "CategoryHandler", False)
-	srvr.AddHandler(ROOT_PATH & API_PATH & "category/*", "CategoryHandler", False)
-	srvr.AddHandler(ROOT_PATH & API_PATH & "products", "ProductHandler", False)
-	srvr.AddHandler(ROOT_PATH & API_PATH & "product/*", "ProductHandler", False)
-	
-	'srvr.AddHandler(ROOT_PATH & API_PATH & "upload/*", "UploadHandler", False)
-	'srvr.AddHandler(ROOT_PATH & API_PATH & "hello/*", "HelloHandler", False)
-End Sub
-#End Region
-
-#Region ConfigureResponse
-Public Sub ConfigureResponse
-	' If set to True then response is returning JSON without standard structure
-	' Note: HelpHandler only works with standard JSON response format, unless explicitly set in handler
-	'SimpleResponse = True
-	'SimpleResponseFormat = "Map"
 End Sub
 #End Region
 
@@ -305,7 +198,7 @@ Public Sub ConfigureCORS
 	' allowedOrigins = "*" or "http://google.com"
 	' allowedMethods = "*" or "GET,POST,HEAD"
 	' allowedHeaders = "*" or "X-Requested-With,Content-Type,Accept,Origin"
-	' Eg. ConfigureCORS(ROOT_PATH & "user/*", "*", "", "")
+	' Eg. ConfigureCORS(ROOT_PATH & "account/*", "*", "", "")
 	' Reference: https://www.b4x.com/android/forum/threads/jetty-cross-origin-filter-to-be-added-to-jserver-library.85641/
 	#End Region
 	Dim Paths As List
@@ -335,104 +228,239 @@ Public Sub ConfigureStaticFiles
 End Sub
 #End Region
 
-#Region ConfigureSessionAuth
-' Use Server Session and Cookie
-Public Sub ConfigureSessionAuth
-	'AUTHENTICATION_TYPE = "SESSION AUTHENTICATION"
-	SESSION_ENABLED = True
-End Sub
-#End Region
-
-#Region ConfigureBasicAuth
-' Read Client ID and Client Secret from ClientMaster but this data will not expired
-' Suitable for Local Web App
-Public Sub ConfigureBasicAuth
-	Private Paths As List
-	Paths.Initialize
-	
-	'Paths.AddAll(Array As String(ROOT_PATH & "account/*"))
-	'Paths.AddAll(Array As String(ROOT_PATH & "password/*"))
-	'Paths.AddAll(Array As String(ROOT_PATH & "help/*"))
-	Paths.Add(ROOT_PATH & "dashboard")
-	'Paths.AddAll(Array As String(ROOT_PATH & "category"))
-	'Paths.Add(ROOT_PATH & "category/*")
-	Paths.Add(ROOT_PATH & "product/*")
-	
-	For Each path In Paths
-		'Log(path)
-		srvr.AddFilter(path, "BasicAuthFilter", False)
-	Next
-	
-	AUTHENTICATION_TYPE = "BASIC AUTHENTICATION"
-End Sub
-#End Region
-
-#Region ConfigureTokenAuth
-Public Sub ConfigureTokenAuth
-	Private Paths As List
-	Paths.Initialize
-	
-	'Paths.AddAll(Array As String(ROOT_PATH & "account/*"))
-	'Paths.AddAll(Array As String(ROOT_PATH & "password/*"))
-	'Paths.AddAll(Array As String(ROOT_PATH & "help/*"))
-	Paths.Add(ROOT_PATH & "dashboard")
-	Paths.Add(ROOT_PATH & "category/*")
-	Paths.Add(ROOT_PATH & "product/*")
-	
-	For Each path In Paths
-		'Log(path)
-		srvr.AddFilter(path, "TokenAuthFilter", False)
-	Next
-	
-	AUTHENTICATION_TYPE = "TOKEN AUTHENTICATION"
-End Sub
-#End Region
-
-#Region ConfigureJWTAuth
-Public Sub ConfigureJWTAuth
-	' Initialize JSON Web Token objects
-	' Question: If server restart, this will reset all secrets
-	Dim access_token_secret As String = "78C51C48-157B-78E1-8CED-FF9B12DAAF05" ' Utility.GUID 'Utility.RandomString
-	Dim refresh_token_secret As String = "8D1AB30B-7660-1A42-82CA-2B9E02C18CD0" ' Utility.GUID 'Utility.RandomString
-	
-	JAT.Initialize("HMAC256", access_token_secret, False)
-	JAT.Issuer = ROOT_URL 'Config.Get("APP_TRADEMARK")
-	
-	JRT.Initialize("HMAC256", refresh_token_secret, False)
-	JRT.Issuer = ROOT_URL 'Config.Get("APP_TRADEMARK")
-	
-	' todo: temporary hard code
-	'CLIENT_ID = "WebAPI200"
-	'CLIENT_SECRET = "45D1CE22-650D-9A0E-6338-90C83BFB934F"
-	
-	AUTHENTICATION_TYPE = "JSON WEB TOKEN AUTHENTICATION"
-End Sub
-#End Region
-
-#Region ConfigureDatabase
-Public Sub ConfigureDatabase
-	' Load database queries
-	If Config.Get("DbType").As(String).EqualsIgnoreCase("mysql") Then
-		Queries = Utility.ReadMapFile(File.DirApp, "queries-mysql.ini")
-	End If
-	If Config.Get("DbType").As(String).EqualsIgnoreCase("sqlite") Then
-		Queries = Utility.ReadMapFile(File.DirApp, "queries-sqlite.ini")
-	End If
-	
-	DB.Initialize			' Initialize a database connector object
-End Sub
-#End Region
-
 #Region ConfigureTimezone
 Public Sub ConfigureTimezone
 	TIMEZONE = Config.Get("TimeZone") : If IsNumber(TIMEZONE) = False Then TIMEZONE = 0
 End Sub
 #End Region
 
+#Region ConfigureDatabase
+Public Sub ConfigureDatabase
+	' Initialize a database connector object
+	DB.Initialize(Config)
+End Sub
+#End Region
+
+#Region ConfigurePaths
+Public Sub ConfigurePaths
+	ROOT_URL = Config.Get("ROOT_URL")
+	If SERVER_PORT <> 80 Then
+		ROOT_URL = ROOT_URL & ":" & SERVER_PORT
+	End If
+	If SSL_PORT <> 0 Then
+		' Update ROOT_URL
+		ROOT_URL = ROOT_URL.Replace("http:", "https:")
+		ROOT_URL = ROOT_URL.Replace($":${SERVER_PORT}"$, $":${SSL_PORT}"$)
+	End If
+	Config.Put("ROOT_URL", ROOT_URL)
+	
+	ROOT_PATH = Config.Get("ROOT_PATH")
+	If ROOT_PATH = "" Then ROOT_PATH = "/"
+	If ROOT_PATH <> "/" Then
+		If ROOT_PATH.StartsWith("/") = False Then ROOT_PATH = "/" & ROOT_PATH
+		If ROOT_PATH.EndsWith("/") = False Then ROOT_PATH = ROOT_PATH & "/"
+	End If
+	Config.Put("ROOT_PATH", ROOT_PATH)
+	
+	API_NAME = Config.Get("API_NAME")
+	If API_NAME.Contains("/") Then
+		Log($"API name cannot contains forward slash symbol!"$)
+		Log($"Application is terminated."$)
+		ExitApplication
+		Return
+	End If
+	API_PATH = IIf(API_NAME.Length > 0, API_NAME & "/", "")
+	API_VERSIONING = Config.Get("API_VERSIONING").As(String).ToUpperCase
+End Sub
+#End Region
+
+#Region ConfigureElements
+' Configure this after ConfigurePaths
+Public Sub ConfigureElements
+	Element.Initialize
+	Element.Elements.Initialize
+	
+	Element.Web.Root = "/" ' just a placeholder
+	Element.Elements.Add(Element.Web.Root)
+	
+	Element.Web.Path = ROOT_PATH
+	If Element.Web.Path.EqualsIgnoreCase("/") = False Then
+		Element.Elements.Add(Element.Web.Path)
+		Element.PathIndex = 1
+	End If
+	
+	Element.Api.Name = API_NAME
+	If Element.Api.Name.EqualsIgnoreCase("") = False Then
+		Element.Elements.Add(Element.Api.Name)
+	End If
+	
+	If API_VERSIONING = "TRUE" Then
+		Element.Api.Versioning = True
+		Element.Elements.Add("version") ' just a placeholder
+	Else
+		Element.Api.Versioning = False
+	End If
+	
+	Element.ApiVersionIndex = Element.Elements.Size - 1
+	Element.ApiControllerIndex = Element.Elements.Size
+	Element.WebControllerIndex = Element.Elements.Size - IIf(Element.Api.Name.EqualsIgnoreCase(""), 0, 1) - IIf(Element.Api.Versioning, 1, 0) ' or just Element.PathIndex + 1
+	
+'	#If debug
+'	Dim i As Int
+'	For Each item In Element.Elements
+'		Log($"${i} - ${item}"$)
+'		i = i + 1
+'	Next
+'	Log("PathIndex=" & Element.PathIndex)
+'	Log("WebControllerIndex=" & Element.WebControllerIndex)
+'	Log("ApiVersionIndex=" & Element.ApiVersionIndex)
+'	Log("ApiControllerIndex=" & Element.ApiControllerIndex)
+'	#End If
+End Sub
+#End Region
+
+#Region ConfigureHandlers
+' Configure this after ConfigureElements
+Public Sub ConfigureHandlers
+	If API_NAME.EqualsIgnoreCase("") Then	' API / Web Only
+		srvr.AddHandler(ROOT_PATH & "*", "ApiHandler", False) 				' Add API handler
+	Else									' API + Web routes (recommended)
+		srvr.AddHandler(ROOT_PATH & "*", "WebHandler", False) 				' Add Web handler
+		srvr.AddHandler(ROOT_PATH & API_PATH & "*", "ApiHandler", False) 	' Add API handler
+		srvr.AddHandler(ROOT_PATH & "help", "HelpHandler", False) 			' Add Help page (optional)
+	End If
+End Sub
+#End Region
+
+#Region ConfigureControllers
+' Add list of controllers for generating API documentation
+' API is still available if controller is not in this list
+' To disable an API or Web routes, comment the code in ApiHandler or WebHandler
+Public Sub ConfigureControllers
+	Controllers.Initialize
+	'Controllers.Add("HomeController")
+	'Controllers.Add("HelloController")
+	Controllers.Add("CategoryController")
+	Controllers.Add("PostController")
+	Controllers.Add("AccountController")
+	Controllers.Add("PasswordController")
+End Sub
+#End Region
+
+#Region ConfigureSessions
+' Use Sessions
+Public Sub ConfigureSessions
+	SESSIONS_ENABLED = True
+End Sub
+#End Region
+
+#Region ConfigureCookies
+' Use Cookies
+Public Sub ConfigureCookies
+	COOKIES_ENABLED = True
+	COOKIES_EXPIRATION = 90 * 24 * 60 * 60 			' in seconds = 90 days
+End Sub
+#End Region
+
+#Region ConfigureBasicAuth
+Public Sub ConfigureBasicAuth
+	AUTHENTICATION_TYPE = "BASIC AUTHENTICATION"
+	
+	Dim Paths As List
+	Paths.Initialize
+	Paths.Add(ROOT_PATH & "dashboard")
+	'Paths.Add(ROOT_PATH & "category")					' Web route
+	Paths.Add(ROOT_PATH & API_PATH & "v2/categories") 	' Api route
+	Paths.Add(ROOT_PATH & API_PATH & "v2/category/*")
+	'Paths.Add(ROOT_PATH & API_Path & "v1/post/*")
+	Paths.Add(ROOT_PATH & API_PATH & "v2/posts")
+	Paths.Add(ROOT_PATH & API_PATH & "v2/post/*")
+	
+	For Each path In Paths
+		'Log(path)
+		srvr.AddFilter(path, "BasicAuthFilter", False)
+	Next
+End Sub
+#End Region
+
+#Region ConfigureTokenAuth
+' This configuration is not completed
+Public Sub ConfigureTokenAuth
+	AUTHENTICATION_TYPE = "TOKEN AUTHENTICATION"
+	
+	Dim Paths As List
+	Paths.Initialize
+	Paths.Add(ROOT_PATH & "dashboard")
+	Paths.Add(ROOT_PATH & "category/*")					' Web route
+	Paths.Add(ROOT_PATH & API_PATH & "v2/categories") 	' Api route
+	Paths.Add(ROOT_PATH & API_PATH & "v2/category/*")
+	'Paths.Add(ROOT_PATH & API_Path & "v1/post/*")
+	'Paths.Add(ROOT_PATH & API_PATH & "v2/posts")
+	'Paths.Add(ROOT_PATH & API_PATH & "v2/post/*")
+	
+	For Each path In Paths
+		'Log(path)
+		srvr.AddFilter(path, "TokenAuthFilter", False)
+	Next
+End Sub
+#End Region
+
+#Region ConfigureJWTAuth
+' Make sure Database is created and server has restarted at first run
+Public Sub ConfigureJWTAuth
+	If DB.Busy Then
+		LogColor("JSON Web Token is Not Enabled", -65536)
+		Return
+	End If
+
+	' Enable this only after database is generated
+	' You need to restart the server after first run if database not exist
+	Dim con As SQL = DB.GetConnection
+	Dim res As ResultSet = con.ExecQuery(DB.Queries.Get("SELECT_LAST_TOKENSECRET"))
+	Do While res.NextRow
+		Secret.Access_Token = res.GetString("access_token_secret")
+		Secret.Refresh_Token = res.GetString("refresh_token_secret")
+	Loop
+	res.Close
+	DB.CloseDB(con)
+
+	JAT.Initialize("HMAC256", Secret.Access_Token, False)
+	JAT.Issuer = ROOT_URL
+	
+	JRT.Initialize("HMAC256", Secret.Refresh_Token, False)
+	JRT.Issuer = ROOT_URL
+	
+	Dim Paths As List
+	Paths.Initialize
+	'Paths.Add(ROOT_PATH & "dashboard")
+	'Paths.Add(ROOT_PATH & "category/*")					' Web route
+	'Paths.Add(ROOT_PATH & API_PATH & "v2/categories") 		' Api route
+	'Paths.Add(ROOT_PATH & API_PATH & "v2/category/*")
+	'Paths.Add(ROOT_PATH & API_Path & "v1/post/*")
+	'Paths.Add(ROOT_PATH & API_PATH & "v2/posts")
+	'Paths.Add(ROOT_PATH & API_PATH & "v2/post/*")
+	
+	For Each path In Paths
+		'Log(path)
+		srvr.AddFilter(path, "JWTAuthFilter", False)
+	Next
+	AUTHENTICATION_TYPE = "JSON WEB TOKEN AUTHENTICATION"
+End Sub
+#End Region
+
+#Region ConfigureResponse
+' SimpleResponse: If set to True then response is returning JSON without standard structure
+' SimpleResponseFormat: List, Map
+' Note: HelpHandler only works with standard JSON response format, unless explicitly set in controller
+Public Sub ConfigureResponse
+	SimpleResponse = True
+	SimpleResponseFormat = "Map"
+End Sub
+#End Region
+
 #Region ShowWelcomeText
 Public Sub ShowWelcomeText
-	Config.Put("VERSION", VERSION)
-	Log($"Web API server (version = ${VERSION}) is running on port ${srvr.Port}"$)
+	Log($"Web API server (version = ${VERSION}) is running on port ${srvr.Port}${IIf(srvr.SslPort > 0, $" (redirecting to port ${srvr.SslPort})"$, "")}"$)
 	Log($"Open the following URL from your web browser"$)
 	Log(ROOT_URL & ROOT_PATH)
 	' Open a web browser and navigate to: http://127.0.0.1:20000/v1/

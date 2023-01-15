@@ -9,26 +9,26 @@ Version=9.1
 Sub Class_Globals
 	Public SQL As SQL
 	Public Conn As Conn
+	Public Queries As Map
+	Public Busy As Boolean
 	Private Pool As ConnectionPool
 	Type Conn (DbName As String, DbType As String, DriverClass As String, JdbcUrl As String, User As String, Password As String, MaxPoolSize As Int)
 End Sub
 
-Public Sub Initialize
+Public Sub Initialize (Config As Map)
 	Conn.Initialize
-	Conn.DbName = Main.Config.Get("DbName")
-	Conn.DbType = Main.Config.Get("DbType")
-	Conn.DriverClass = Main.Config.Get("DriverClass")
-	Conn.JdbcUrl = Main.Config.Get("JdbcUrl")
+	Conn.DbName = Config.Get("DbName")
+	Conn.DbType = Config.Get("DbType")
+	Conn.DriverClass = Config.Get("DriverClass")
+	Conn.JdbcUrl = Config.Get("JdbcUrl")
+	
 	If Conn.DbType.EqualsIgnoreCase("mysql") Then
-		Conn.User = Main.Config.Get("User")
-		Conn.Password = Main.Config.Get("Password")
-		If Main.Config.Get("MaxPoolSize") <> Null Then Conn.MaxPoolSize = Main.Config.Get("MaxPoolSize")
+		Conn.User = Config.Get("User")
+		Conn.Password = Config.Get("Password")
+		If Config.Get("MaxPoolSize") <> Null Then Conn.MaxPoolSize = Config.Get("MaxPoolSize")
 	End If
+	
 	CheckDatabase
-	If Conn.DbType.EqualsIgnoreCase("mysql") Then
-		Conn.JdbcUrl = Main.Config.Get("JdbcUrl")	' Revert jdbcUrl to normal
-		OpenConnection
-	End If
 End Sub
 
 Private Sub OpenConnection
@@ -45,13 +45,17 @@ Private Sub OpenConnection
 End Sub
 
 Public Sub GetConnection As SQL
-	If Conn.DbType.EqualsIgnoreCase("mysql") Then
-		Return Pool.GetConnection
-	End If
-	If Conn.DbType.EqualsIgnoreCase("sqlite") Then
-		OpenConnection
-		Return SQL
-	End If
+	Try
+		If Conn.DbType.EqualsIgnoreCase("mysql") Then
+			Return Pool.GetConnection
+		End If
+		If Conn.DbType.EqualsIgnoreCase("sqlite") Then
+			OpenConnection
+			Return SQL
+		End If
+	Catch
+		Log(LastException)
+	End Try
 	Return Null
 End Sub
 
@@ -63,12 +67,12 @@ Public Sub CloseDB (con As SQL)
 End Sub
 
 Private Sub ConAddSQLQuery (Comm As SQL, Key As String)
-	Dim strSQL As String = Main.Queries.Get(Key)
+	Dim strSQL As String = Queries.Get(Key)
 	If strSQL <> "" Then Comm.AddNonQueryToBatch(strSQL, Null)
 End Sub
 
 Private Sub ConAddSQLQuery2 (Comm As SQL, Key As String, Val1 As String, Val2 As String)
-	Dim strSQL As String = Main.Queries.Get(Key).As(String).Replace(Val1, Val2)
+	Dim strSQL As String = Queries.Get(Key).As(String).Replace(Val1, Val2)
 	If strSQL <> "" Then Comm.AddNonQueryToBatch(strSQL, Null)
 End Sub
 
@@ -81,22 +85,30 @@ Public Sub CheckConnection As Boolean
 	Return False
 End Sub
 
-Private Sub CheckDatabase
+Private Sub CheckDatabase As ResumableSub
 	Try
 		Dim con As SQL
 		Dim DBFound As Boolean
-		Log($"Checking database..."$)
+		Dim JdbcUrl As String
+		LogColor($"Checking database..."$, -65536)
+		
 		If Conn.DbType.EqualsIgnoreCase("sqlite") Then
+			' Load Database queries
+			Queries = Utility.ReadMapFile(File.DirApp, "queries-blog-sqlite.ini")
 			If File.Exists(File.DirApp, Conn.DBName) Then
 				DBFound = True
 			End If
 		End If
+		
 		If Conn.DbType.EqualsIgnoreCase("mysql") Then
-			Conn.JdbcUrl = Conn.JdbcUrl.Replace(Conn.DBName, "information_schema")
+			' Load Database queries
+			Queries = Utility.ReadMapFile(File.DirApp, "queries-blog-mysql.ini")
+			JdbcUrl = Conn.JdbcUrl
+			Conn.JdbcUrl = JdbcUrl.Replace(Conn.DBName, "information_schema")
 			OpenConnection
 			con = GetConnection
 			If con.IsInitialized Then
-				Dim strSQL As String = Main.Queries.Get("CHECK_DATABASE")
+				Dim strSQL As String = Queries.Get("CHECK_DATABASE")
 				Dim res As ResultSet = con.ExecQuery2(strSQL, Array As String(Conn.DBName))
 				Do While res.NextRow
 					DBFound = True
@@ -106,9 +118,10 @@ Private Sub CheckDatabase
 		End If
 		If DBFound Then
 			Log("Database found!")
-		Else   ' Create database if not exist			
+		Else   ' Create database if not exist
 			Log("Database not found!")
 			Log("Creating database...")
+			Busy = True ' Prevent JWT reading Client Id and Secret
 			If Conn.DbType.EqualsIgnoreCase("sqlite") Then
 				con.InitializeSQLite(File.DirApp, Conn.DBName, True)
 				con.ExecNonQuery("PRAGMA journal_mode = wal")
@@ -120,13 +133,15 @@ Private Sub CheckDatabase
 		
 			ConAddSQLQuery(con, "CREATE_TABLE_TBL_CATEGORY")
 			ConAddSQLQuery(con, "INSERT_DUMMY_TBL_CATEGORY")
-			ConAddSQLQuery(con, "CREATE_TABLE_TBL_PRODUCTS")
-			ConAddSQLQuery(con, "INSERT_DUMMY_TBL_PRODUCTS")			
+			ConAddSQLQuery(con, "CREATE_TABLE_TBL_POSTS")
+			ConAddSQLQuery(con, "INSERT_DUMMY_TBL_POSTS")
 			ConAddSQLQuery(con, "CREATE_TABLE_TBL_USERS")
 			ConAddSQLQuery(con, "CREATE_TABLE_TBL_USERS_LOG")
-			ConAddSQLQuery(con, "CREATE_TABLE_TBL_ERROR")			
+			ConAddSQLQuery(con, "CREATE_TABLE_TBL_ERROR")
 			ConAddSQLQuery(con, "CREATE_TABLE_CLIENTMASTER")
-			ConAddSQLQuery(con, "INSERT_DUMMY_CLIENTMASTER")			
+			ConAddSQLQuery(con, "INSERT_DUMMY_CLIENTMASTER")
+			ConAddSQLQuery(con, "CREATE_TABLE_TOKENSECRET")
+			ConAddSQLQuery(con, "INSERT_NEW_TOKENSECRET")
 			ConAddSQLQuery(con, "CREATE_TABLE_REFRESHTOKEN")
 			
 			Dim CreateDB As Object = con.ExecNonQueryBatch("SQL")
@@ -138,23 +153,45 @@ Private Sub CheckDatabase
 			End If
 		End If
 		CloseDB(con)
+		If Conn.DbType.EqualsIgnoreCase("mysql") Then
+			Conn.JdbcUrl = JdbcUrl	' Revert jdbcUrl to normal
+			OpenConnection
+		End If
+		
+		' Debugging
+		'con.InitializeSQLite(File.DirApp, Conn.DBName, False)
+		'con.ExecNonQuery(Queries.Get("CREATE_TABLE_TBL_CATEGORY"))
+		'con.ExecNonQuery(Queries.Get("INSERT_DUMMY_TBL_CATEGORY"))
+		'con.ExecNonQuery(Queries.Get("CREATE_TABLE_TBL_POSTS"))
+		'con.ExecNonQuery(Queries.Get("INSERT_DUMMY_TBL_POSTS"))
+		'con.ExecNonQuery(Queries.Get("CREATE_TABLE_TBL_USERS"))
+		'con.ExecNonQuery(Queries.Get("CREATE_TABLE_TBL_USERS_LOG"))
+		'con.ExecNonQuery(Queries.Get("CREATE_TABLE_TBL_ERROR"))
+		'con.ExecNonQuery(Queries.Get("CREATE_TABLE_CLIENTMASTER"))
+		'con.ExecNonQuery(Queries.Get("INSERT_DUMMY_CLIENTMASTER"))
+		'con.ExecNonQuery(Queries.Get("CREATE_TABLE_TOKENSECRET"))
+		'con.ExecNonQuery(Queries.Get("INSERT_NEW_TOKENSECRET"))
+		'con.ExecNonQuery(Queries.Get("CREATE_TABLE_REFRESHTOKEN"))
+		'CloseDB(con)
+		Return True
 	Catch
-		LogError(LastException)
+		LogError(LastException.Message)
 		CloseDB(con)
-		Log("Error creating database!")
+		Log("Error checking database!")
 		Log("Application is terminated.")
 		ExitApplication
 	End Try
+	Return False
 End Sub
 
-Public Sub ReturnDateTime As String
+Public Sub ReturnDateTime (TIMEZONE As Int) As String
 	Dim str As String
-	Dim con As SQL = Main.DB.GetConnection
+	Dim con As SQL = GetConnection
 	Try
-		If Main.Config.Get("DbType").As(String).EqualsIgnoreCase("mysql") Then
-			Dim strSQL As String = $"SELECT DATE_ADD(now(), INTERVAL ${Main.TIMEZONE} HOUR)"$
-		Else If Main.Config.Get("DbType").As(String).EqualsIgnoreCase("sqlite") Then
-			Dim Offset As String = IIf(Main.TIMEZONE >= 0, $"+${Main.TIMEZONE}"$, $"-${Main.TIMEZONE}"$)
+		If Conn.DbType.EqualsIgnoreCase("mysql") Then
+			Dim strSQL As String = $"SELECT DATE_ADD(now(), INTERVAL ${TIMEZONE} HOUR)"$
+		Else If Conn.DbType.EqualsIgnoreCase("sqlite") Then
+			Dim Offset As String = IIf(TIMEZONE >= 0, $"+${TIMEZONE}"$, $"-${TIMEZONE}"$)
 			Dim strSQL As String = $"SELECT datetime(datetime('now'), '${Offset} hour')"$
 		Else
 			DateTime.DateFormat = "yyyy-MM-dd HH:mm:ss"
@@ -164,8 +201,8 @@ Public Sub ReturnDateTime As String
 	Catch
 		LogError(LastException)
 	End Try
-	Main.DB.CloseDB(con)
-	Return str & $" (UTC${IIf (Main.TIMEZONE > -1, "+", "")}${Main.TIMEZONE})"$
+	CloseDB(con)
+	Return str & $" (UTC${IIf (TIMEZONE > -1, "+", "")}${TIMEZONE})"$
 End Sub
 
 Public Sub WriteErrorLog (Module As String, Message As String)

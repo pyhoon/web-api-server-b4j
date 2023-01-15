@@ -4,10 +4,9 @@ ModulesStructureVersion=1
 Type=Class
 Version=9.8
 @EndOfDesignText@
-' JSONWebToken class 
-' todo: convert to filter class
+' JSON Web Token class
 ' Version 2.00
-'
+' Additional Libraries: jStringUtils, JavaObject
 ' Stop using JWTs! https://gist.github.com/samsch/0d1f3d3b4745d778f78b230cf6061452
 ' YouTube https://www.youtube.com/watch?v=pYeekwv3vC4
 Sub Class_Globals
@@ -15,9 +14,10 @@ Sub Class_Globals
 	Private ALG As JavaObject
 	Private builder As JavaObject
 	Private verifier As JavaObject
+	Private decoded As JavaObject
 	'Private m_IssuedAt As String
-	'Private m_Issuer As String
-	'Private m_Claims As Map
+	Private m_Issuer As String
+	Private m_Claims As Map
 	'Private m_ExpiresAt As Object
 	Private m_Token As Object
 	Private m_Initialized As Boolean
@@ -37,7 +37,6 @@ Public Sub Initialize (Algorithm As String, Secret As String, Base64Encode As Bo
 	If Base64Encode Then
 		Private su As StringUtils
 		Secret = su.EncodeBase64(Secret.GetBytes("UTF8"))
-		'Secret = Utility.EncodeBase64(Secret.GetBytes("UTF8"))
 		'Log ( Secret )
 	End If
 	Private AO As JavaObject
@@ -54,48 +53,49 @@ Public Sub IsInitialized As Boolean
 	Return m_Initialized
 End Sub
 
-'Public Sub withIssuer (Issuer As String)
-'	builder.RunMethodJO("withIssuer", Array(Issuer))
-'End Sub
-'
-'Public Sub withClaim (Claim As Map)
-'	For Each Key In Claim.Keys
-'		builder.RunMethodJO("withClaim", Array(Key, Claim.Get(Key)))
-'	Next
-'End Sub
-'
-'Public Sub withExpiresAt (Date As Long)
-'	Private jo As JavaObject
-'	Private dt As Object = jo.InitializeNewInstance("java.util.Date", Array(Date))
-'	builder.RunMethodJO("withExpiresAt", Array(dt))
-'End Sub
-
 Public Sub getIssuer As String
+	Dim iss As String
 	Try
-		Return Verify.RunMethod("getIssuer", Null)
+		If m_Verified Then
+			iss = decoded.RunMethod("getIssuer", Null)			
+		End If
+		m_Issuer = iss
 	Catch
-		Log(LastException)
+		m_Exception = LastException.Message
+		Log(m_Exception)
 	End Try
-	Return Null
+	Return m_Issuer
 End Sub
 
 Public Sub setIssuer (Issuer As String)
-	builder.RunMethodJO("withIssuer", Array(Issuer))
+	Try
+		builder.RunMethodJO("withIssuer", Array(Issuer))
+	Catch
+		m_Exception = LastException.Message
+		Log(m_Exception)
+	End Try
+	m_Issuer = Issuer
 End Sub
 
 Public Sub getClaims As Map
+	Dim clm As Map
 	Try
-		Return Verify.RunMethod("getClaims", Null)
+		If m_Verified Then
+			clm = decoded.RunMethod("getClaims", Null)
+		End If
+		m_Claims = clm
 	Catch
-		Log(LastException)
+		m_Exception = LastException.Message
+		Log(m_Exception)
 	End Try
-	Return Null
+	Return m_Claims
 End Sub
 
 Public Sub setClaims (Claims As Map)
 	For Each Key In Claims.Keys
 		builder.RunMethodJO("withClaim", Array(Key, Claims.Get(Key)))
 	Next
+	m_Claims = Claims
 End Sub
 
 'iss	Issuer
@@ -106,68 +106,41 @@ End Sub
 'iat	Issued At
 'jti	JWT ID
 Public Sub ReadClaim (Key As String) As Object
-	Try
-		'Return Verify.RunMethod("getClaims", Null).As(Map).Get(Key)
-		Dim claims As Map = Verify.RunMethod("getClaims", Null)
-		If claims.IsInitialized Then
-			Return claims.Get(Key)
-		Else
-			Return Null
-		End If
-	Catch
-		Log(LastException.Message)
-	End Try
-	Return Null
+	Return getClaims.Get(Key)
 End Sub
-
-'Public Sub setIssuedAt (IssueAt As Long)
-'	Private jo As JavaObject
-'	Private dt As Object = jo.InitializeNewInstance("java.util.Date", Array(IssueAt))
-'	'Log(dt)
-'	builder.RunMethodJO("withIssuedAt", Array(dt))
-'	'm_IssuedAt = IssueAt
-'End Sub
-'
-'Public Sub getIssuedAt As Long
-'	Try
-'		'Return ReadClaim("iat")
-'		'Return Verify.RunMethod("getIssuedAt", Null)
-'		Private dt As Object = Verify.RunMethod("getIssuedAt", Null)
-'		Log(dt)
-'		Return DateTime.DateParse(dt)
-'	Catch
-'		LogError(LastException)
-'	End Try
-'	Return 0
-'	'Return m_IssuedAt
-'End Sub
 
 Public Sub getNotBefore As Object
-	Try
-		Return ReadClaim("nbf")
-	Catch
-		LogError(LastException)
-	End Try
-	Return Null
-End Sub
-
-Public Sub setExpiresAt (ExpiresAt As Object)
-	Private jo As JavaObject
-	Private dt As Object = jo.InitializeNewInstance("java.util.Date", Array(ExpiresAt))
-	'Log(dt)
-	builder.RunMethodJO("withExpiresAt", Array(dt))
+	Return ReadClaim("nbf")
 End Sub
 
 Public Sub getExpiresAt As Object
+	Private exp As Object
 	Try
-		'Private dt As Object = Verify.RunMethod("getExpiresAt", Null)
-		'Log(dt)
-		'Return DateTime.DateParse(dt)
-		Return Verify.RunMethod("getExpiresAt", Null)
+		If m_Verified Then
+			'exp = decoded.RunMethod("getExpiration", Null)
+			exp = decoded.RunMethod("getExpiresAt", Null)
+		End If
 	Catch
-		LogError(LastException)
+		m_Exception = LastException.Message
+		Log(m_Exception)
 	End Try
-	Return Null
+	Return exp
+End Sub
+
+Public Sub setIssuedAt (IssuedAt As Object)
+	Private jo As JavaObject = Me
+	'Log( "IssuedAt=" & IssuedAt )
+	Private dt As Object = jo.InitializeNewInstance("java.util.Date", Array(IssuedAt))
+	'Log( "dt=" & dt )
+	builder.RunMethodJO("withIssuedAt", Array(dt))
+End Sub
+
+Public Sub setExpiresAt (ExpiresAt As Object)
+	Private jo As JavaObject = Me
+	'Log( "ExpiresAt=" & ExpiresAt )
+	Private dt As Object = jo.InitializeNewInstance("java.util.Date", Array(ExpiresAt))
+	'Log( "dt=" & dt )
+	builder.RunMethodJO("withExpiresAt", Array(dt))
 End Sub
 
 Public Sub getToken As String
@@ -178,22 +151,21 @@ Public Sub setToken (Token As String)
 	m_Token = Token
 End Sub
 
+Public Sub Verify As JavaObject
+	Try
+		decoded = verifier.RunMethod("verify", Array(m_Token))		
+		m_Verified = True		
+	Catch
+		m_Exception = LastException.Message
+		'Log(m_Exception)
+		m_Verified = False
+	End Try
+	Return decoded
+End Sub
+
 Public Sub getVerified As Boolean
 	Return m_Verified
 End Sub
-
-'Public Sub getExpired As Boolean
-'	Try
-'		verifier.RunMethod("verify", Array(m_Token))
-'		m_Expired = False
-'	Catch
-'		'Log(LastException)
-'		If LastException.As(String).Contains("com.auth0.jwt.exceptions.TokenExpiredException") Then
-'			m_Expired = True
-'		End If
-'	End Try
-'	Return m_Expired
-'End Sub
 
 Public Sub getError As String
 	Return m_Exception
@@ -201,19 +173,6 @@ End Sub
 
 Public Sub Sign
 	m_Token = builder.RunMethodJO("sign", Array(ALG))
-End Sub
-
-Public Sub Verify As JavaObject
-	Try
-		Private jo As JavaObject
-		jo = verifier.RunMethod("verify", Array(m_Token))
-		m_Verified = True
-	Catch
-		'Log(LastException)
-		m_Exception = LastException.Message
-		m_Verified = False
-	End Try
-	Return jo
 End Sub
 
 'Private Sub exp As Object

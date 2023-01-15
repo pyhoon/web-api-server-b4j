@@ -4,6 +4,7 @@
 <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="">
   <meta name="description" content="">
   <meta name="author" content="">
   <title>$APP_TITLE$</title>
@@ -107,7 +108,7 @@
 <body class="bg-light">
   <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark pt-1 pb-1">
     <a class="text-primary mr-3" href="#"><i class="fas fa-cloud ml-3"></i></a>
-    <a class="navbar-brand font-weight-bold text-primary" href="$ROOT_URL$">$APP_TRADEMARK$</a>
+    <a class="navbar-brand font-weight-bold text-primary" href="$ROOT_URL$$ROOT_PATH$">$APP_TRADEMARK$</a>
     <button class="navbar-toggler custom-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
       style="border: none">
       <span class="navbar-toggler-icon"></span>
@@ -120,10 +121,11 @@
         </li>
         <li class="nav-item">
           <a class="nav-link mr-3 font-weight-bold text-primary" href="$ROOT_URL$$ROOT_PATH$help"><i
-              class="fas fa-question-circle" title="Help"></i> Documentation</a>
+              class="fas fa-question-circle" title="Help"></i> API</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link mr-3 font-weight-bold text-primary" href="$ROOT_URL$$ROOT_PATH$login">Login</a>
+          <a class="nav-link mr-3 font-weight-bold text-white" href="$ROOT_URL$$ROOT_PATH$login"><i
+            class="fas fa-key" title="Help"></i> Login</a>
         </li>
       </ul>
     </div>
@@ -158,6 +160,24 @@
   <script src="$ROOT_URL$/assets/js/jquery.min.js"></script>
   <script src="$ROOT_URL$/assets/js/jquery.validate.min.js"></script>
   <script src="$ROOT_URL$/assets/js/bootstrap.bundle.min.js"></script>
+  <script type="text/javascript">
+    var csrf_token = $('meta[name="csrf-token"]').attr('content');
+
+    //console.log("csrf="+csrf_token);
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS)$/.test(method));
+    }
+
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("x-csrf-token", csrf_token);
+            }
+        }
+    });
+  </script>
   @SCRIPT@
 </body>
 
