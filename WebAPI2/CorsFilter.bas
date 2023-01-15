@@ -5,6 +5,7 @@ Type=Class
 Version=9.1
 @EndOfDesignText@
 ' Cross-Origin Resource Sharing (CORS) Filter class
+' Version 2.00
 Sub Class_Globals
 	Private cPath As String
 	Private cSettings As Map

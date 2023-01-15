@@ -5,100 +5,87 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Token Authentication Filter class
-' Version 0.01
-' Additional Modules: Utility, MiniORM
-' Additional Libraries: jSQL
+' Version 2.00
+' Additional Modules: Encryption, Utility, MiniORM
+' Additional Libraries: Encryption, jSQL
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
-	'Private HRM As HttpResponseMessage
+	Private con As SQL
 	Private DB As MiniORM
 	Type RefreshToken (ID As String, UserName As String, ClientID As String, IssuedTime As Long, ExpiredTime As Long, Claims As List, ProtectedTicket As String)
 End Sub
 
 Public Sub Initialize
-	DB.Initialize(Main.DB.GetConnection)
+	con = Main.DB.GetConnection
+	DB.Initialize(con)
 End Sub
 
 'Return True to allow the request to proceed.
-Public Sub Filter (req As ServletRequest, resp As ServletResponse) As Boolean
+Public Sub Filter (req As ServletRequest, resp As ServletResponse) As ResumableSub
 	Request = req
 	Response = resp
-	
-	If Request.GetSession.GetAttribute2("authenticated", False) = True Then Return True
-	Dim auths As List = Request.GetHeaders("Authorization")
-	If auths.Size = 0 Then
-		Response.SetHeader("WWW-Authenticate", $"Basic realm="Realm""$)
-		'Response.SendError(401, "Authentication required")
-		Utility.ReturnAuthorizationRequired(Response)
-		Return False
-	Else
-		Dim Client As Map = Utility.RequestBasicAuth(Request)
-		If CheckCredentials(Client.Get("CLIENT_ID"), Client.Get("CLIENT_SECRET")) Then
-			Request.GetSession.SetAttribute("authenticated", True)
-			'Utility.ReturnSuccess(Null, 200, Response)
-			Return True
-		Else
-			'Response.SendError(401, "Authentication required")
-			Utility.ReturnAuthorizationRequired(Response)
-			Return False
-		End If
+		
+	Dim Auths As List = Request.GetHeaders("Authorization")
+	Dim Client As Map = Utility.RequestBasicAuth(Auths)
+	Dim sf As Object = CheckCredentials(Client.Get("CLIENT_ID"), Client.Get("CLIENT_SECRET"))
+	Wait For (sf) Complete (Result As Boolean)
+	If Result Then
+		Return True
 	End If
+	
+	Response.SetHeader("WWW-Authenticate", $"Basic realm="Realm""$)
+	Utility.ReturnAuthorizationRequired(Response)
+	Return False
 End Sub
 
 ' Validate Client using ID and Secret
-Public Sub CheckCredentials (ClientId As String, ClientSecret As String) As Boolean
+Private Sub CheckCredentials (ClientId As String, ClientSecret As String) As ResumableSub
 	Dim success As Boolean
-	DB.Table = "ClientMaster"
-	DB.Where = Array("ClientID = ?", "ClientSecret = ?", "Active = 1")
-	DB.Parameters = Array(ClientId, ClientSecret)
-	DB.Query
-	If DB.Count > 0 Then		
-		Private ClientMaster As Map = DB.DBTable.First
-		' Check is this Client = Active
-		If 1 = ClientMaster.Get("Active") Then
-			' Check Allowed Origin
-			Dim AllowedOrigin As String = ClientMaster.Get("AllowedOrigin")
-			If AllowedOrigin.Length > 0 And AllowedOrigin <> "*" Then
-				If Request.FullRequestURI.ToLowerCase.StartsWith(AllowedOrigin.ToLowerCase) Then
-					' Check Token Expiration
+	Try
+		DB.Table = "ClientMaster"
+		DB.Where = Array("ClientID = ?", "ClientSecret = ?", "Active = 1")
+		DB.Parameters = Array(ClientId, ClientSecret)
+		DB.Query
+		If DB.Count > 0 Then
+			Private ClientMaster As Map = DB.DBTable.First
+			' Check is this Client = Active
+			If 1 = ClientMaster.Get("Active") Then
+				' Check Allowed Origin
+				Dim AllowedOrigin As String = ClientMaster.Get("AllowedOrigin")
+				If AllowedOrigin.Length > 0 And AllowedOrigin <> "*" Then
+					If Request.FullRequestURI.ToLowerCase.StartsWith(AllowedOrigin.ToLowerCase) Then
+						' Check Token Expiration
+						DB.Table = "ClientMaster"
+						DB.Where = Array("ClientID = ?", "ClientSecret = ?", "Active = 1")
+						DB.Parameters = Array(ClientId, ClientSecret)
+						DB.Query
 					
-					
-					If Main.CLIENT_ID.Length = 0 And Main.CLIENT_SECRET.Length = 0 Then
-						Dim Client As Map = Utility.RequestBasicAuth(Request)
-						Main.CLIENT_ID = Client.Get("CLIENT_ID")
-						Main.CLIENT_SECRET = Client.Get("CLIENT_SECRET")
-						' todo: temporary hard code
-						Main.CLIENT_ID = "WebAPI200"
-						Main.CLIENT_SECRET = "45D1CE22-650D-9A0E-6338-90C83BFB934F"
-					End If
-
-					Dim DB As MiniORM
-					DB.Initialize(Main.DB.GetConnection)
-					DB.Table = "ClientMaster"
-					DB.Where = Array("ClientID = ?", "ClientSecret = ?", "Active = 1")
-					DB.Parameters = Array(Main.CLIENT_ID, Main.CLIENT_SECRET)
-					DB.Query
-					If DB.Count > 0 Then
-						success = True
+						If DB.Count > 0 Then
+							success = True
+						Else
+							success = False
+						End If
 					Else
 						success = False
 					End If
 				Else
-					success = False
+					success = True
 				End If
 			Else
-				success = True
+				success = False
 			End If
-		Else
-			success = False
+			success = True
 		End If
-		success = True
-	End If
+	Catch
+		Log(LastException)
+	End Try
+	Main.DB.CloseDB(con)
 	Return success
 End Sub
 
 Public Sub AddRefreshToken (Token As RefreshToken) As ResumableSub ' Boolean
+	Dim success As Boolean
 	Try
 		DB.Table = "RefreshToken"
 		DB.Where = Array("UserName = ?", "ClientID = ?")
@@ -121,25 +108,28 @@ Public Sub AddRefreshToken (Token As RefreshToken) As ResumableSub ' Boolean
 		Parameters.Set(4, DateTime.Date(Parameters.Get(4)))
 		DateTime.DateFormat = original_dateformat
 		DB.Parameters = Parameters
-		DB.Save
-		
-		Return True
+		DB.Save		
+		success = True
 	Catch
 		Log(LastException)
-		Return False
 	End Try
+	Main.DB.CloseDB(con)
+	Return success
 End Sub
 
 Public Sub FindRefreshToken (TokenID As String) As RefreshToken
 	If TokenID = "" Then Return Null
 	DB.Table = "RefreshToken"
 	Dim row As Map = DB.Find(TokenID)
+	Main.DB.CloseDB(con)
 	Return CreateRefreshToken(row)
 End Sub
 
 Public Sub GetAllRefreshTokens As List
 	DB.Table = "RefreshToken"
-	Return DB.Results
+	Dim list As List = DB.Results
+	Main.DB.CloseDB(con)
+	Return list
 End Sub
 
 Private Sub RemoveExistingToken (Token As RefreshToken)
@@ -148,6 +138,7 @@ Private Sub RemoveExistingToken (Token As RefreshToken)
 	DB.Where = Array("UserName = ?", "ClientID = ?")
 	DB.Parameters = Array(Token.UserName, Token.ClientID)
 	DB.Delete
+	Main.DB.CloseDB(con)
 End Sub
 
 Public Sub RemoveRefreshToken (Token As RefreshToken)
@@ -156,6 +147,7 @@ Public Sub RemoveRefreshToken (Token As RefreshToken)
 	DB.Where = Array("UserName = ?", "ClientID = ?")
 	DB.Parameters = Array(Token.UserName, Token.ClientID)
 	DB.Delete
+	Main.DB.CloseDB(con)
 End Sub
 
 Public Sub RemoveRefreshTokenByID (TokenID As String)
@@ -164,6 +156,7 @@ Public Sub RemoveRefreshTokenByID (TokenID As String)
 	DB.Where = Array("ID = ?")
 	DB.Parameters = Array(TokenID)
 	DB.Delete
+	Main.DB.CloseDB(con)
 End Sub
 
 Public Sub CreateRefreshToken (row As Map) As RefreshToken
@@ -192,9 +185,7 @@ Private Sub TokenToParameters (Token As RefreshToken) As List
 End Sub
 
 Public Sub getHash (input As String) As String
-	Dim b() As Byte = Utility.SHA256(input).GetBytes("UTF8")
-	'Dim su As StringUtils
-	'Return su.EncodeBase64(b)
+	Dim b() As Byte = Encryption.SHA256(input).GetBytes("UTF8")
 	Return Utility.EncodeBase64(b)
 End Sub
 

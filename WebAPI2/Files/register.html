@@ -1,25 +1,35 @@
-<div class="container login-page">
+<div class="container register-page">
 	<div id="alert" class="alert alert-danger alert-dismissible mt-3" role="alert" style="display: none">
 		Alert
 	</div>
 
-	<div class="login-form mt-3 mb-3">
-		<form id="LoginForm" class="login-box">
+	<div class="register-form mt-3 mb-3">
+		<form id="RegisterForm" class="register-box">
 			<div class="card card-outline card-primary">
 				<div class="card-header text-center">
-					<div class="login-logo">
+					<div class="register-logo">
 						<a href="dashboard" class="h1" style="text-decoration: none;"><b>Web</b>API</a>
 					</div>
 				</div>
 				<!-- <div class="card-header text-center">
 					<a href="../../index2.html" class="h1"><b>Admin</b>LTE</a>
 				</div> -->
-				<div class="card-body login-card-body">
-					<p class="login-box-msg">Log in to start your session</p>
+				<div class="card-body register-card-body">
+					<p class="register-box-msg">Register a new account</p>
 					<!-- <form action="../../index3.html" method="post"> -->
 					<div class="input-group mb-3">
-						<!-- <input type="email" class="form-control" placeholder="Email"> -->
+						<!-- <input type="name" class="form-control" placeholder="Name"> -->
 						<!-- <label for="name">Name:</label> -->
+						<input type="text" class="form-control" placeholder="Name" id="name" required="required">
+						<div class="input-group-append">
+							<div class="input-group-text">
+								<span class="fas fa-user"></span>
+							</div>
+						</div>
+					</div>
+					<div class="input-group mb-3">
+						<!-- <input type="email" class="form-control" placeholder="Email"> -->
+						<!-- <label for="email">Email:</label> -->
 						<input type="email" class="form-control" placeholder="Email" id="email" required="required">
 						<div class="input-group-append">
 							<div class="input-group-text">
@@ -49,8 +59,8 @@
 						</div>
 
 						<div class="col-4">
-							<button id="btnLogin" type="submit" class="btn btn-primary btn-block">Log In</button>
-							<!-- <a class="btn btn-primary btn-block text-center" href="/dashboard">Log in</a> -->
+							<button id="btnRegister" type="submit" class="btn btn-primary btn-block">Register</button>
+							<!-- <a class="btn btn-primary btn-block text-center" href="/dashboard">Register</a> -->
 						</div>
 
 					</div>
@@ -60,7 +70,7 @@
 						<a href="forgot-password">I forgot my password</a>
 					</p>
 					<p class="mb-0">
-						<a href="register" class="text-center">Register new account</a>
+						<a href="login" class="text-center">I already registered</a>
 					</p>
 				</div>
 
