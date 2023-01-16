@@ -153,7 +153,7 @@ Private Sub ConfigureServer
 	'ConfigureResponse							' JSON Response Format
 	
 	' For Basic or JWT Auth
-	AUTH.CLIENT_ID = "web-202201151435-web-api-200.computerise.net"		' username
+	AUTH.CLIENT_ID = "web-202301151435-web-api-200.computerise.net"		' username
 	AUTH.CLIENT_SECRET = "DE005AC6-58DA-254F-B16D-693D63E7275D"			' password
 	If AUTHENTICATION_TYPE <> "" Then LogColor($"Authentication: ${AUTHENTICATION_TYPE}"$, -65536)
 End Sub
