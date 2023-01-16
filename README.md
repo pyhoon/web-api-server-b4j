@@ -28,7 +28,7 @@ Build REST API Server Using B4X Template
   - Authentication can be achieved using server filters to protect entire api family or ValidateToken sub for single API endpoint
   - Hashing methods e.g MD5, SHA1, SHA256, HMACSHA256
 - Redesign Architecture
-  - The core handlers (ApiHandler andWeb Handler) act like BaseController or Routes
+  - The core handlers (ApiHandler and Web Handler) act like BaseController or Routes
   - ApiHandler routes the RequestURI to controllers e.g /web/api/v2/posts
   - WebHandler routes the RequestURI for front-end page e.g /web/login
   - HelpHandler generates API documentation for easy debugging without external tools or clients which embed tokens in request header
