@@ -55,6 +55,52 @@ Build REST API Server Using B4X Template
   - Integration with AdminLTE3 dashboard template (simplified)
   - SMTP email server
 
+### Code Example
+```basic
+Public Sub GetPost (pid As Int) As HttpResponseMessage
+	#region Documentation
+	' #Version = v2
+	' #Desc = Get a post by id
+	' #Elements = [":pid"]
+	#End region
+	Dim con As SQL = Main.DB.GetConnection
+	Dim strSQL As String
+	Dim List1 As List
+	List1.Initialize
+	Try
+		strSQL = Main.DB.Queries.Get("SELECT_POST_BY_ID")
+		Dim res As ResultSet = con.ExecQuery2(strSQL, Array As String(pid))
+		Do While res.NextRow
+			Dim Map2 As Map
+			Map2.Initialize
+			For i = 0 To res.ColumnCount - 1
+				If res.GetColumnName(i) = "id" Or _
+					res.GetColumnName(i) = "category_id" Or _
+					res.GetColumnName(i) = "post_status" Then
+					Map2.Put(res.GetColumnName(i), res.GetInt2(i))
+				Else
+					Map2.Put(res.GetColumnName(i), res.GetString2(i))
+				End If
+			Next
+			List1.Add(Map2)
+		Loop
+		If List1.Size > 0 Then
+			HRM.ResponseCode = 200
+			HRM.ResponseData = List1
+		Else
+			HRM.ResponseCode = 404
+			HRM.ResponseError = "Post Not Found"
+		End If
+	Catch
+		LogError(LastException)
+		HRM.ResponseCode = 422
+		HRM.ResponseError = "Error Execute Query"
+	End Try
+	Main.DB.CloseDB(con)
+	Return HRM
+End Sub
+```
+
 ### Preview
 ![Image01](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/webapi-01.png)
 ![Image02](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/webapi-02.png)
