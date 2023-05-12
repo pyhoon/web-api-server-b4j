@@ -6,11 +6,13 @@ Build REST API Server Using B4X Template
 
 **Depends on following libraries:** 
 - ByteConverter
-- JavaObject
 - jServer
 - Json
+- *JavaObject (optional)*
 
-*For older version, see* **webapi-b4j (v1.15)** https://github.com/pyhoon/webapi-b4j
+*JavaObject is used in DataConnector (to set Max pool size), JSONWebToken, CorsFilter and Utility.PostMultipartList
+
+*For older version **webapi-b4j (v1.15)**, please check https://github.com/pyhoon/webapi-b4j*
 
 ## Features
 - Redesign Architecture
