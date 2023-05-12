@@ -1,1 +1,0 @@
-Web and REST API Template (version 2.00 beta 3)
