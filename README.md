@@ -14,7 +14,7 @@ Build REST API Server Using B4X Template
 
 ## Features
 - Redesign Architecture
-  - The core handlers (ApiHandler) act like BaseController or Routes
+  - The core handler - ApiHandler, acts like BaseController or Routes class
   - ApiHandler routes the RequestURI to controllers e.g /web/api/v2/data
   - HelpHandler (optional) generates API documentation for easy debugging without external tools or clients which embed tokens in request header. HelpHandler is now scanning through controllers class for APIs to list in the documentation instead of reading handlers from b4j project main module in version 1.x
   - Web and API paths can be changed in config.ini
