@@ -57,17 +57,7 @@ End Sub
 ```
 
 ### Preview
-![Image01](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/webapi-01.png)
-![Image02](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/webapi-02.png)
-![Image03](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/webapi-03.png)
-![Image04](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/webapi-04.png)
-![Image05](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/webapi-05.png)
-![Image06](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/webapi-06.png)
-![Image07](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/webapi-07.png)
-![Image08](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/webapi-08.png)
-![Image09](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/webapi-09.png)
-![Image10](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/webapi-10.png)
-![Image11](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/webapi-11.png)
+![Web API Template](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/Web%20API%20Template.png)
 
 **Support this project**
 
