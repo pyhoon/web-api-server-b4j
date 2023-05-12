@@ -29,6 +29,7 @@ Build REST API Server Using B4X Template
   - Custom version name using #Version (e.g v2, live, demo, dev, staging)
   - Description is set using #Desc (i.e no more using #Desc1, #Desc2 or Literals that was very confusing in version 1.x)
   - API endpoint can be hidden using #Hide
+  - INTRODUCING: **MinimaList** -> store as Map/List. API server can run without database (or optionally persist as KeyValueStore).
 
 ### Code Example
 ```basic
