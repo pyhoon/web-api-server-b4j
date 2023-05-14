@@ -5,7 +5,7 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Data Controller class
-' Version 2.00
+' Version 2.01
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -142,7 +142,7 @@ Public Sub DeleteData (Index As Long)
 	If Main.KVS_ENABLED Then WriteKVS
 End Sub
 
-Public Sub DeleteDataKey (Key As String, Index As Long)
+Public Sub DeleteDataKey (Index As Long, Key As String)
 	' #Version = v2
 	' #Desc = Delete key of Item in MinimaList
 	' #Elements = [":index", ":key"]

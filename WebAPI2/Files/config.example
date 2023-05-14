@@ -1,5 +1,5 @@
 # Product: 		Web API Template (server)
-# Version:		2.00
+# Version:		2.01
 # Developer:	Aeric Poon
 # License:		Donationware
 # Thanks to Erel, Anywhere Software for the great products and B4X community for encouragement and supports ;)
@@ -53,19 +53,19 @@ SSLPort=0
 # DATABASE CONFIGURATION
 
 # SQLite
-# DbName=webapi_blog.db
+# DbName=webapi2.db
 # DbType=sqlite
 # DriverClass=com.sqlite.JdbcUrl
-# JdbcUrl=jdbc:sqlite:webapi_blog.db
+# JdbcUrl=jdbc:sqlite:webapi2.db
 
 # MySQL
-#DbName=webapi_blog
+#DbName=webapi2
 #DbType=mysql
 ## mysql-connector-java-5.1.49   # This is deprecated
 #DriverClass=com.mysql.jdbc.Driver
 ## mysql-connector-java-8.0.30
 ##DriverClass=com.mysql.cj.jdbc.Driver
-#JdbcUrl=jdbc:mysql://localhost/webapi_blog?characterEncoding=utf8&useSSL=false
+#JdbcUrl=jdbc:mysql://localhost/webapi2?characterEncoding=utf8&useSSL=false
 #User=root
 #Password=password
 #MaxPoolSize=100

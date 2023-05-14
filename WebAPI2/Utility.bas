@@ -5,7 +5,7 @@ Type=StaticCode
 Version=8.1
 @EndOfDesignText@
 ' Utility Code module
-' Version 2.00
+' Version 2.01
 Sub Process_Globals
 	Private const CONTENT_TYPE_JSON As String = "application/json"
 	Private const CONTENT_TYPE_HTML As String = "text/html"
@@ -175,69 +175,40 @@ Public Sub RequestMultipartList (Request As ServletRequest, Folder As String, Ma
 End Sub
 
 Public Sub RequestMultipartData (Request As ServletRequest) As Map
-	'Dim mdl As String = "RequestMultipartData"
 	Try
-		'Dim data As Map
 		Dim fd As String =  File.DirApp & "\www\tmp" ' & Main.inspectFolder
-
-'		If Request.ContentType="multipart/form-data" Then
-'			' Upload
-'			data = Request.GetMultipartData(fd, 100000000 * 1000) 'max 10000000000 bytes
-'			If data.Size > 0 Then
-'				For Each filename As String In  data.Keys
-'					Log("Start uploading: " & filename)
-'				Next
-'			End If
-'		End If
-		
 		Dim data As Map = Request.GetMultipartData(fd, 100000000 * 1000) 'max 10000000000 bytes
 		For Each key As String In data.Keys
 			Dim p As Part = data.Get(key)
-			'Dim d As Part = data.Get("datafile")
-			'Log ( "k->" &  key )
-			'Log ( "d->" &  d )
-			'Log ( "p->" & p )
 			Dim name2 As String = File.GetName(p.TempFile)
 			If key.StartsWith("post-") Then
 				Dim name As String = p.SubmittedFilename 'data.Get("fn")
 				If File.Exists(fd, name) Then File.Delete(fd, name)
 				Dim out As OutputStream = File.OpenOutput( fd, name, False)
 				Dim tmp As InputStream = File.OpenInput( fd, name2 )
-				
-				'File.Copy2(ins, out)
 				File.Copy2(tmp, out)
 				out.Close
-				'Log("Postbyte Received : " & name & ", size=" & File.Size(fd, name))
 				If File.Exists(fd, name) Then File.Delete(fd, name2)
-				'resp.Write(" postbyte saved this file: "&name)
-				'End If
 			End If
 			If key.StartsWith("json") Then
-				'Log("key->" & key & ": " & p)
-				'Log("p.SubmittedFilename->" & p.SubmittedFilename)
-				'Log("p.TempFile->" & p.TempFile)
-				'Log("p.IsFile->" & p.IsFile)
-				'Log ( "value->" & p.GetValue(Request.CharacterEncoding) )
-				
 				tmp = File.OpenInput( fd, name2 )
 				Dim tr As TextReader
 				tr.Initialize(tmp)
-		
 				Dim json As JSONParser
 				json.Initialize(tr.ReadAll)
 				data = json.NextObject
-				'Log ( data )
-				
 				If File.Exists(fd, name) Then File.Delete(fd, name2)
 			End If
 		Next
 	Catch
-		'LogError($"${mdl} "$ & LastException)
 		LogError(LastException.Message)
 	End Try
 	Return data
 End Sub
 
+' ====================================================
+' Requires StringUtils library
+' ====================================================
 'Public Sub RequestBasicAuth (Auths As List) As Map
 '	Dim client As Map = CreateMap("CLIENT_ID": "", "CLIENT_SECRET": "")
 '	If Auths.Size > 0 Then
@@ -256,6 +227,7 @@ End Sub
 '	End If
 '	Return client
 'End Sub
+' ====================================================
 
 ' Get Access Token from Header
 Public Sub RequestAccessToken (req As ServletRequest) As String
@@ -431,9 +403,13 @@ Public Sub ReturnSimpleError (Error As String, Code As Int, Format As String, re
 	End Select
 End Sub
 
-#Region Example
+' Configure JSON response format
+' Example: <code>Utility.ReturnSimpleHttpResponse(HRM, "Map", Response)</code>
+Public Sub ReturnSimpleHttpResponse (mess As HttpResponseMessage, SimpleResponseFormat As String, resp As ServletResponse)
+	#Region Example
+	' =======================
 	' SimpleResponse = True
-	' =================
+	' =======================
 	' Format: Map
 	' {
 	'     "connect": "true"
@@ -446,8 +422,9 @@ End Sub
 	'     }
 	' ]
 	'
+	' =======================
 	' SimpleResponse = False
-	' ==================
+	' =======================
 	' {
 	'     "m": "Success",
 	'     "e": Null,
@@ -459,8 +436,7 @@ End Sub
 	'     ]
 	'     "a": 200
 	' }
-#End Region
-Public Sub ReturnSimpleHttpResponse (mess As HttpResponseMessage, SimpleResponseFormat As String, resp As ServletResponse)
+	#End Region
 	If mess.ResponseCode >= 200 And mess.ResponseCode < 300 Then ' SUCCESS
 		If mess.ResponseString = "" Then mess.ResponseString = "ok"
 		If mess.ResponseMessage = "" Then mess.ResponseMessage = "Success"
@@ -603,7 +579,7 @@ Public Sub Slugify (str As String) As String
 End Sub
 
 ' ====================================================
-' Required StringUtils library
+' Requires StringUtils library
 ' ====================================================
 'Public Sub EncodeBase64 (data() As Byte) As String
 '	Dim su As StringUtils
