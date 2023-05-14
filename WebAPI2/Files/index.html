@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>$APP_TITLE$</title>
+    <link rel="icon" type="image/png" href="$ROOT_URL$/assets/img/favicon.png" />
+    <link rel="stylesheet" href="$ROOT_URL$/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="$ROOT_URL$/assets/css/fontawesome.min.css">
+    <link rel="stylesheet" href="$ROOT_URL$/assets/css/solid.min.css">
+    <style type="text/css">
+        body {
+            font-family: Arial, Helvetica, Tahoma, Times New Roman;
+            margin-top: 60px;
+        }
+
+        button {
+            border-radius: 3px;
+        }
+
+        button:focus {
+            outline: 0px;
+        }
+
+        .custom-toggler .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(0,123,255, 0.9)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+        }
+
+        .bottom {
+            position: relative;
+            width: 100%;
+            margin-top: 30px;
+            margin-bottom: 60px;
+        }
+
+        .footer {
+            position: fixed;
+            padding: 10px 10px 0px 10px;
+            bottom: 0;
+            width: 100%;
+            height: 60px;
+        }
+
+        @media screen and (max-width: 768px) {
+            .footer {
+                height: 60px;
+            }
+        }
+
+        .error {
+            font-size: 0.8em;
+            color: red;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark pt-1 pb-1">
+        <a class="text-primary mr-3" href="#"><i class="fas fa-cloud ml-3"></i></a>
+        <a class="navbar-brand font-weight-bold text-primary" href="$ROOT_URL$$ROOT_PATH$">$APP_TRADEMARK$</a>
+        <button class="navbar-toggler custom-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+            style="border: none">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </nav>
+    <div class="content m-3">
+        <div class="p-2">
+            <!-- Content Begin -->
+            <center>
+                <h3 class="mt-3 mb-0">$HOME_TITLE$</h3>
+                <span class="small">Version: $VERSION$</span>
+            </center>
+            <center>
+                <h1 class="mt-3 mb-3 text-primary">It Works!</h1>
+            </center>
+            <div class="col d-flex align-items-center justify-content-center">
+                <img src="$ROOT_URL$/assets/img/loading.webp" alt="centered image" height="200" width="200" />
+            </div>
+            <div class="text-center mt-3"><a class="btn btn-primary col-md-3 px-3" href="$ROOT_URL$$ROOT_PATH$help">Open
+                    API Documentation</a></div>
+            <div class="text-center mt-3 mb-3"><a class="btn btn-secondary col-md-3 px-3"
+                    href="https://www.b4x.com/android/forum/threads/web-api-template-2-00.143310/" target="_blank">Visit
+                    Web API Template 2 in B4X Forum</a></div>
+            <div class="text-center font-weight-bold mb-3">Support this project
+                <a href="https://paypal.me/aeric80/" target="_blank"><img src="/assets/img/default-orange.png"
+                        class="mx-2" style="width: 174px"></a>
+            </div>
+            <div class="text-center mb-3">
+                <a href="https://github.com/pyhoon/webapi-2-b4j" aria-label="github" class="text-primary mr-1" title="GitHub"
+                    target="_blank">
+                    <svg aria-hidden="true" width="24" height="24" version="1.1" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd"
+                            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z">
+                        </path>
+                    </svg></a>
+                <a style="text-decoration: none" href="https://github.com/pyhoon/webapi-2-b4j" target="_blank"><span
+                        style="vertical-align: middle">Check my GitHub repository</span></a>
+            </div>
+            <!-- Content End -->
+        </div>
+    </div>
+    <div class="bottom">
+    </div>
+    <footer class="footer footer-dark bg-dark pl-4 pt-2 pb-2">
+        <div class="footer small text-white text-center d-md-block">
+            <caption>$APP_COPYRIGHT$<br />
+                Powered by Web API Template | Developed with <span style="color: red">❤</span> in B4X</caption>
+        </div>
+    </footer>
+    <script src="$ROOT_URL$/assets/js/jquery.min.js"></script>
+    <script src="$ROOT_URL$/assets/js/jquery.validate.min.js"></script>
+    <script src="$ROOT_URL$/assets/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -5,7 +5,7 @@ Type=Class
 Version=9.1
 @EndOfDesignText@
 ' Help Handler class
-' Version 2.00
+' Version 2.01
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
@@ -28,12 +28,6 @@ Private Sub ShowHelpPage
 	Dim strContents As String
 	Dim strScripts As String
 	
-	' Show Server Time using SQL engine
-	'If Main.DB.IsInitialized Then
-	'	Main.SERVER_TIME = Main.DB.ReturnDateTime(Main.TIMEZONE)
-	'	Main.Config.Put("SERVER_TIME", Main.SERVER_TIME)
-	'End If
-	
 	#if release
 	If File.Exists(File.DirApp, "help.html") Then
 		strContents = File.ReadString(File.DirApp, "help.html")
@@ -46,8 +40,6 @@ Private Sub ShowHelpPage
 	'End If
 	#End If
 	
-	'strView = Utility.BuildDocView(strView, strContents)
-	'strMain = Utility.BuildView(strMain, strView)
 	strMain = Utility.BuildDocView(strMain, strContents)
 	'If Main.SESSIONS_ENABLED Then
 	'	' Store csrf_token inside server session variables
@@ -56,8 +48,7 @@ Private Sub ShowHelpPage
 	'	strMain = Utility.BuildCsrfToken(strMain, csrf_token) 		' Append csrf_token into page header. Comment this line to check
 	'End If
 	strMain = Utility.BuildHtml(strMain, Main.Config)
-	'Dim Config As Map
-	'strMain = Utility.BuildHtml(strMain, Config)
+
 	If strScripts.Length > 0 Then
 		strScripts = $"<script>
     $(document).ready(function () {
@@ -164,19 +155,21 @@ Public Sub ReadControllers (FileDir As String) As String
 					' =====================================================================
 					' CAUTION: Do not use commented hashtag keyword inside non-verb subs!
 					' =====================================================================
-					' Supported hashtag keywords:
+					' Supported hashtag keywords: (case-insensitive)
 					' #version
 					' #desc
 					' #body
 					' #elements
 					' #defaultformat
 					' #upload
+					'
 					' Single keywords:
 					' #plural
 					' #hide
+					
 					Dim Line3 As String = List2.Get(i).As(String)
 					If Line3.IndexOf("'") > -1 Then
-						' search for version keyword
+						' search for Version
 						If Line3.ToLowerCase.IndexOf("#version") > -1 Then
 							Dim ver() As String
 							ver = Regex.Split("=", Line3)
@@ -196,7 +189,7 @@ Public Sub ReadControllers (FileDir As String) As String
 							End If
 						End If
 						
-						' Elements List
+						' search for Elements
 						If Line3.ToLowerCase.IndexOf("#elements") > -1 Then
 							Dim Elements() As String
 							Elements = Regex.Split("=", Line3)
@@ -217,7 +210,7 @@ Public Sub ReadControllers (FileDir As String) As String
 							End If
 						End If
 									
-						' search for plural keyword
+						' search for Plural
 						If Line3.ToLowerCase.IndexOf("#plural") > -1 Then
 							Dim plural() As String
 							plural = Regex.Split("=", Line3)
@@ -228,13 +221,13 @@ Public Sub ReadControllers (FileDir As String) As String
 							End If
 						End If
 
-						' search for hide keyword
+						' search for Hide
 						If Line3.ToLowerCase.IndexOf("#hide") > -1 Then
 							Dim Map3 As Map = Methods.Get(Methods.Size-1)
 							Map3.Put("Hide", True)
 						End If
 						
-						' search for upload keyword
+						' search for Upload
 						If Line3.ToLowerCase.IndexOf("#upload") > -1 Then
 							Dim upd() As String
 							upd = Regex.Split("=", Line3)
@@ -244,7 +237,7 @@ Public Sub ReadControllers (FileDir As String) As String
 							End If
 						End If
 						
-						' search for raw keyword
+						' search for DefaultFormat
 						If Line3.ToLowerCase.IndexOf("#defaultformat") > -1 Then
 							Dim fmt() As String
 							fmt = Regex.Split("=", Line3)
@@ -573,19 +566,17 @@ Public Sub GenerateDocItem (ApiVersion As String, Controller As String, Elements
 	Select Verb
 		Case "GET"
 			strColor = "success"
-			strExpected = strExpected & "<br/>404 Not Found"
 		Case "POST"			
 			strColor = "warning"
 			strExpected = "201 Created"
 		Case "PUT"
 			strColor = "primary"
-			strExpected = strExpected & "<br/>404 Not Found"
 		Case "DELETE"
 			strColor = "danger"
-			strExpected = strExpected & "<br/>404 Not Found"
 	End Select
 	' Add other expected response
 	strExpected = strExpected & "<br/>400 Bad Request"
+	strExpected = strExpected & "<br/>404 Not Found"
 	strExpected = strExpected & "<br/>422 Error Execute Query"
 
 	If Params.Size > 0 Then

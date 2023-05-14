@@ -1,42 +1,48 @@
 ﻿AppType=StandardJava
 Build1=Default,b4j.webapi,hu2_acceptall
 File1=config.example
-File2=main.html
+File2=index.html
+File3=main.html
 FileGroup1=Default Group
 FileGroup2=Default Group
+FileGroup3=Default Group
 Group=Default Group
 Library1=byteconverter
-Library2=jcore
-Library3=jserver
-Library4=json
-Library5=keyvaluestore
-Library6=javaobject
+Library2=javaobject
+Library3=jcore
+Library4=jserver
+Library5=json
+Library6=keyvaluestore
 Module1=ApiHandler
-Module2=DataController
-Module3=HelpHandler
-Module4=HttpsFilter
-Module5=MinimaList
-Module6=Utility
-Module7=WebUtils
-NumberOfFiles=2
+Module10=WebUtils
+Module2=CorsFilter
+Module3=DataController
+Module4=HelpHandler
+Module5=HttpsFilter
+Module6=IndexController
+Module7=MinimaList
+Module8=Utility
+Module9=WebHandler
+NumberOfFiles=3
 NumberOfLibraries=6
-NumberOfModules=7
+NumberOfModules=10
 Version=9.8
 @EndOfDesignText@
 ' Name: 			Web API Template (MinimaList Edition)
 ' Description: 		Non-UI application (console / server application)
-' Version: 			2.00
+' Version: 			2.01
 
-' Objects folder: file:///C:/B4X/Development/Web%20API%20Server%202.00/Objects (Bring to front)
-' Objects folder: ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\Objects
+' Objects folder: 	file:///C:/B4X/Development/Web%20API%20Server%202.01/Objects (Bring to front)
+' Objects folder: 	ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\Objects
 
 ' Main module: 		ide://goto?Module=Main&Sub=ConfigureServer
 ' DataController: 	ide://goto?Module=DataController&Sub=GetData
 ' ApiHandler: 		ide://goto?Module=ApiHandler&Sub=ProcessRequest
 ' HelpHandler: 		ide://goto?Module=HelpHandler&Sub=GenerateResponseScript
 
-' Click to browse: http://127.0.0.1:8080/web/help
-' Click to create Publish.zip: ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&Args=-cMf&Args=Publish.zip&Args=www&Args=*.jar&Args=*.ini&Args=*.db&Args=help.html&Args=help.js
+' Click to browse: 	http://127.0.0.1:8080/web/help
+' Click to publish: ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&Args=-cMf&Args=Publish.zip&Args=www&Args=*.jar&Args=*.ini&Args=*.db&Args=help.html&Args=help.js
+
 #Region Project Attributes 
 	#CommandLineArgs:
 	#MergeLibraries: True
@@ -69,8 +75,8 @@ Sub Process_Globals
 	Public KVS_ENABLED As Boolean
 	Public KVS As KeyValueStore
 	Public Minima As MinimaList
-	Public const VERSION As String = "2.00"
-	'Public const PREFIX As String = "WebAPI_v200_"
+	Public const VERSION As String = "2.01"
+	'Public const PREFIX As String = "WebAPI_v201_"
 	'Public Secret As Secret
 	'Type Secret (Access_Token As String, Refresh_Token As String)
 	Type ApiElement (Name As String, Versioning As Boolean)
@@ -92,13 +98,6 @@ Sub AppStart (Args() As String)
 	StartMessageLoop
 End Sub
 
-Public Sub ConfigureWelcomeText
-	Log($"Web API server (version = ${VERSION}) is running on port ${srvr.Port}${IIf(srvr.SslPort > 0, $" (redirecting to port ${srvr.SslPort})"$, "")}"$)
-	Log($"Open the following URL from your web browser (if help is enabled)"$)
-	Log(ROOT_URL & ROOT_PATH & "help")
-	' Open a web browser and navigate to: http://127.0.0.1:8080/web/help
-End Sub
-
 Private Sub ConfigureServer
 	'ConfigurePort								' Server Port
 	'ConfigureSSL								' SSL Port
@@ -111,18 +110,13 @@ Private Sub ConfigureServer
 	ConfigureControllers						' App Controllers
 	ConfigureResponse							' JSON Response Format
 	ConfigureWelcomeText						' Show information in Logs when server starts
-	ConfigureKeyValueStore						' Persistent Storage for MinimaList
+	'ConfigureKeyValueStore						' Persistent Storage for MinimaList
 	'ConfigureDatabase							' Database connection and default queries
 	'ConfigureSessions							' Enable Sessions
 	'ConfigureCookies							' Enable Cookies
 	'ConfigureTokenAuth							' Enable Token Authentication
 	'ConfigureBasicAuth							' Enable Basic Authentication Filter
 	'ConfigureJWTAuth							' Enable JSON Web Token Authentication
-	
-	' For Basic or JWT Auth
-	'AUTH.CLIENT_ID = "web-202301151435-web-api-200.computerise.net"		' username
-	'AUTH.CLIENT_SECRET = "DE005AC6-58DA-254F-B16D-693D63E7275D"			' password
-	'If AUTHENTICATION_TYPE <> "" Then LogColor($"Authentication: ${AUTHENTICATION_TYPE}"$, -65536)
 End Sub
 
 Public Sub ConfigurePort
@@ -133,6 +127,53 @@ Public Sub ConfigurePort
 		ExitApplication
 	End If
 	srvr.Port = SERVER_PORT
+End Sub
+
+Public Sub ConfigureSSL
+	SSL_PORT = Config.Get("SSLPort") : If IsNumber(SSL_PORT) = False Then SSL_PORT = 0
+	If SSL_PORT = 0 Then Return
+	
+	Dim KeyStoreDir As String = Config.Get("SSL_KEYSTORE_DIR")
+	Dim KeyStoreFile As String = Config.Get("SSL_KEYSTORE_FILE")
+	Dim KeyStorePassword As String = Config.Get("SSL_KEYSTORE_PASSWORD")
+	
+	Dim ssl As SslConfiguration
+	ssl.Initialize
+	ssl.SetKeyStorePath(KeyStoreDir, KeyStoreFile)
+	ssl.KeyStorePassword = KeyStorePassword
+	'ssl.KeyManagerPassword = ""
+	srvr.SetSslConfiguration(ssl, SSL_PORT)
+	
+	'add filter to redirect all traffic from http to https (optional)
+	srvr.AddFilter("/*", "HttpsFilter", False)
+End Sub
+
+Public Sub ConfigureCORS
+	' Note: If you have enabled JWT then you may not need this
+	#Region Example
+	' allowedOrigins = "*" or "http://google.com"
+	' allowedMethods = "*" or "GET,POST,HEAD"
+	' allowedHeaders = "*" or "X-Requested-With,Content-Type,Accept,Origin"
+	' Eg. ConfigureCORS(ROOT_PATH & "account/*", "*", "", "")
+	' Reference: https://www.b4x.com/android/forum/threads/jetty-cross-origin-filter-to-be-added-to-jserver-library.85641/
+	#End Region
+	Dim Paths As List
+	Paths.Initialize
+	
+	Paths.Add(CreateMap("path": "/*", "origins": "*", "methods": "*", "headers": "*"))
+	
+	For Each Item As Map In Paths
+		Dim cors As CorsFilter
+		cors.Initialize(Item.Get("path"), _
+		CreateMap( _
+		"allowedOrigins": Item.Get("origins"), _
+		"allowedMethods": Item.Get("methods"), _
+		"allowedHeaders": Item.Get("headers"), _
+		"allowCredentials": "true", _
+		"preflightMaxAge": 1800, _
+		"chainPreflight": "false"))
+		cors.AddToServer(srvr)
+	Next
 End Sub
 
 Public Sub ConfigurePaths
@@ -196,6 +237,7 @@ Public Sub ConfigureElements
 	Element.ApiControllerIndex = Element.Elements.Size
 	Element.WebControllerIndex = Element.Elements.Size - IIf(Element.Api.Name.EqualsIgnoreCase(""), 0, 1) - IIf(Element.Api.Versioning, 1, 0) ' or just Element.PathIndex + 1
 	
+#Region debug
 '	#If debug
 '	Dim i As Int
 '	For Each item In Element.Elements
@@ -206,37 +248,49 @@ Public Sub ConfigureElements
 '	Log("WebControllerIndex=" & Element.WebControllerIndex)
 '	Log("ApiVersionIndex=" & Element.ApiVersionIndex)
 '	Log("ApiControllerIndex=" & Element.ApiControllerIndex)
-'	#End If
+'	#End If	
+#End Region
 End Sub
 
 ' Configure this after ConfigureElements
 Public Sub ConfigureHandlers
-	If API_NAME.EqualsIgnoreCase("") Then	' API / Web Only
-		srvr.AddHandler(ROOT_PATH & "*", "ApiHandler", False) 				' Add API handler
-	Else									' API + Web routes (recommended)
-		'srvr.AddHandler(ROOT_PATH & "*", "WebHandler", False) 				' Add Web handler
+	If API_NAME.EqualsIgnoreCase("") Then
+		' =============================================
+		' API only (simple URL structure)
+		' =============================================
+		srvr.AddHandler(ROOT_PATH & "*", "ApiHandler", False) 				' Add API handler (mandatory)
+	Else									
+		' =============================================
+		' API + Web routes (recommended)
+		' =============================================
+		srvr.AddHandler(ROOT_PATH & "*", "WebHandler", False) 				' Add Web handler (optional)
 		srvr.AddHandler(ROOT_PATH & API_PATH & "*", "ApiHandler", False) 	' Add API handler
 		srvr.AddHandler(ROOT_PATH & "help", "HelpHandler", False) 			' Add Help page (optional)
-		'srvr.AddWebSocket("/time", "WSTime")
+		'srvr.AddWebSocket("/time", "WSTime")								' Add Web socket (optional)
 	End If
 End Sub
 
-' Add list of controllers for generating API documentation
-' API is still available if controller is not in this list
-' To disable an API or Web routes, comment the code in ApiHandler or WebHandler
+' Include which controller class to display in API documentation (if HelpHandler is used)
+' Some APIs can be hidden using #Hide keyword
 Public Sub ConfigureControllers
 	Controllers.Initialize
 	Controllers.Add("DataController")
 End Sub
 
-' SimpleResponse: If set to True then response is returning JSON without standard structure
-' SimpleResponseFormat: List, Map
-' Note: HelpHandler only works with standard JSON response format, unless explicitly set in controller
+' Configure JSON response format
 Public Sub ConfigureResponse
+	' Check example: ide://goto?Module=Utility&Sub=ReturnSimpleHttpResponse
 	SimpleResponse = True
 	SimpleResponseFormat = "Map"
 End Sub
 
+Public Sub ConfigureWelcomeText
+	Log($"Web API server (version = ${VERSION}) is running on port ${srvr.Port}${IIf(srvr.SslPort > 0, $" (redirecting to port ${srvr.SslPort})"$, "")}"$)
+	Log($"Open the following URL from your web browser (if help is enabled)"$)
+	Log(ROOT_URL & ROOT_PATH & "help")
+End Sub
+
+' Optional to persist model with KeyValueStore
 Public Sub ConfigureKeyValueStore
 	KVS.Initialize(File.DirApp, "kvs.dat")
 	' Load values
@@ -245,56 +299,10 @@ Public Sub ConfigureKeyValueStore
 	Log("KeyValueStore is enabled")
 End Sub
 
+#Region Unused
 'Public Sub ConfigureDatabase
 '	' Initialize a database connector object
 '	DB.Initialize(Config)
-'End Sub
-
-'Public Sub ConfigureSSL
-'	SSL_PORT = Config.Get("SSLPort") : If IsNumber(SSL_PORT) = False Then SSL_PORT = 0
-'	If SSL_PORT = 0 Then Return
-'	
-'	Dim KeyStoreDir As String = Config.Get("SSL_KEYSTORE_DIR")
-'	Dim KeyStoreFile As String = Config.Get("SSL_KEYSTORE_FILE")
-'	Dim KeyStorePassword As String = Config.Get("SSL_KEYSTORE_PASSWORD")
-'	
-'	Dim ssl As SslConfiguration
-'	ssl.Initialize
-'	ssl.SetKeyStorePath(KeyStoreDir, KeyStoreFile)
-'	ssl.KeyStorePassword = KeyStorePassword
-'	'ssl.KeyManagerPassword = ""
-'	srvr.SetSslConfiguration(ssl, SSL_PORT)
-'	
-'	'add filter to redirect all traffic from http to https (optional)
-'	srvr.AddFilter("/*", "HttpsFilter", False)
-'End Sub
-
-'Public Sub ConfigureCORS
-'	' Note: If you have enabled JWT then you may not need this
-'	#Region Example
-'	' allowedOrigins = "*" or "http://google.com"
-'	' allowedMethods = "*" or "GET,POST,HEAD"
-'	' allowedHeaders = "*" or "X-Requested-With,Content-Type,Accept,Origin"
-'	' Eg. ConfigureCORS(ROOT_PATH & "account/*", "*", "", "")
-'	' Reference: https://www.b4x.com/android/forum/threads/jetty-cross-origin-filter-to-be-added-to-jserver-library.85641/
-'	#End Region
-'	Dim Paths As List
-'	Paths.Initialize
-'	
-'	Paths.Add(CreateMap("path": "/*", "origins": "*", "methods": "*", "headers": "*"))
-'	
-'	For Each Item As Map In Paths
-'		Dim cors As CorsFilter
-'		cors.Initialize(Item.Get("path"), _
-'		CreateMap( _
-'		"allowedOrigins": Item.Get("origins"), _
-'		"allowedMethods": Item.Get("methods"), _
-'		"allowedHeaders": Item.Get("headers"), _
-'		"allowCredentials": "true", _
-'		"preflightMaxAge": 1800, _
-'		"chainPreflight": "false"))
-'		cors.AddToServer(srvr)
-'	Next
 'End Sub
 
 'Public Sub ConfigureStaticFiles
@@ -377,3 +385,4 @@ End Sub
 '	Next
 '	AUTHENTICATION_TYPE = "JSON WEB TOKEN AUTHENTICATION"
 'End Sub
+#End Region
