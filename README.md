@@ -1,16 +1,17 @@
 # webapi-2-b4j
 
-Version: 2.00
+Version: 2.01
 
-Build REST API Server Using B4X Template
+Build REST API Server Using B4X Template  
+This is a very minimum template where you don't even need to connect to a database to work.  
+Optionally you can start with keyValueStore to persist the model. This will be a foundation to more complex Web API projects.
 
 **Depends on following libraries:** 
 - ByteConverter
 - jServer
 - Json
-- *JavaObject (optional)*
-
-*JavaObject is used in DataConnector (to set Max pool size), JSONWebToken, CorsFilter and Utility.PostMultipartList
+- JavaObject
+- KeyValueStore
 
 *For older version **webapi-b4j (v1.15)**, please check https://github.com/pyhoon/webapi-b4j*
 
@@ -39,20 +40,10 @@ Public Sub GetOneData (Index As Long)
     ' #Version = v2
     ' #Desc = Read one Item in MinimaList
     ' #Elements = [":index"]
-    If Index > Main.Minima.List.Size - 1 Then
-        HRM.ResponseCode = 404
-        HRM.ResponseError = "Invalid Index Value"
-    Else
-        Dim M1 As Map = Main.Minima.List.Get(Index)
-        HRM.ResponseCode = 200
-        HRM.ResponseObject = M1
-    End If
-  
-    If Main.SimpleResponse Then
-        Utility.ReturnSimpleHttpResponse(HRM, "Map", Response)
-    Else
-        Utility.ReturnHttpResponse(HRM, Response)
-    End If
+    Dim M1 As Map = Main.Minima.List.Get(Index)
+    HRM.ResponseCode = 200
+    HRM.ResponseObject = M1
+    Utility.ReturnSimpleHttpResponse(HRM, "Map", Response)
 End Sub
 ```
 
