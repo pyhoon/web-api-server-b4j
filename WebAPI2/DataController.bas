@@ -5,7 +5,7 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Data Controller class
-' Version 2.01
+' Version 2.02
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -35,18 +35,21 @@ Public Sub GetOneData (Index As Long)
 	' #Version = v2
 	' #Desc = Read one Item in MinimaList
 	' #Elements = [":index"]
+	Dim M1 As Map = CreateMap()
 	If Index > Main.Minima.List.Size - 1 Then
-		HRM.ResponseCode = 404
 		HRM.ResponseError = "Invalid Index Value"
+		HRM.ResponseCode = 404
 	Else
-		Dim M1 As Map = Main.Minima.List.Get(Index)
+		M1 = Main.Minima.List.Get(Index)
 		HRM.ResponseCode = 200
-		HRM.ResponseObject = M1
 	End If
 	
 	If Main.SimpleResponse Then
+		HRM.ResponseObject = M1
 		Utility.ReturnSimpleHttpResponse(HRM, "Map", Response)
 	Else
+		HRM.ResponseData.Initialize
+		HRM.ResponseData.Add(M1)
 		Utility.ReturnHttpResponse(HRM, Response)
 	End If
 End Sub
@@ -54,26 +57,27 @@ End Sub
 Public Sub PostData
 	' #Version = v2
 	' #Desc = Add a new Item to MinimaList
-	' #Body = {<br>&nbsp; "key1": value1,<br>&nbsp; "key2": value2<br>}
+	' #Body = {<br>&nbsp; "key1": "value1",<br>&nbsp; "key2": "value2"<br>}
+	Dim M1 As Map = CreateMap()
 	Dim data As Map = Utility.RequestData(Request)
 	If Not(data.IsInitialized) Then
-		HRM.ResponseCode = 404
 		HRM.ResponseError = "Invalid Map Object"
-		HRM.ResponseObject.Initialize
-	Else If data.ContainsKey("") Then
 		HRM.ResponseCode = 400
+	Else If data.ContainsKey("") Then
 		HRM.ResponseError = "Invalid Key Value"
-		HRM.ResponseObject.Initialize
+		HRM.ResponseCode = 400
 	Else
 		Main.Minima.Add(data)
+		M1 = Main.Minima.Last
 		HRM.ResponseCode = 200
-		HRM.ResponseObject = Main.Minima.Last
 	End If
+	
 	If Main.SimpleResponse Then
-		'Response.Write(Main.Model.As(JSON).ToString)
+		HRM.ResponseObject = M1
 		Utility.ReturnSimpleHttpResponse(HRM, "Map", Response)
 	Else
-		HRM.ResponseCode = 200
+		HRM.ResponseData.Initialize
+		HRM.ResponseData.Add(M1)
 		Utility.ReturnHttpResponse(HRM, Response)
 	End If
 	If Main.KVS_ENABLED Then WriteKVS
@@ -84,36 +88,34 @@ Public Sub PutData (Index As Long)
 	' #Desc = Update (Patch) full or partial data of Item in MinimaList
 	' #Body = {<br>&nbsp; "key": value<br>}
 	' #Elements = [":index"]
+	Dim M1 As Map = CreateMap()
 	Dim data As Map = Utility.RequestData(Request)
 	If Not(data.IsInitialized) Then
-		HRM.ResponseCode = 404
 		HRM.ResponseError = "Invalid Map Object"
-		HRM.ResponseObject.Initialize
+		HRM.ResponseCode = 404
 	Else
 		If Index > Main.Minima.List.Size - 1 Then
-			HRM.ResponseCode = 404
 			HRM.ResponseError = "Invalid Index Value"
-			HRM.ResponseObject.Initialize
+			HRM.ResponseCode = 404
 		Else If data.ContainsKey("") Then
-			HRM.ResponseCode = 400
 			HRM.ResponseError = "Invalid Key Value"
-			HRM.ResponseObject.Initialize
+			HRM.ResponseCode = 400
 		Else
 			'Dim M1 As Map = Main.Minima.Find(id)
-			Dim M1 As Map = Main.Minima.List.Get(Index)
+			M1 = Main.Minima.List.Get(Index)
 			For Each Key As String In data.Keys
 				M1.Put(Key, data.Get(Key))
 			Next
-			HRM.ResponseObject = M1
 			HRM.ResponseCode = 200
 		End If
 	End If
 	
 	If Main.SimpleResponse Then
-		'Response.Write(Main.Model.As(JSON).ToString)
+		HRM.ResponseObject = M1
 		Utility.ReturnSimpleHttpResponse(HRM, "Map", Response)
 	Else
-		HRM.ResponseCode = 200
+		HRM.ResponseData.Initialize
+		HRM.ResponseData.Add(M1)
 		Utility.ReturnHttpResponse(HRM, Response)
 	End If
 	If Main.KVS_ENABLED Then WriteKVS
@@ -123,20 +125,20 @@ Public Sub DeleteData (Index As Long)
 	' #Version = v2
 	' #Desc = Delete Item in MinimaList
 	' #Elements = [":index"]
+	Dim L As List
+	L.Initialize
 	If Index > Main.Minima.List.Size - 1 Then
-		HRM.ResponseCode = 404
 		HRM.ResponseError = "Invalid Index Value"
+		HRM.ResponseCode = 404
 	Else
 		'Index = Main.Minima.IndexFromId(id)
 		Main.Minima.List.RemoveAt(Index)
 		HRM.ResponseCode = 200
 	End If
-	HRM.ResponseObject.Initialize
+	
 	If Main.SimpleResponse Then
-		'Response.Write(Main.Model.As(JSON).ToString)
-		Utility.ReturnSimpleHttpResponse(HRM, "Map", Response)
+		Utility.ReturnSimpleHttpResponse(HRM, "List", Response)
 	Else
-		HRM.ResponseCode = 200
 		Utility.ReturnHttpResponse(HRM, Response)
 	End If
 	If Main.KVS_ENABLED Then WriteKVS
@@ -146,25 +148,25 @@ Public Sub DeleteDataKey (Index As Long, Key As String)
 	' #Version = v2
 	' #Desc = Delete key of Item in MinimaList
 	' #Elements = [":index", ":key"]
+	Dim L As List
+	L.Initialize
 	If Index > Main.Minima.List.Size - 1 Then
-		HRM.ResponseCode = 404
 		HRM.ResponseError = "Invalid Index Value"
+		HRM.ResponseCode = 404
 	Else
 		'Index = Main.Minima.IndexFromId(id)
 		If Main.Minima.List.Get(Index).As(Map).ContainsKey(Key) Then
 			Main.Minima.RemoveKey(Key, Index)
 			HRM.ResponseCode = 200
 		Else
-			HRM.ResponseCode = 404
 			HRM.ResponseError = "Invalid Key Value"
+			HRM.ResponseCode = 404
 		End If
 	End If
-	HRM.ResponseObject.Initialize
+
 	If Main.SimpleResponse Then
-		'Response.Write(Main.Model.As(JSON).ToString)
-		Utility.ReturnSimpleHttpResponse(HRM, "Map", Response)
+		Utility.ReturnSimpleHttpResponse(HRM, "List", Response)
 	Else
-		HRM.ResponseCode = 200
 		Utility.ReturnHttpResponse(HRM, Response)
 	End If
 	If Main.KVS_ENABLED Then WriteKVS

@@ -28,11 +28,11 @@ NumberOfLibraries=6
 NumberOfModules=10
 Version=9.8
 @EndOfDesignText@
-' Name: 			Web API Template (MinimaList Edition)
+' Name: 			Web API Template
 ' Description: 		Non-UI application (console / server application)
-' Version: 			2.01
+' Version: 			2.02
 
-' Objects folder: 	file:///C:/B4X/Development/Web%20API%20Server%202.01/Objects (Bring to front)
+' Objects folder: 	file:///C:/B4X/Development/Web%20API%20Server%202.02/Objects (Bring to front)
 ' Objects folder: 	ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\Objects
 
 ' Main module: 		ide://goto?Module=Main&Sub=ConfigureServer
@@ -40,7 +40,6 @@ Version=9.8
 ' ApiHandler: 		ide://goto?Module=ApiHandler&Sub=ProcessRequest
 ' HelpHandler: 		ide://goto?Module=HelpHandler&Sub=GenerateResponseScript
 
-' Click to browse: 	http://127.0.0.1:8080/web/help
 ' Click to publish: ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&Args=-cMf&Args=Publish.zip&Args=www&Args=*.jar&Args=*.ini&Args=*.db&Args=help.html&Args=help.js
 
 #Region Project Attributes 
@@ -50,10 +49,6 @@ Version=9.8
 
 Sub Process_Globals
 	Public srvr As Server
-	'Public AUTH As AUTH
-	'Public DB As DataConnector
-	'Public JAT As JSONWebToken
-	'Public JRT As JSONWebToken
 	Public ROOT_URL As String
 	Public ROOT_PATH As String
 	Public API_PATH As String
@@ -61,121 +56,65 @@ Sub Process_Globals
 	Public API_VERSIONING As String
 	Public SERVER_PORT As Int = 8080
 	Public SSL_PORT As Int
-	'Public TIMEZONE As Int
-	'Public SERVER_TIME As String
 	Public Config As Map
 	Public Element As Element
 	Public Controllers As List
 	Public SimpleResponse As Boolean
 	Public SimpleResponseFormat As String
-	'Public AUTHENTICATION_TYPE As String
-	'Public SESSIONS_ENABLED As Boolean
-	'Public COOKIES_ENABLED As Boolean
-	'Public COOKIES_EXPIRATION As Long
 	Public KVS_ENABLED As Boolean
 	Public KVS As KeyValueStore
 	Public Minima As MinimaList
-	Public const VERSION As String = "2.01"
-	'Public const PREFIX As String = "WebAPI_v201_"
-	'Public Secret As Secret
-	'Type Secret (Access_Token As String, Refresh_Token As String)
+	Public const VERSION As String = "2.02"
 	Type ApiElement (Name As String, Versioning As Boolean)
 	Type WebElement (Root As String, Path As String)
 	Type Element (Web As WebElement, Api As ApiElement, Elements As List, PathIndex As Int, ApiVersionIndex As Int, ApiControllerIndex As Int, WebControllerIndex As Int)
 End Sub
 
+' <link>Click to browse|http://127.0.0.1:8080/web</link>
 Sub AppStart (Args() As String)
-	' Read environment settings
+	srvr.Initialize("")		' Create the server
+	ReadConfig				' Read environment settings
+	ConfigureServer			' Configure the server
+	Minima.Initialize		' Initialize MinimaList
+	srvr.Start				' Start the server
+	StartMessageLoop
+End Sub
+
+Sub ReadConfig
 	If Not(File.Exists(File.DirApp, "config.ini")) Then
 		File.Copy(File.DirAssets, "config.example", File.DirApp, "config.ini")
 	End If
 	Config = Utility.ReadMapFile(File.DirApp, "config.ini")
 	Config.Put("VERSION", VERSION)
-	srvr.Initialize("")		' Create the server
-	Minima.Initialize		' Initialize MinimaList
-	ConfigureServer			' Configure the server
-	srvr.Start				' Start the server
-	StartMessageLoop
 End Sub
 
 Private Sub ConfigureServer
-	'ConfigurePort								' Server Port
-	'ConfigureSSL								' SSL Port
-	'ConfigureCORS								' CrossOriginFilter
-	'ConfigureStaticFiles 						' Configure Static Files Folder and Allow Browsing Permission
-	'ConfigureTimezone							' Adjust timezone if server located in different timezone
 	ConfigurePaths								' App URL / Paths
 	ConfigureElements							' Pretty URL structures / hierarchy
 	ConfigureHandlers							' Server Handlers
 	ConfigureControllers						' App Controllers
 	ConfigureResponse							' JSON Response Format
 	ConfigureWelcomeText						' Show information in Logs when server starts
-	'ConfigureKeyValueStore						' Persistent Storage for MinimaList
-	'ConfigureDatabase							' Database connection and default queries
+	
+    #Region Advanced
+	'ConfigurePort								' Server Port
+	'ConfigureSSL								' SSL Port
+	'ConfigureCORS								' CrossOriginFilter
+	'ConfigureStaticFiles 						' Configure Static Files Folder and Browsing Permission
+	'ConfigureTimezone							' Adjust timezone if server located in different timezone
 	'ConfigureSessions							' Enable Sessions
 	'ConfigureCookies							' Enable Cookies
-	'ConfigureTokenAuth							' Enable Token Authentication
-	'ConfigureBasicAuth							' Enable Basic Authentication Filter
+	'ConfigureDatabase							' Enable Database
+	'ConfigureKeyValueStore						' Enable KeyValueStore
+	'ConfigureBasicAuth							' Enable Basic Authentication
 	'ConfigureJWTAuth							' Enable JSON Web Token Authentication
-End Sub
-
-Public Sub ConfigurePort
-	SERVER_PORT = Config.Get("ServerPort")
-	If SERVER_PORT = 0 Then
-		Log($"Server Port is not set!"$)
-		Log($"Application is terminated."$)
-		ExitApplication
-	End If
-	srvr.Port = SERVER_PORT
-End Sub
-
-Public Sub ConfigureSSL
-	SSL_PORT = Config.Get("SSLPort") : If IsNumber(SSL_PORT) = False Then SSL_PORT = 0
-	If SSL_PORT = 0 Then Return
-	
-	Dim KeyStoreDir As String = Config.Get("SSL_KEYSTORE_DIR")
-	Dim KeyStoreFile As String = Config.Get("SSL_KEYSTORE_FILE")
-	Dim KeyStorePassword As String = Config.Get("SSL_KEYSTORE_PASSWORD")
-	
-	Dim ssl As SslConfiguration
-	ssl.Initialize
-	ssl.SetKeyStorePath(KeyStoreDir, KeyStoreFile)
-	ssl.KeyStorePassword = KeyStorePassword
-	'ssl.KeyManagerPassword = ""
-	srvr.SetSslConfiguration(ssl, SSL_PORT)
-	
-	'add filter to redirect all traffic from http to https (optional)
-	srvr.AddFilter("/*", "HttpsFilter", False)
-End Sub
-
-Public Sub ConfigureCORS
-	' Note: If you have enabled JWT then you may not need this
-	#Region Example
-	' allowedOrigins = "*" or "http://google.com"
-	' allowedMethods = "*" or "GET,POST,HEAD"
-	' allowedHeaders = "*" or "X-Requested-With,Content-Type,Accept,Origin"
-	' Eg. ConfigureCORS(ROOT_PATH & "account/*", "*", "", "")
-	' Reference: https://www.b4x.com/android/forum/threads/jetty-cross-origin-filter-to-be-added-to-jserver-library.85641/
 	#End Region
-	Dim Paths As List
-	Paths.Initialize
-	
-	Paths.Add(CreateMap("path": "/*", "origins": "*", "methods": "*", "headers": "*"))
-	
-	For Each Item As Map In Paths
-		Dim cors As CorsFilter
-		cors.Initialize(Item.Get("path"), _
-		CreateMap( _
-		"allowedOrigins": Item.Get("origins"), _
-		"allowedMethods": Item.Get("methods"), _
-		"allowedHeaders": Item.Get("headers"), _
-		"allowCredentials": "true", _
-		"preflightMaxAge": 1800, _
-		"chainPreflight": "false"))
-		cors.AddToServer(srvr)
-	Next
 End Sub
 
+' First thing to configure
+' This setting is determined by the values in Config.ini (inside Objects folder).
+' For starting, just let the default values.
+' You can edit the Config.ini file using any Text Editor.
 Public Sub ConfigurePaths
 	ROOT_URL = Config.Get("ROOT_URL")
 	If SERVER_PORT <> 80 Then
@@ -208,6 +147,8 @@ Public Sub ConfigurePaths
 End Sub
 
 ' Configure this after ConfigurePaths
+' This setting depends automatically by ConfigurePaths above.
+' Nothing is needed to be configured here.
 Public Sub ConfigureElements
 	Element.Initialize
 	Element.Elements.Initialize
@@ -237,61 +178,223 @@ Public Sub ConfigureElements
 	Element.ApiControllerIndex = Element.Elements.Size
 	Element.WebControllerIndex = Element.Elements.Size - IIf(Element.Api.Name.EqualsIgnoreCase(""), 0, 1) - IIf(Element.Api.Versioning, 1, 0) ' or just Element.PathIndex + 1
 	
-#Region debug
-'	#If debug
-'	Dim i As Int
-'	For Each item In Element.Elements
-'		Log($"${i} - ${item}"$)
-'		i = i + 1
-'	Next
-'	Log("PathIndex=" & Element.PathIndex)
-'	Log("WebControllerIndex=" & Element.WebControllerIndex)
-'	Log("ApiVersionIndex=" & Element.ApiVersionIndex)
-'	Log("ApiControllerIndex=" & Element.ApiControllerIndex)
-'	#End If	
-#End Region
+    #Region debug
+	'#If debug
+	'Dim i As Int
+	'For Each item In Element.Elements
+	'	Log($"${i} - ${item}"$)
+	'	i = i + 1
+	'Next
+	'Log("PathIndex=" & Element.PathIndex)
+	'Log("WebControllerIndex=" & Element.WebControllerIndex)
+	'Log("ApiVersionIndex=" & Element.ApiVersionIndex)
+	'Log("ApiControllerIndex=" & Element.ApiControllerIndex)
+	'#End If	
+    #End Region
 End Sub
 
 ' Configure this after ConfigureElements
+' By default, ApiHandler is the only required handler.
+' If WebHandler is enabled (uncommented), then we can use it to route non-API URL to show web front-end such as home page.
+' If HelpHandler is enabled (by default), API documentation is available for debugging the API without client app or Postman.
+' If HelpHandler is disabled (commented) then API documentation is not available for debugging. This handler is not required in release mode.
 Public Sub ConfigureHandlers
+	' =======================================================================
+	' Web route (optional)
+	' =======================================================================
+	' Note: When only WebHandler is enabled, suitable for creating a website
+	srvr.AddHandler(ROOT_PATH & "*", "WebHandler", False) 						' Add Web handler (optional)
+	
 	If API_NAME.EqualsIgnoreCase("") Then
-		' =============================================
-		' API only (simple URL structure)
-		' =============================================
-		srvr.AddHandler(ROOT_PATH & "*", "ApiHandler", False) 				' Add API handler (mandatory)
+		' ===================================================================
+		' API route - /web/ (root path is used for all APIs)
+		' ===================================================================
+		' Note: You can either enable WebHandler or ApiHandler, not both     
+		srvr.AddHandler(ROOT_PATH & "*", "ApiHandler", False) 					' Add API handler (WebHandler disabled)
 	Else									
-		' =============================================
-		' API + Web routes (recommended)
-		' =============================================
-		srvr.AddHandler(ROOT_PATH & "*", "WebHandler", False) 				' Add Web handler (optional)
-		srvr.AddHandler(ROOT_PATH & API_PATH & "*", "ApiHandler", False) 	' Add API handler
-		srvr.AddHandler(ROOT_PATH & "help", "HelpHandler", False) 			' Add Help page (optional)
-		'srvr.AddWebSocket("/time", "WSTime")								' Add Web socket (optional)
+		' ===================================================================
+		' API route - /web/api/ (recommended)
+		' ===================================================================
+		' Note: You can enable both WebHandler and ApiHandler
+		srvr.AddHandler(ROOT_PATH & API_PATH & "*", "ApiHandler", False) 		' Add API handler
 	End If
+	
+	' =======================================================================
+	' Help route
+	' =======================================================================
+	srvr.AddHandler(ROOT_PATH & "help", "HelpHandler", False) 					' Add Help page (optional)
+	
+	' =======================================================================
+	' Web Sockets route
+	' =======================================================================
+	'srvr.AddWebSocket("/time", "WSTime")										' Add Web socket (optional)
 End Sub
 
-' Include which controller class to display in API documentation (if HelpHandler is used)
-' Some APIs can be hidden using #Hide keyword
+' Configure this after ConfigureHandlers
+' If HelpHandler is used, this configuration includes which controller class to display on the API documentation page. 
+' By default, only DataController is added. 
+' When you have more controllers, you can add them here.
+' You can be hide some APIs using #Hide keyword
 Public Sub ConfigureControllers
 	Controllers.Initialize
 	Controllers.Add("DataController")
 End Sub
 
 ' Configure JSON response format
+' When enabled, the default format is the original Map convert to JSON string
+' When disabled (commented), standard API format with be returned
+' Standard JSON object has 'm', 'e', 's', 'r', 'a' keys where the response (r) is a list
 Public Sub ConfigureResponse
+	' =======================================================================
 	' Check example: ide://goto?Module=Utility&Sub=ReturnSimpleHttpResponse
+	' =======================================================================
 	SimpleResponse = True
 	SimpleResponseFormat = "Map"
 End Sub
 
+' Display some information in Logs (debug) or terminal (release)
+' You may edit your own text
 Public Sub ConfigureWelcomeText
 	Log($"Web API server (version = ${VERSION}) is running on port ${srvr.Port}${IIf(srvr.SslPort > 0, $" (redirecting to port ${srvr.SslPort})"$, "")}"$)
 	Log($"Open the following URL from your web browser (if help is enabled)"$)
 	Log(ROOT_URL & ROOT_PATH & "help")
 End Sub
 
-' Optional to persist model with KeyValueStore
+#Region Additional Configurations
+' This configuration is automatically read from the values in Config.ini
+' By default, server port is set to 8080
+Public Sub ConfigurePort
+	SERVER_PORT = Config.Get("ServerPort")
+	If SERVER_PORT = 0 Then
+		Log($"Server Port is not set!"$)
+		Log($"Application is terminated."$)
+		ExitApplication
+	End If
+	srvr.Port = SERVER_PORT
+End Sub
+
+' This configuration is automatically read from the values in Config.ini
+' By default, SSL port is disabled
+Public Sub ConfigureSSL
+	SSL_PORT = Config.Get("SSLPort") : If IsNumber(SSL_PORT) = False Then SSL_PORT = 0
+	If SSL_PORT = 0 Then Return
+	
+	Dim KeyStoreDir As String = Config.Get("SSL_KEYSTORE_DIR")
+	Dim KeyStoreFile As String = Config.Get("SSL_KEYSTORE_FILE")
+	Dim KeyStorePassword As String = Config.Get("SSL_KEYSTORE_PASSWORD")
+	
+	Dim ssl As SslConfiguration
+	ssl.Initialize
+	ssl.SetKeyStorePath(KeyStoreDir, KeyStoreFile)
+	ssl.KeyStorePassword = KeyStorePassword
+	'ssl.KeyManagerPassword = ""
+	srvr.SetSslConfiguration(ssl, SSL_PORT)
+	
+	'add filter to redirect all traffic from http to https (optional)
+	srvr.AddFilter("/*", "HttpsFilter", False)
+End Sub
+
+' This configuration is use for Cross Origin in JavaScript call
+' By default, no control is implemented
+Public Sub ConfigureCORS
+	' =========================================================
+	' Note: If you have enabled JWT then you may not need this
+	' =========================================================
+	#Region Example
+	' allowedOrigins = "*" or "http://google.com"
+	' allowedMethods = "*" or "GET,POST,HEAD"
+	' allowedHeaders = "*" or "X-Requested-With,Content-Type,Accept,Origin"
+	' Eg. ConfigureCORS(ROOT_PATH & "account/*", "*", "", "")
+	' Reference: https://www.b4x.com/android/forum/threads/jetty-cross-origin-filter-to-be-added-to-jserver-library.85641/
+	#End Region
+	Dim Paths As List
+	Paths.Initialize
+	
+	Paths.Add(CreateMap("path": "/*", "origins": "*", "methods": "*", "headers": "*"))
+	
+	For Each Item As Map In Paths
+		Dim cors As CorsFilter
+		cors.Initialize(Item.Get("path"), _
+		CreateMap( _
+		"allowedOrigins": Item.Get("origins"), _
+		"allowedMethods": Item.Get("methods"), _
+		"allowedHeaders": Item.Get("headers"), _
+		"allowCredentials": "true", _
+		"preflightMaxAge": 1800, _
+		"chainPreflight": "false"))
+		cors.AddToServer(srvr)
+	Next
+End Sub
+
+' Set the public accessible folder and disallow browsing
+Public Sub ConfigureStaticFiles
+	' ========================================================
+	' Share the asset files such as css, js, images and fonts
+	' The default values will be applied if not set
+	' ========================================================
+	srvr.StaticFilesFolder = File.Combine(File.DirApp, "www")
+	srvr.SetStaticFilesOptions(CreateMap("dirAllowed": False))
+End Sub
+
+' Use this to adjust server time offset (may not needed)
+'
+' Add the following line to Process_Globals
+' <code>Public TIMEZONE As Int</code>
+Public Sub ConfigureTimezone
+	' ============================================================
+	' Uncomment the following code
+	' ============================================================
+	'TIMEZONE = Config.Get("TimeZone") : If IsNumber(TIMEZONE) = False Then TIMEZONE = 0
+End Sub
+
+' Use Sessions
+'
+' Add the following lines to Process_Globals
+' <code> Public const PREFIX As String = "WebAPI_v2_"
+' Public SESSIONS_ENABLED As Boolean</code>
+Public Sub ConfigureSessions
+	' ====================================================================
+	' Make sure PREFIX constant is set if you have more than one instance
+	' Uncomment the following code
+	' ====================================================================
+	'SESSIONS_ENABLED = True
+End Sub
+
+' Use Cookies
+'
+' Add the following lines to Process_Globals
+' <code> Public const PREFIX As String = "WebAPI_v2_"
+' Public COOKIES_ENABLED As Boolean
+' Public COOKIES_EXPIRATION As Long</code>
+Public Sub ConfigureCookies
+	' ====================================================================
+	' Make sure PREFIX constant is set if you have more than one instance
+	' Uncomment the following code
+	' ====================================================================
+	'COOKIES_ENABLED = True
+	'COOKIES_EXPIRATION = 90 * 24 * 60 * 60 			' in seconds = 90 days
+End Sub
+
+' Initialize a database connector object
+'
+' Add <link>DataConnector|https://www.b4x.com/android/forum/threads/web-api-template-2.143310/#post-908109</link> class to the Modules tab
+' Add the following line to Process_Globals
+' <code> Public DB As DataConnector</code>
+Public Sub ConfigureDatabase
+	' ============================================================
+	' You need to select jSQL from the Libraries Manager
+	' Add relevant JDBC driver using #AdditionalJar
+	' Uncomment the following code
+	' ============================================================
+	'DB.Initialize(Config)
+End Sub
+
+' Initialize KeyValueStore
 Public Sub ConfigureKeyValueStore
+	' ============================================================
+	' Persistent Storage for MinimaList
+	' You need to select KeyValueStore from the Libraries Manager
+	' ============================================================
 	KVS.Initialize(File.DirApp, "kvs.dat")
 	' Load values
 	Minima.List = KVS.GetDefault("List", Minima.List)
@@ -299,90 +402,75 @@ Public Sub ConfigureKeyValueStore
 	Log("KeyValueStore is enabled")
 End Sub
 
-#Region Unused
-'Public Sub ConfigureDatabase
-'	' Initialize a database connector object
-'	DB.Initialize(Config)
-'End Sub
-
-'Public Sub ConfigureStaticFiles
-'	srvr.StaticFilesFolder = File.Combine(File.DirApp, "www")
-'	srvr.SetStaticFilesOptions(CreateMap("dirAllowed": False))
-'End Sub
-
-'Public Sub ConfigureTimezone
-'	TIMEZONE = Config.Get("TimeZone") : If IsNumber(TIMEZONE) = False Then TIMEZONE = 0
-'End Sub
-
-' Use Sessions
-'Public Sub ConfigureSessions
-'	SESSIONS_ENABLED = True
-'End Sub
-
-' Use Cookies
-'Public Sub ConfigureCookies
-'	COOKIES_ENABLED = True
-'	COOKIES_EXPIRATION = 90 * 24 * 60 * 60 			' in seconds = 90 days
-'End Sub
-
-'Public Sub ConfigureBasicAuth
-'	AUTHENTICATION_TYPE = "BASIC AUTHENTICATION"
-'	
-'	Dim Paths As List
-'	Paths.Initialize
-'	Paths.Add(ROOT_PATH & "dashboard")
-'	
-'	For Each path In Paths
-'		'Log(path)
-'		srvr.AddFilter(path, "BasicAuthFilter", False)
-'	Next
-'End Sub
-
-' Do not use this configuration
-' It is not completed/experimental
-'Public Sub ConfigureTokenAuth
-'	AUTHENTICATION_TYPE = "TOKEN AUTHENTICATION"
-'	
-'	Dim Paths As List
-'	Paths.Initialize
+' Use Basic Authentication
 '
-'	For Each path In Paths
-'		srvr.AddFilter(path, "TokenAuthFilter", False)
-'	Next
-'End Sub
+' Add <link>BasicAuthFilter|https://www.b4x.com/android/forum/threads/web-api-template-2.143310/#post-908109</link> and <link>MiniORM|https://www.b4x.com/android/forum/threads/web-api-template-2.143310/#post-908109</link> classes to the Modules tab
+' Add the following lines to Process_Globals
+' <code> Public DB As DataConnector
+' Public AUTHENTICATION_TYPE As String
+' Public AUTH As AUTH</code>
+Public Sub ConfigureBasicAuth
+	' ==============================
+	' Uncomment the following code
+	' ==============================
+	'AUTHENTICATION_TYPE = "BASIC AUTHENTICATION"
+	'
+	'Dim Paths As List
+	'Paths.Initialize
+	'Paths.Add(ROOT_PATH & "dashboard")
+	'
+	'For Each path In Paths
+	'	'Log(path)
+	'	srvr.AddFilter(path, "BasicAuthFilter", False)
+	'Next
+End Sub
 
-' Make sure Database is created and server has restarted at first run
-'Public Sub ConfigureJWTAuth
-'	If DB.Busy Then
-'		LogColor("JSON Web Token is Not Enabled", -65536)
-'		Return
-'	End If
+' Use JSON Web Token Authentication
 '
-'	' Enable this only after database is generated
-'	' You need to restart the server after first run if database not exist
-'	Dim con As SQL = DB.GetConnection
-'	Dim res As ResultSet = con.ExecQuery(DB.Queries.Get("SELECT_LAST_TOKENSECRET"))
-'	Do While res.NextRow
-'		Secret.Access_Token = res.GetString("access_token_secret")
-'		Secret.Refresh_Token = res.GetString("refresh_token_secret")
-'	Loop
-'	res.Close
-'	DB.CloseDB(con)
-'
-'	JAT.Initialize("HMAC256", Secret.Access_Token, False)
-'	JAT.Issuer = ROOT_URL
-'	
-'	JRT.Initialize("HMAC256", Secret.Refresh_Token, False)
-'	JRT.Issuer = ROOT_URL
-'	
-'	Dim Paths As List
-'	Paths.Initialize
-'	'Paths.Add(ROOT_PATH & "dashboard")
-'	
-'	For Each path In Paths
-'		'Log(path)
-'		srvr.AddFilter(path, "JWTAuthFilter", False)
-'	Next
-'	AUTHENTICATION_TYPE = "JSON WEB TOKEN AUTHENTICATION"
-'End Sub
+' Add <link>JSONWebToken|https://www.b4x.com/android/forum/threads/web-api-template-2.143310/#post-908109</link> and <link>JWTAuthFilter|https://www.b4x.com/android/forum/threads/web-api-template-2.143310/#post-908109</link> classes to the Modules tab
+' Add the following line to Process_Globals
+' <code> Public DB As DataConnector
+' Public AUTHENTICATION_TYPE As String
+' Public JAT As JSONWebToken
+' Public JRT As JSONWebToken
+' Public Secret As Secret
+' Type Secret (Access_Token As String, Refresh_Token As String)</code>
+Public Sub ConfigureJWTAuth
+	' ====================================================================
+	' Make sure database is created and server has restarted at first run
+	' Uncomment the following code
+	' ====================================================================
+	'If DB.Busy Then
+	'	LogColor("JSON Web Token is Not Enabled", -65536)
+	'	Return
+	'End If
+	'
+	'AUTHENTICATION_TYPE = "JSON WEB TOKEN AUTHENTICATION"
+	'
+	'' Enable this only after database is generated
+	'' You need to restart the server after first run if database not exist
+	'Dim con As SQL = DB.GetConnection
+	'Dim res As ResultSet = con.ExecQuery(DB.Queries.Get("SELECT_LAST_TOKENSECRET"))
+	'Do While res.NextRow
+	'	Secret.Access_Token = res.GetString("access_token_secret")
+	'	Secret.Refresh_Token = res.GetString("refresh_token_secret")
+	'Loop
+	'res.Close
+	'DB.CloseDB(con)
+	'
+	'JAT.Initialize("HMAC256", Secret.Access_Token, False)
+	'JAT.Issuer = ROOT_URL
+	'
+	'JRT.Initialize("HMAC256", Secret.Refresh_Token, False)
+	'JRT.Issuer = ROOT_URL
+	'
+	'Dim Paths As List
+	'Paths.Initialize
+	'Paths.Add(ROOT_PATH & "help")
+	'
+	'For Each path In Paths
+	'	'Log(path)
+	'	srvr.AddFilter(path, "JWTAuthFilter", False)
+	'Next
+End Sub
 #End Region
