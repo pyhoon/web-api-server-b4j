@@ -5,7 +5,7 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Web Handler class
-' Version 2.01
+' Version 2.02
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -34,6 +34,7 @@ Private Sub ProcessRequest
 	Log(Request.RequestURI)
 	Elements = Utility.GetUriElements(Request.RequestURI)
 	
+	' Handle /web/
 	If ElementLastIndex < Main.Element.WebControllerIndex Then
 		Select Method
 			Case "GET"
@@ -41,9 +42,8 @@ Private Sub ProcessRequest
 				WelcomePage.Initialize(Request, Response)
 				WelcomePage.Show
 				Return
-			Case Else
-				Utility.ReturnMethodNotAllow(Response)
-				Return
 		End Select
 	End If
+	
+	Utility.ReturnHtmlPageNotFound(Response)
 End Sub

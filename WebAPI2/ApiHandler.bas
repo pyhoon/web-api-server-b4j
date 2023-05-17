@@ -5,7 +5,7 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Api Handler class
-' Version 2.01
+' Version 2.02
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -64,6 +64,7 @@ Private Sub ProcessRequest
 	Dim ControllerIndex As Int = Main.Element.ApiControllerIndex
 	Dim ApiVersionElement As String = Elements(ApiVersionIndex)
 	Dim ControllerElement As String = Elements(ControllerIndex)
+	
 	If ElementLastIndex > Main.Element.ApiControllerIndex Then
 		Dim FirstIndex As Int = Main.Element.ApiControllerIndex + 1
 		If ElementLastIndex > Main.Element.ApiControllerIndex + 1 Then
@@ -74,16 +75,15 @@ Private Sub ProcessRequest
 	Select ControllerElement
 		Case "data"
 			RouteData(ApiVersionElement, ControllerIndex, FirstIndex, SecondIndex)
-		Case Else
-			Log("Unknown controller: " & ControllerElement)
-			Utility.ReturnBadRequest(Response)
+			Return
 	End Select
+	
+	Log("Unknown controller: " & ControllerElement)
+	Utility.ReturnBadRequest(Response)
 End Sub
 
 ' Main Router for DataController
 Private Sub RouteData (Version As String, ControllerIndex As Int, FirstIndex As Int, SecondIndex As Int)
-	Dim Data As DataController
-	Data.Initialize(Request, Response)
 	Select Method
 		Case "GET"
 			RouteDataGet(Version, ControllerIndex, FirstIndex)
