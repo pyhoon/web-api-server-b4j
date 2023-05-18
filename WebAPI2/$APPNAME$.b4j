@@ -30,7 +30,7 @@ Version=9.8
 @EndOfDesignText@
 ' Name: 			Web API Template
 ' Description: 		Non-UI application (console / server application)
-' Version: 			2.02
+' Version: 			2.02.1
 
 ' Objects folder: 	file:///C:/B4X/Development/Web%20API%20Server%202.02/Objects (Bring to front)
 ' Objects folder: 	ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\Objects
@@ -64,7 +64,7 @@ Sub Process_Globals
 	Public KVS_ENABLED As Boolean
 	Public KVS As KeyValueStore
 	Public Minima As MinimaList
-	Public const VERSION As String = "2.02"
+	Public const VERSION As String = "2.02.1"
 	Type ApiElement (Name As String, Versioning As Boolean)
 	Type WebElement (Root As String, Path As String)
 	Type Element (Web As WebElement, Api As ApiElement, Elements As List, PathIndex As Int, ApiVersionIndex As Int, ApiControllerIndex As Int, WebControllerIndex As Int)
@@ -74,8 +74,8 @@ End Sub
 Sub AppStart (Args() As String)
 	srvr.Initialize("")		' Create the server
 	ReadConfig				' Read environment settings
-	ConfigureServer			' Configure the server
 	Minima.Initialize		' Initialize MinimaList
+	ConfigureServer			' Configure the server
 	srvr.Start				' Start the server
 	StartMessageLoop
 End Sub
@@ -99,13 +99,13 @@ Private Sub ConfigureServer
     #Region Advanced
 	'ConfigurePort								' Server Port
 	'ConfigureSSL								' SSL Port
-	'ConfigureCORS								' CrossOriginFilter
+	ConfigureCORS								' CrossOriginFilter
 	'ConfigureStaticFiles 						' Configure Static Files Folder and Browsing Permission
 	'ConfigureTimezone							' Adjust timezone if server located in different timezone
 	'ConfigureSessions							' Enable Sessions
 	'ConfigureCookies							' Enable Cookies
 	'ConfigureDatabase							' Enable Database
-	'ConfigureKeyValueStore						' Enable KeyValueStore
+	ConfigureKeyValueStore						' Enable KeyValueStore
 	'ConfigureBasicAuth							' Enable Basic Authentication
 	'ConfigureJWTAuth							' Enable JSON Web Token Authentication
 	#End Region
@@ -310,7 +310,8 @@ Public Sub ConfigureCORS
 	Dim Paths As List
 	Paths.Initialize
 	
-	Paths.Add(CreateMap("path": "/*", "origins": "*", "methods": "*", "headers": "*"))
+	'Paths.Add(CreateMap("path": "*", "origins": "*", "methods": "POST,PUT,DELETE", "headers": "*")) 		' All origins access (* methods not working)
+	Paths.Add(CreateMap("path": ROOT_PATH & API_PATH & "v2/data/*", "origins": "http://localhost, http://127.0.0.1:3000", "methods": "POST,PUT,DELETE", "headers": "*")) ' vue.js prod/dev app
 	
 	For Each Item As Map In Paths
 		Dim cors As CorsFilter
@@ -397,7 +398,9 @@ Public Sub ConfigureKeyValueStore
 	' ============================================================
 	KVS.Initialize(File.DirApp, "kvs.dat")
 	' Load values
-	Minima.List = KVS.GetDefault("List", Minima.List)
+	If Minima.IsInitialized Then
+		Minima.List = KVS.GetDefault("List", Minima.List)
+	End If
 	KVS_ENABLED = True
 	Log("KeyValueStore is enabled")
 End Sub
