@@ -1,6 +1,6 @@
 # webapi-2-b4j
 
-Version: 2.02
+Version: 2.02.1
 
 Build REST API Server Using B4X Template  
 This is a very minimum template where you don't even need to connect to a database to work.  
