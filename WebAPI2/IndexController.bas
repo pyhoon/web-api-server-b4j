@@ -5,7 +5,7 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Index Controller class
-' Version 2.02
+' Version 2.03
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse

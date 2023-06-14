@@ -1,15 +1,18 @@
 # Product: 		Web API Template (server)
-# Version:		2.02
+# Version:		2.03
 # Developer:	Aeric Poon
 # License:		Donationware
+# Paypal:       https://paypal.me/aeric80/ 
 # Thanks to Erel, Anywhere Software for the great products and B4X community for encouragement and supports ;)
+# Please consider to donate to me so I can continue to improve this project
+
 # Lines starting with '#' are comments.
 # Backslash character at the end of line means that the command continues in the next line.
 
 # Define App Constants
 HOME_TITLE=MINIMALIST API
 APP_TITLE=MinimaList API
-APP_TRADEMARK=Minimalist
+APP_TRADEMARK=MinimaList
 APP_COPYRIGHT=Copyright Computerise System Solutions 2023
 
 # Server Path

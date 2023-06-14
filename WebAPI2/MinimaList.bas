@@ -5,7 +5,9 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Minimal Collections of Map and List class
-' Version 0.01
+' Version 0.02
+' 2023-06-09 Added code sample when hover Sub Initialize
+
 Sub Class_Globals
 	Private mList As List
 	Private mMap As Map
@@ -13,6 +15,17 @@ Sub Class_Globals
 	Private mLast As Map
 End Sub
 
+' Add a new public variable in Sub Process_Globals of Main module
+' <code>Public MinimaItem As MinimaList</code>
+'
+' Initialize inside Sub AppStart before ConfigureServer
+' <code>MinimaItem.Initialize</code>
+'
+' Add the following code inside Sub ConfigureKeyValueStore to read
+' <code>
+'If MinimaItem.IsInitialized Then
+'    MinimaItem.List = KVS.GetDefault("ItemList", MinimaItem.List)
+'End If</code>
 Public Sub Initialize
 	mList.Initialize
 	mMap.Initialize

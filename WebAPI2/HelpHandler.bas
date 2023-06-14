@@ -5,7 +5,7 @@ Type=Class
 Version=9.1
 @EndOfDesignText@
 ' Help Handler class
-' Version 2.02
+' Version 2.03
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
@@ -45,7 +45,8 @@ Private Sub ShowHelpPage
 	'	' Store csrf_token inside server session variables
 	'	Dim csrf_token As String = Encryption.RandomHash2
 	'	Request.GetSession.SetAttribute(Main.PREFIX & "csrf_token", csrf_token)
-	'	strMain = Utility.BuildCsrfToken(strMain, csrf_token) 		' Append csrf_token into page header. Comment this line to check
+	'  ' Append csrf_token into page header. Comment this line to check
+	'	strMain = Utility.BuildCsrfToken(strMain, csrf_token)
 	'End If
 	strMain = Utility.BuildHtml(strMain, Main.Config)
 

@@ -13,6 +13,7 @@ Library3=jcore
 Library4=jserver
 Library5=json
 Library6=keyvaluestore
+Library7=webapicontroller
 Module1=ApiHandler
 Module10=WebUtils
 Module2=CorsFilter
@@ -24,15 +25,15 @@ Module7=MinimaList
 Module8=Utility
 Module9=WebHandler
 NumberOfFiles=3
-NumberOfLibraries=6
+NumberOfLibraries=7
 NumberOfModules=10
 Version=9.8
 @EndOfDesignText@
 ' Name: 			Web API Template
 ' Description: 		Non-UI application (console / server application)
-' Version: 			2.02.1
+' Version: 			2.03
 
-' Objects folder: 	file:///C:/B4X/Development/Web%20API%20Server%202.02/Objects (Bring to front)
+' Objects folder: 	file:///C:/B4X/Development/Web%20API%20Server%202.03/Objects (Bring to front)
 ' Objects folder: 	ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\Objects
 
 ' Main module: 		ide://goto?Module=Main&Sub=ConfigureServer
@@ -45,6 +46,7 @@ Version=9.8
 #Region Project Attributes 
 	#CommandLineArgs:
 	#MergeLibraries: True
+	#IgnoreWarnings: 32
 #End Region
 
 Sub Process_Globals
@@ -63,8 +65,8 @@ Sub Process_Globals
 	Public SimpleResponseFormat As String
 	Public KVS_ENABLED As Boolean
 	Public KVS As KeyValueStore
-	Public Minima As MinimaList
-	Public const VERSION As String = "2.02.1"
+	Public MinimaData As MinimaList
+	Public const VERSION As String = "2.03"
 	Type ApiElement (Name As String, Versioning As Boolean)
 	Type WebElement (Root As String, Path As String)
 	Type Element (Web As WebElement, Api As ApiElement, Elements As List, PathIndex As Int, ApiVersionIndex As Int, ApiControllerIndex As Int, WebControllerIndex As Int)
@@ -74,7 +76,7 @@ End Sub
 Sub AppStart (Args() As String)
 	srvr.Initialize("")		' Create the server
 	ReadConfig				' Read environment settings
-	Minima.Initialize		' Initialize MinimaList
+	MinimaData.Initialize	' Initialize MinimaList
 	ConfigureServer			' Configure the server
 	srvr.Start				' Start the server
 	StartMessageLoop
@@ -93,10 +95,7 @@ Private Sub ConfigureServer
 	ConfigureElements							' Pretty URL structures / hierarchy
 	ConfigureHandlers							' Server Handlers
 	ConfigureControllers						' App Controllers
-	ConfigureResponse							' JSON Response Format
-	ConfigureWelcomeText						' Show information in Logs when server starts
-	
-    #Region Advanced
+    #Region Advanced	
 	'ConfigurePort								' Server Port
 	'ConfigureSSL								' SSL Port
 	ConfigureCORS								' CrossOriginFilter
@@ -108,6 +107,8 @@ Private Sub ConfigureServer
 	ConfigureKeyValueStore						' Enable KeyValueStore
 	'ConfigureBasicAuth							' Enable Basic Authentication
 	'ConfigureJWTAuth							' Enable JSON Web Token Authentication
+	'ConfigureResponse							' JSON Response Format
+	ConfigureWelcomeText						' Show information in Logs when server starts
 	#End Region
 End Sub
 
@@ -242,7 +243,7 @@ End Sub
 
 ' Configure JSON response format
 ' When enabled, the default format is the original Map convert to JSON string
-' When disabled (commented), standard API format with be returned
+' When disabled (commented), standard API format will be returned
 ' Standard JSON object has 'm', 'e', 's', 'r', 'a' keys where the response (r) is a list
 Public Sub ConfigureResponse
 	' =======================================================================
@@ -398,8 +399,8 @@ Public Sub ConfigureKeyValueStore
 	' ============================================================
 	KVS.Initialize(File.DirApp, "kvs.dat")
 	' Load values
-	If Minima.IsInitialized Then
-		Minima.List = KVS.GetDefault("List", Minima.List)
+	If MinimaData.IsInitialized Then
+		MinimaData.List = KVS.GetDefault("DataList", MinimaData.List)
 	End If
 	KVS_ENABLED = True
 	Log("KeyValueStore is enabled")

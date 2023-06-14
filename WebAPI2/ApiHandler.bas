@@ -5,13 +5,12 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Api Handler class
-' Version 2.02
+' Version 2.03
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
-	Private Elements() As String
-	Private Method As String
 	Private HRM As HttpResponseMessage
+	Private Elements() As String
 End Sub
 
 Public Sub Initialize
@@ -21,8 +20,6 @@ End Sub
 Sub Handle (req As ServletRequest, resp As ServletResponse)
 	Request = req
 	Response = resp
-	
-	Method = Request.Method.ToUpperCase
 	ProcessRequest
 End Sub
 
@@ -60,133 +57,16 @@ Private Sub ProcessRequest
 		Return
 	End If
 
-	Dim ApiVersionIndex As Int = Main.Element.ApiVersionIndex
 	Dim ControllerIndex As Int = Main.Element.ApiControllerIndex
-	Dim ApiVersionElement As String = Elements(ApiVersionIndex)
 	Dim ControllerElement As String = Elements(ControllerIndex)
-	
-	If ElementLastIndex > Main.Element.ApiControllerIndex Then
-		Dim FirstIndex As Int = Main.Element.ApiControllerIndex + 1
-		If ElementLastIndex > Main.Element.ApiControllerIndex + 1 Then
-			Dim SecondIndex As Int = Main.Element.ApiControllerIndex + 2
-		End If
-	End If
-	
 	Select ControllerElement
 		Case "data"
-			RouteData(ApiVersionElement, ControllerIndex, FirstIndex, SecondIndex)
+			Dim Data As DataController
+			Data.Initialize(Request, Response)
+			Data.Route
 			Return
 	End Select
 	
 	Log("Unknown controller: " & ControllerElement)
-	Utility.ReturnBadRequest(Response)
-End Sub
-
-' Main Router for DataController
-Private Sub RouteData (Version As String, ControllerIndex As Int, FirstIndex As Int, SecondIndex As Int)
-	Select Method
-		Case "GET"
-			RouteDataGet(Version, ControllerIndex, FirstIndex)
-		Case "POST"
-			RouteDataPost(Version, ControllerIndex)
-		Case "PUT"
-			RouteDataPut(Version, FirstIndex)
-		Case "DELETE"
-			RouteDataDelete(Version, FirstIndex, SecondIndex)
-		Case Else
-			Log("Unsupported method: " & Method)
-			Utility.ReturnMethodNotAllow(Response)
-	End Select
-End Sub
-
-' Router for DataController GET request
-Private Sub RouteDataGet (Version As String, ControllerIndex As Int, FirstIndex As Int)
-	Dim Data As DataController
-	Data.Initialize(Request, Response)
-	Select ElementLastIndex
-		Case ControllerIndex
-			Select Version
-				Case "v2"
-					Data.GetData
-					Return
-			End Select
-		Case FirstIndex
-			Select Version
-				Case "v2"
-					Dim FirstElement As String = Elements(FirstIndex)
-					If Utility.CheckInteger(FirstElement) = False Then
-						Utility.ReturnErrorUnprocessableEntity(Response)
-						Return
-					End If
-					Data.GetOneData(FirstElement)
-					Return
-			End Select
-	End Select
-	Utility.ReturnBadRequest(Response)
-End Sub
-
-' Router for DataController POST request
-Private Sub RouteDataPost (Version As String, ControllerIndex As Int)
-	Dim Data As DataController
-	Data.Initialize(Request, Response)
-	Select ElementLastIndex
-		Case ControllerIndex
-			Select Version
-				Case "v2"
-					Data.PostData
-					Return
-			End Select
-	End Select
-	Utility.ReturnBadRequest(Response)
-End Sub
-
-' Router for DataController PUT request
-Private Sub RouteDataPut (Version As String, FirstIndex As Int)
-	Dim Data As DataController
-	Data.Initialize(Request, Response)
-	Dim FirstElement As String = Elements(FirstIndex)
-	Select ElementLastIndex
-		Case FirstIndex
-			Select Version
-				Case "v2"
-					If Utility.CheckInteger(FirstElement) = False Then
-						Utility.ReturnErrorUnprocessableEntity(Response)
-						Return
-					End If
-					Data.PutData(FirstElement)
-					Return
-			End Select
-	End Select
-	Utility.ReturnBadRequest(Response)
-End Sub
-
-' Router for DataController DELETE request
-Private Sub RouteDataDelete (Version As String, FirstIndex As Int, SecondIndex As Int)
-	Dim Data As DataController
-	Data.Initialize(Request, Response)
-	Dim FirstElement As String = Elements(FirstIndex)
-	Dim SecondElement As String = Elements(SecondIndex)
-	Select ElementLastIndex
-		Case FirstIndex
-			Select Version
-				Case "v2"
-					If Utility.CheckInteger(FirstElement) = False Then
-						Utility.ReturnErrorUnprocessableEntity(Response)
-						Return
-					End If
-					Data.DeleteData(FirstElement)
-					Return
-			End Select
-		Case SecondIndex
-			Select Version
-				Case "v2"
-					If Utility.CheckInteger(FirstElement) = False Then
-						Utility.ReturnErrorUnprocessableEntity(Response)
-						Return
-					End If					
-					Data.DeleteDataKey(FirstElement, SecondElement)
-					Return
-			End Select
-	End Select
 	Utility.ReturnBadRequest(Response)
 End Sub

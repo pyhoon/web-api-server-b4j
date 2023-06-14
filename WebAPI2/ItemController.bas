@@ -4,8 +4,8 @@ ModulesStructureVersion=1
 Type=Class
 Version=9.8
 @EndOfDesignText@
-' Data Controller class
-' Version 2.03
+' Server Controller
+' Version 1.01
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -22,9 +22,9 @@ End Sub
 
 ' Initialize Controller object
 ' Call Route after Initialize
-' <code>Data.Route</code>
-' Remember to add the following code in Sub ConfigureControllers of Main module to show in Help
-' <code>Controllers.Add("DataController")</code>
+' <code>Item.Route</code>
+' Remember to add the following code to show in Help
+' <code>Controllers.Add("ItemController")</code>
 Public Sub Initialize (req As ServletRequest, resp As ServletResponse)
 	Request = req
 	Response = resp
@@ -63,7 +63,7 @@ Private Sub RouteGet
 		Case "v2"
 			Select ElementLastIndex
 				Case ControllerIndex
-					GetData
+					GetItem
 					Return
 				Case FirstIndex
 					Dim FirstElement As String = Elements(FirstIndex)
@@ -71,7 +71,7 @@ Private Sub RouteGet
 						Utility.ReturnErrorUnprocessableEntity(Response)
 						Return
 					End If
-					GetOneData(FirstElement)
+					GetOneItem(FirstElement)
 					Return
 			End Select
 	End Select
@@ -84,7 +84,7 @@ Private Sub RoutePost
 		Case "v2"
 			Select ElementLastIndex
 				Case ControllerIndex
-					PostData
+					PostItem
 					Return
 			End Select
 	End Select
@@ -102,7 +102,7 @@ Private Sub RoutePut
 						Utility.ReturnErrorUnprocessableEntity(Response)
 						Return
 					End If
-					PutData(FirstElement)
+					PutItem(FirstElement)
 					Return
 			End Select
 	End Select
@@ -120,7 +120,7 @@ Private Sub RouteDelete
 						Utility.ReturnErrorUnprocessableEntity(Response)
 						Return
 					End If
-					DeleteData(FirstElement)
+					DeleteItem(FirstElement)
 					Return
 				Case SecondIndex
 					Dim FirstElement As String = Elements(FirstIndex)
@@ -129,17 +129,17 @@ Private Sub RouteDelete
 						Utility.ReturnErrorUnprocessableEntity(Response)
 						Return
 					End If
-					DeleteDataKey(FirstElement, SecondElement)
+					DeleteItemKey(FirstElement, SecondElement)
 					Return
 			End Select
 	End Select
 	Utility.ReturnBadRequest(Response)
 End Sub
 
-Private Sub GetData
+Private Sub GetItem
 	' #Version = v2
 	' #Desc = Read all Items in MimimaList
-	HRM.ResponseData = Main.MinimaData.List
+	HRM.ResponseData = Main.MinimaItem.List
 	HRM.ResponseCode = 200
 	If Main.SimpleResponse Then
 		Utility.ReturnSimpleHttpResponse(HRM, "List", Response)
@@ -148,7 +148,7 @@ Private Sub GetData
 	End If
 End Sub
 
-Private Sub GetOneData (id As Long)
+Private Sub GetOneItem (id As Long)
 	' #Version = v2
 	' #Desc = Read one Item in MinimaList
 	' #Elements = [":index"]
@@ -157,7 +157,7 @@ Private Sub GetOneData (id As Long)
 		HRM.ResponseError = "Invalid id Value"
 		HRM.ResponseCode = 404
 	Else
-		M1 = Main.MinimaData.Find(id)
+		M1 = Main.MinimaItem.Find(id)
 		HRM.ResponseCode = 200
 	End If
 	
@@ -171,10 +171,10 @@ Private Sub GetOneData (id As Long)
 	End If
 End Sub
 
-Private Sub PostData
+Private Sub PostItem
 	' #Version = v2
 	' #Desc = Add a new Item to MinimaList
-	' #Body = {<br>&nbsp; "model": "Data",<br>&nbsp; "key1": "value1",<br>&nbsp; "key2": "value2"<br>}
+	' #Body = {<br>&nbsp; "model": "item",<br>&nbsp; "key1": "value1",<br>&nbsp; "key2": "value2"<br>}
 	Dim M1 As Map = CreateMap()
 	Dim data As Map = Utility.RequestData(Request)
 	If Not(data.IsInitialized) Then
@@ -184,9 +184,9 @@ Private Sub PostData
 		HRM.ResponseError = "Invalid Key Value"
 		HRM.ResponseCode = 400
 	Else
-		Main.MinimaData.Add(data)
-		M1 = Main.MinimaData.Last
-		HRM.ResponseCode = 201 ' SimpleResponse does not support code 201
+		Main.MinimaItem.Add(data)
+		M1 = Main.MinimaItem.Last
+		HRM.ResponseCode = 200
 	End If
 	
 	If Main.SimpleResponse Then
@@ -200,7 +200,7 @@ Private Sub PostData
 	If Main.KVS_ENABLED Then WriteKVS
 End Sub
 
-Private Sub PutData (id As Long)
+Private Sub PutItem (id As Long)
 	' #Version = v2
 	' #Desc = Update (Patch) full or partial data of Item in MinimaList
 	' #Body = {<br>&nbsp; "key": value<br>}
@@ -218,7 +218,7 @@ Private Sub PutData (id As Long)
 			HRM.ResponseError = "Invalid Key Value"
 			HRM.ResponseCode = 400
 		Else
-			M1 = Main.MinimaData.Find(id)
+			M1 = Main.MinimaItem.Find(id)
 			For Each Key As String In data.Keys
 				M1.Put(Key, data.Get(Key))
 			Next
@@ -237,7 +237,7 @@ Private Sub PutData (id As Long)
 	If Main.KVS_ENABLED Then WriteKVS
 End Sub
 
-Private Sub DeleteData (id As Long)
+Private Sub DeleteItem (id As Long)
 	' #Version = v2
 	' #Desc = Delete Item in MinimaList
 	' #Elements = [":id"]
@@ -247,8 +247,8 @@ Private Sub DeleteData (id As Long)
 		HRM.ResponseError = "Invalid id Value"
 		HRM.ResponseCode = 404
 	Else
-		Dim Index As Int = Main.MinimaData.IndexFromId(id)
-		Main.MinimaData.List.RemoveAt(Index)
+		Dim Index As Int = Main.MinimaItem.IndexFromId(id)
+		Main.MinimaItem.List.RemoveAt(Index)
 		HRM.ResponseCode = 200
 	End If
 	
@@ -260,7 +260,7 @@ Private Sub DeleteData (id As Long)
 	If Main.KVS_ENABLED Then WriteKVS
 End Sub
 
-Private Sub DeleteDataKey (id As Long, Key As String)
+Private Sub DeleteItemKey (id As Long, Key As String)
 	' #Version = v2
 	' #Desc = Delete key of Item in MinimaList
 	' #Elements = [":id", ":key"]
@@ -270,9 +270,9 @@ Private Sub DeleteDataKey (id As Long, Key As String)
 		HRM.ResponseError = "Invalid id Value"
 		HRM.ResponseCode = 404
 	Else
-		Dim Index As Int = Main.MinimaData.IndexFromId(id)
-		If Main.MinimaData.List.Get(Index).As(Map).ContainsKey(Key) Then
-			Main.MinimaData.RemoveKey(Key, Index)
+		Dim Index As Int = Main.MinimaItem.IndexFromId(id)
+		If Main.MinimaItem.List.Get(Index).As(Map).ContainsKey(Key) Then
+			Main.MinimaItem.RemoveKey(Key, Index)
 			HRM.ResponseCode = 200
 		Else
 			HRM.ResponseError = "Invalid Key Value"
@@ -289,7 +289,7 @@ Private Sub DeleteDataKey (id As Long, Key As String)
 End Sub
 
 Private Sub WriteKVS
-	Main.KVS.Put("DataFirst", Main.MinimaData.First)
-	Main.KVS.Put("DataLast", Main.MinimaData.Last)
-	Main.KVS.Put("DataList", Main.MinimaData.List)
+	Main.KVS.Put("ItemFirst", Main.MinimaItem.First)
+	Main.KVS.Put("ItemLast", Main.MinimaItem.Last)
+	Main.KVS.Put("ItemList", Main.MinimaItem.List)
 End Sub
