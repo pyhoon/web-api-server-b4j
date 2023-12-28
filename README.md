@@ -1,6 +1,6 @@
 # webapi-2-b4j
 
-Version: 2.04
+Version: 2.05
 
 Build Web API Server Using B4X Template
 
