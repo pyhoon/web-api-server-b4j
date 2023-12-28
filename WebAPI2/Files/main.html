@@ -2,99 +2,99 @@
 <html lang="en">
 
 <head>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="csrf-token" content="">
-  <meta name="description" content="">
-  <meta name="author" content="">
-  <title>$APP_TITLE$</title>
-  <link rel="icon" type="image/png" href="$ROOT_URL$/assets/img/favicon.png" />
-  <link rel="stylesheet" href="$ROOT_URL$/assets/css/bootstrap.min.css">
-  <link rel="stylesheet" href="$ROOT_URL$/assets/css/fontawesome.min.css">
-  <link rel="stylesheet" href="$ROOT_URL$/assets/css/solid.min.css">
-  <style type="text/css">
-    body {
-      font-family: Arial, Helvetica, Tahoma, Times New Roman;
-      margin-top: 60px;
-    }
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>$APP_TITLE$</title>
+    <link rel="icon" type="image/png" href="$ROOT_URL$/assets/img/favicon.png" />
+    <link rel="stylesheet" href="$ROOT_URL$/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="$ROOT_URL$/assets/css/fontawesome.min.css">
+    <link rel="stylesheet" href="$ROOT_URL$/assets/css/solid.min.css">
+    <style type="text/css">
+        body {
+            font-family: Arial, Helvetica, Tahoma, Times New Roman;
+            margin-top: 60px;
+        }
 
-    button {
-      border-radius: 3px;
-    }
+        button {
+            border-radius: 3px;
+        }
 
-    button:focus {
-      outline: 0px;
-    }
+        button:focus {
+            outline: 0px;
+        }
 
-    .custom-toggler .navbar-toggler-icon {
-      background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(0,123,255, 0.9)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
-    }
+        .custom-toggler .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(0,123,255, 0.9)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+        }
 
-    .collapsible {
-      background-color: #dedede;
-      color: black;
-      cursor: pointer;
-      padding: 8px;
-      width: 100%;
-      border: none;
-      text-align: left;
-      font-size: 15px;
-      margin-bottom: 3px;
-    }
+        .collapsible {
+            background-color: #dedede;
+            color: black;
+            cursor: pointer;
+            padding: 8px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            font-size: 15px;
+            margin-bottom: 3px;
+        }
 
-    .active,
-    .collapsible:hover {
-      background-color: #cdcdcd;
-    }
+        .active,
+        .collapsible:hover {
+            background-color: #cdcdcd;
+        }
 
-    .collapsible:after {
-      content: '\002B';
-      color: black;
-      font-weight: bold;
-      float: right;
-      margin-left: 5px;
-      border: none;
-    }
+        .collapsible:after {
+        content: '\002B';
+        color: black;
+        font-weight: bold;
+        float: right;
+        margin-left: 5px;
+        border: none;
+        }
 
-    .active:after {
-      content: "\2212";
-    }
+        .active:after {
+            content: "\2212";
+        }
 
-    .details {
-      font-size: 0.8em;
-      padding: 0 18px;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.2s ease-out;
-      background-color: #f1f1f1;
-    }
+        .details {
+            font-size: 0.8em;
+            padding: 0 18px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+            background-color: #f1f1f1;
+        }
 
-    .bottom {
-      position: relative;
-      width: 100%;
-      margin-top: 30px;
-      margin-bottom: 60px;
-    }
+        .bottom {
+            position: relative;
+            width: 100%;
+            margin-top: 30px;
+            margin-bottom: 60px;
+        }
 
-    .footer {
-      position: fixed;
-      padding: 10px 10px 0px 10px;
-      bottom: 0;
-      width: 100%;
-      height: 60px;
-    }
+        .footer {
+            position: fixed;
+            padding: 10px 10px 0px 10px;
+            bottom: 0;
+            width: 100%;
+            height: 60px;
+        }
 
-    @media screen and (max-width: 768px) {
-      .footer {
-        height: 60px;
-      }
-    }
+        @media screen and (max-width: 768px) {
+            .footer {
+                height: 60px;
+            }
+        }
 
-    .error {
-      font-size: 0.8em;
-      color: red;
-    }
-  </style>
+        .error {
+            font-size: 0.8em;
+            color: red;
+        }
+    </style>
 </head>
 
 <body class="bg-light">
@@ -110,6 +110,9 @@
         <li class="nav-item font-weight-bold text-white d-none d-sm-none d-md-block">Support this project
           <a href="https://paypal.me/aeric80/" target="_blank"><img src="/assets/img/default-orange.png" class="mx-2"
               style="width: 174px"></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link mr-3 font-weight-bold text-white" href="$ROOT_URL$$ROOT_PATH$help"><i class="fas fa-cog" title="API"></i> API</a>
         </li>
       </ul>
     </div>

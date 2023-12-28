@@ -5,7 +5,7 @@ Type=Class
 Version=9.1
 @EndOfDesignText@
 ' Help Handler class
-' Version 2.03
+' Version 2.04
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
@@ -24,31 +24,33 @@ Sub Handle (req As ServletRequest, resp As ServletResponse)
 End Sub
 
 Private Sub ShowHelpPage
-	Dim strMain As String = Utility.ReadTextFile("main.html")
+	Dim strMain As String = WebApiUtils.ReadTextFile("main.html")
 	Dim strContents As String
 	Dim strScripts As String
 	
-	#if release
+	#If release
 	If File.Exists(File.DirApp, "help.html") Then
 		strContents = File.ReadString(File.DirApp, "help.html")
 		strScripts = File.ReadString(File.DirApp, "help.js")
 	End If
-	#else
+	#Else
 	' Generate API Documentation from Controller Classes
 	strContents = ReadControllers(File.DirApp.Replace("\Objects", ""))
 	strScripts = DocScripts
-	'End If
 	#End If
 	
-	strMain = Utility.BuildDocView(strMain, strContents)
+	strMain = WebApiUtils.BuildDocView(strMain, strContents)
+	'' Requires EncryptionUtils
 	'If Main.SESSIONS_ENABLED Then
 	'	' Store csrf_token inside server session variables
-	'	Dim csrf_token As String = Encryption.RandomHash2
+	'	Dim HasherUtils As Hasher
+	'	HasherUtils.Initialize
+	'	Dim csrf_token As String =  HasherUtils.RandomHash2
 	'	Request.GetSession.SetAttribute(Main.PREFIX & "csrf_token", csrf_token)
-	'  ' Append csrf_token into page header. Comment this line to check
-	'	strMain = Utility.BuildCsrfToken(strMain, csrf_token)
+	'	' Append csrf_token into page header. Comment this line to check
+	'	strMain = WebApiUtils.BuildCsrfToken(strMain, csrf_token)
 	'End If
-	strMain = Utility.BuildHtml(strMain, Main.Config)
+	strMain = WebApiUtils.BuildHtml(strMain, Main.Config)
 
 	If strScripts.Length > 0 Then
 		strScripts = $"<script>
@@ -59,8 +61,8 @@ Private Sub ShowHelpPage
 	Else
 		strScripts = ""
 	End If
-	strMain = Utility.BuildScript(strMain, strScripts)
-	Utility.ReturnHtml(strMain, Response)
+	strMain = WebApiUtils.BuildScript(strMain, strScripts)
+	WebApiUtils.ReturnHtml(strMain, Response)
 End Sub
 	
 Public Sub ReadControllers (FileDir As String) As String
@@ -296,8 +298,8 @@ Public Sub ReadControllers (FileDir As String) As String
 	If blnGenFile Then
 		If File.Exists(File.DirApp, "help.html") Then File.Delete(File.DirApp, "help.html")
 		If File.Exists(File.DirApp, "help.js") Then File.Delete(File.DirApp, "help.js")
-		Utility.WriteTextFile("help.html", strHtml)
-		Utility.WriteTextFile("help.js", DocScripts)
+		WebApiUtils.WriteTextFile("help.html", strHtml)
+		WebApiUtils.WriteTextFile("help.js", DocScripts)
 	End If
 	#End If
 	Log($"Help page has been generated."$)
