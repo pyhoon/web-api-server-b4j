@@ -5,16 +5,15 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Web Handler class
-' Version 2.04
+' Version 2.05
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
-	Private HRM As HttpResponseMessage
 	Private Elements() As String
 End Sub
 
 Public Sub Initialize
-	HRM.Initialize
+
 End Sub
 
 Sub Handle (req As ServletRequest, resp As ServletResponse)
@@ -42,14 +41,7 @@ Private Sub ProcessRequest
 				If Request.GetParameter("default") <> "" Then
 					IndexPage.GetSearch
 					Return
-				End If				
-				#If MinimaList
-				' For demo purpose
-				If Request.GetParameter("seed") <> "" Then
-					IndexPage.SeedData
-					Return
 				End If
-				#End If
 				IndexPage.Show
 				Return
 			Case "POST"

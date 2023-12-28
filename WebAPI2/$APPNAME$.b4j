@@ -1,12 +1,10 @@
 ﻿AppType=StandardJava
 Build1=Default (SQLite),b4j.webapi,SQLite,hu2_acceptall
-Build2=MinimaList,b4j.webapi,MinimaList,hu2_acceptall
-Build3=MySQL,b4j.webapi,MySQL,hu2_acceptall
-Build4=SQL Server,b4j.webapi,MSSQL,hu2_acceptall
-Build5=PostgreSQL,b4j.webapi,PostgreSQL,hu2_acceptall
-Build6=Firebird,b4j.webapi,Firebird,hu2_acceptall
-Build7=DBF,b4j.webapi,DBF,hu2_acceptall
-Build8=No Database,b4j.webapi,No_Database,hu2_acceptall
+Build2=MySQL,b4j.webapi,MySQL,hu2_acceptall
+Build3=SQL Server,b4j.webapi,MSSQL,hu2_acceptall
+Build4=PostgreSQL,b4j.webapi,PostgreSQL,hu2_acceptall
+Build5=Firebird,b4j.webapi,Firebird,hu2_acceptall
+Build6=DBF,b4j.webapi,DBF,hu2_acceptall
 File1=category.html
 File2=config.example
 File3=index.html
@@ -17,42 +15,32 @@ FileGroup3=Default Group
 FileGroup4=Default Group
 Group=Default Group
 Library1=jcore
-Library2=keyvaluestore
-Library3=minimalistutils
-Library4=webapicontroller
-Library5=webapiutils
+Library2=miniormutils
+Library3=webapicontroller
+Library4=webapiutils
 Module1=ApiHandler
-Module10=WebHandler
 Module2=CategoryController
 Module3=CorsFilter
-Module4=DatabaseConnector
-Module5=FindController
-Module6=HelpHandler
-Module7=HttpsFilter
-Module8=IndexController
-Module9=ProductController
+Module4=FindController
+Module5=HelpHandler
+Module6=HttpsFilter
+Module7=IndexController
+Module8=ProductController
+Module9=WebHandler
 NumberOfFiles=4
-NumberOfLibraries=5
-NumberOfModules=10
+NumberOfLibraries=4
+NumberOfModules=9
 Version=10
 @EndOfDesignText@
-' Name: 			Web API Server Project Template
-' Description: 		Non-UI application (console / server application)
-' Version: 			2.04
-
-' Objects folder: 	file:///C:/B4X/Development/Web%20API%20Server%202.04/Objects/ (Bring to front)
-' Objects folder: 	ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\Objects
+' Name: 			Web API Server
+' Description: 		Non-UI application (console / server application) project template
+' Version: 			2.05
 
 ' ConfigureServer: 	ide://goto?Module=Main&Sub=ConfigureServer
-' ApiHandler: 		ide://goto?Module=ApiHandler&Sub=ProcessRequest
-' HelpHandler: 		ide://goto?Module=HelpHandler&Sub=GenerateResponseScript
-#If MinimaList
-' MinimaList: 		ide://goto?Module=Main&Sub=ConfigureMinimaList
-' SeedData: 		ide://goto?Module=IndexController&Sub=SeedData
-#End If
+' Objects folder: 	ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\Objects
+' Publish: 			ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&Args=-cMf&Args=Publish.zip&Args=www&Args=*.jar&Args=*.ini&Args=*.db&Args=help.html
 
-' Click to publish: ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&Args=-cMf&Args=Publish.zip&Args=www&Args=*.jar&Args=*.ini&Args=*.db&Args=help.html&Args=help.js
-
+#If RELEASE
 #PackagerProperty: AdditionalModuleInfoString = provides org.slf4j.spi.SLF4JServiceProvider with org.eclipse.jetty.logging.JettyLoggingServiceProvider;
 #PackagerProperty: AdditionalModuleInfoString = provides org.eclipse.jetty.io.ssl.ALPNProcessor.Server with org.eclipse.jetty.alpn.java.server.JDK9ServerALPNProcessor;
 #PackagerProperty: AdditionalModuleInfoString = provides org.eclipse.jetty.http.HttpFieldPreEncoder with org.eclipse.jetty.http2.hpack.HpackFieldPreEncoder, org.eclipse.jetty.http.Http1FieldPreEncoder;
@@ -60,6 +48,7 @@ Version=10
 #PackagerProperty: AdditionalModuleInfoString = uses org.eclipse.jetty.io.ssl.ALPNProcessor.Server;
 #PackagerProperty: IncludedModules = jdk.charsets, jdk.crypto.ec
 #CustomBuildAction: After Packager, %WINDIR%\System32\robocopy.exe, www temp\build\bin\www /E
+#End If
 
 #Region Project Attributes 
 	#CommandLineArgs:
@@ -68,38 +57,34 @@ Version=10
 #End Region
 
 #If RELEASE
-#AdditionalJar: sqlite-jdbc-3.39.3.0
-#AdditionalJar: mysql-connector-java-8.0.30
-'#AdditionalJar: jtds-1.3.1
-'#AdditionalJar: jaybird-5.0.0.java11
-'#AdditionalJar: postgresql-42.6.0
-'#AdditionalJar: javadbf-1.13.2
-'#AdditionalJar: dbschema-dbf-jdbc1.0
-'#AdditionalJar: h2-1.4.200
-#End If
-#If DEBUG
-' Choose build configuration
-#If SQLite
-#AdditionalJar: sqlite-jdbc-3.39.3.0
-#Else If MySQL
-#AdditionalJar: mysql-connector-java-8.0.30
-#Else If MSSQL
-#AdditionalJar: jtds-1.3.1
-#Else If Firebird
-#AdditionalJar: jaybird-5.0.0.java11
-#Else If PostgreSQL
-#AdditionalJar: postgresql-42.6.0
-#Else If DBF
-#AdditionalJar: javadbf-1.13.2
-#AdditionalJar: dbschema-dbf-jdbc1.0
-#AdditionalJar: h2-1.4.200
-#Else If MinimaList
-' Use MinimaList
-#End If
+	#AdditionalJar: sqlite-jdbc-3.39.3.0
+	'#AdditionalJar: mysql-connector-java-8.0.30
+	'#AdditionalJar: jtds-1.3.1
+	'#AdditionalJar: jaybird-5.0.0.java11
+	'#AdditionalJar: postgresql-42.6.0
+	'#AdditionalJar: javadbf-1.13.2
+	'#AdditionalJar: dbschema-dbf-jdbc1.0
+	'#AdditionalJar: h2-1.4.200
+#Else
+	#If SQLite
+	#AdditionalJar: sqlite-jdbc-3.39.3.0
+	#Else If MySQL
+	#AdditionalJar: mysql-connector-java-8.0.30
+	#Else If MSSQL
+	#AdditionalJar: jtds-1.3.1
+	#Else If PostgreSQL
+	#AdditionalJar: postgresql-42.6.0
+	#Else If Firebird
+	#AdditionalJar: jaybird-5.0.0.java11
+	#Else If DBF
+	#AdditionalJar: javadbf-1.13.2
+	#AdditionalJar: dbschema-dbf-jdbc1.0
+	#AdditionalJar: h2-1.4.200
+	#End If
 #End If
 
 Sub Process_Globals
-	Public const VERSION 			As String = "2.04"
+	Public const VERSION 			As String = "2.05"
 	Public const PREFIX 			As String = "WebAPI_v2_"
 	Public srvr 					As Server
 	Public ROOT_URL 				As String
@@ -107,7 +92,7 @@ Sub Process_Globals
 	Public API_PATH 				As String
 	Public API_NAME 				As String
 	Public API_VERSIONING 			As String
-	Public SERVER_PORT 				As Int = 8080
+	Public SERVER_PORT 				As Int
 	Public SSL_PORT 				As Int
 	Public Config 					As Map
 	Public Element 					As Element
@@ -116,24 +101,12 @@ Sub Process_Globals
 	Public SESSIONS_ENABLED 		As Boolean
 	Public COOKIES_ENABLED 			As Boolean
 	Public COOKIES_EXPIRATION 		As Long
-	Public SimpleResponse 			As Boolean
-	Public SimpleResponseFormat 	As String
-	Public SimpleResponseDataKey 	As String
-	#If MinimaList
-	Public KVS_ENABLED 				As Boolean
-	Public KVS 						As KeyValueStore
-	Public CategoryList 			As MinimaList
-	Public ProductList 				As MinimaList
-	#End If
-	#If Not(MinimaList) And Not(No_Database)
+	Public SimpleResponse 			As SimpleResponse
 	Public DBConnector				As DatabaseConnector
-	#End If
-	Type ApiElement (Name As String, Versioning As Boolean)
-	Type WebElement (Root As String, Path As String)
-	Type Element (Web As WebElement, Api As ApiElement, Elements As List, PathIndex As Int, ApiVersionIndex As Int, ApiControllerIndex As Int, WebControllerIndex As Int)
+	Private Conn 					As Conn
 End Sub
 
-' <link>Click to browse|http://127.0.0.1:19800/web</link>
+' <link>Open in browser|http://127.0.0.1:19800/web</link>
 Sub AppStart (Args() As String)
 	srvr.Initialize("")		' Create the server
 	ReadConfig				' Read environment settings
@@ -158,20 +131,14 @@ Private Sub ConfigureServer
 	ConfigureHandlers							' Server Handlers
 	ConfigureSSL(False)							' SSL Port
 	ConfigureCORS(True)							' CrossOriginFilter
-	#If Not(MinimaList) And Not(No_Database)
 	ConfigureDatabase(True)						' Database connection
-	#End If
-	ConfigureResponse(False)					' Enable Simple Response Format
+	ConfigureResponse(True)						' Enable Simple Response Format
 	ConfigureCookies(False)						' Enable Cookies
 	ConfigureSessions(False)					' Enable Sessions
 	ConfigureBasicAuth(False)					' Enable Basic Authentication
 	ConfigureJWTAuth(False)						' Enable JSON Web Token Authentication
 	ConfigureControllers(True)					' Show Controllers in Documentation
 	ConfigureStaticFiles(True)					' Disable Permission for Browsing Static Files Folder
-	#If MinimaList
-	ConfigureMinimaList(True)					' Configure MinimaList
-	ConfigureKeyValueStore(True)				' Enable KeyValueStore
-	#End If
 End Sub
 
 ' This configuration is automatically read from the values in Config.ini
@@ -256,7 +223,7 @@ Public Sub ConfigureElements
 	Element.ApiVersionIndex = Element.Elements.Size - 1
 	Element.ApiControllerIndex = Element.Elements.Size
 	Element.WebControllerIndex = Element.Elements.Size - IIf(Element.Api.Name.EqualsIgnoreCase(""), 0, 1) - IIf(Element.Api.Versioning, 1, 0) ' or just Element.PathIndex + 1
-	
+	#If DEBUG
 	Dim i As Int
 	For Each item In Element.Elements
 		LogDebug($"${i} - ${item}"$)
@@ -266,6 +233,7 @@ Public Sub ConfigureElements
 	LogDebug("WebControllerIndex=" & Element.WebControllerIndex)
 	LogDebug("ApiVersionIndex=" & Element.ApiVersionIndex)
 	LogDebug("ApiControllerIndex=" & Element.ApiControllerIndex)
+	#End If
 End Sub
 
 ' Configure this after ConfigureElements
@@ -301,8 +269,9 @@ Public Sub ConfigureHandlers
 	' =======================================================================
 	' Help route - /web/help (optional) not required in release mode
 	' =======================================================================
+	#If DEBUG
 	srvr.AddHandler(ROOT_PATH & "help", "HelpHandler", False) 					' Add Help handler
-
+	#End If
 	' =======================================================================
 	' Web Sockets route (optional)
 	' =======================================================================
@@ -310,8 +279,8 @@ Public Sub ConfigureHandlers
 End Sub
 
 ' If HelpHandler is used, controller class added here will be displayed on the documentation page
+' Tips: You can be hide some APIs using #Hide keyword
 Public Sub ConfigureControllers (Enable As Boolean)
-	' Note: You can be hide some APIs using #Hide keyword
 	If Not(Enable) Then Return
 	Controllers.Initialize
 	Controllers.Add("CategoryController")
@@ -323,20 +292,22 @@ End Sub
 Public Sub ConfigureResponse (Enable As Boolean)
 	If Not(Enable) Then Return
 	' =======================================================================================
-	' Note: By default, front-end set to use standard JSON format
-	' Standard JSON object has 'm', 'e', 's', 'r', 'a' keys where the response (r) is a list
+	' If SimpleResponse.Enable = False, the standard JSON format will be returned
+	' The format has 'm', 'e', 's', 'r', 'a' keys where the response (r) is always a list
+	' Else if SimpleResponse.Enable = True, JSON format can be set to 'Auto', 'List' or 'Map'
+	' SimpleResponse.Format = "Auto"	' no conversion
+	' SimpleResponse.Format = "List"	' if data is a map, always convert it into a list
+	' SimpleResponse.Format = "Map"		' if data is a list, always convert it into a map with "data" as the key
 	' =======================================================================================
-	SimpleResponse = True
-	SimpleResponseFormat = "Auto"	' no conversion
-	'SimpleResponseFormat = "List" 	' if data is a map, convert it into a list
-	'SimpleResponseFormat = "Map" 	' if data is a list, convert it into a map with "data" as the key
-	SimpleResponseDataKey = "data"	' change the "data" key to other key
+	SimpleResponse.Enable = False
+	SimpleResponse.Format = "Auto"		' no conversion
+	'SimpleResponse.DataKey = "data"	' change the "data" key to other key
 End Sub
 
 ' Display some information in Logs (debug) or terminal (release)
 Public Sub ShowWelcomeText (Enable As Boolean)
 	If Not(Enable) Then Return
-	Log($"Web API server (version = ${VERSION}) is running on port ${srvr.Port}${IIf(srvr.SslPort > 0, $" (redirected to port ${srvr.SslPort})"$, "")}"$)
+	Log($"Web API Server (version = ${VERSION}) is running on port ${srvr.Port}${IIf(srvr.SslPort > 0, $" (redirected to port ${srvr.SslPort})"$, "")}"$)
 	Log($"Open the following URL from your web browser"$)
 	Log(ROOT_URL & ROOT_PATH)
 End Sub
@@ -417,35 +388,51 @@ Public Sub ConfigureCookies (Enable As Boolean)
 	COOKIES_EXPIRATION = 90 * 24 * 60 * 60 			' in seconds = 90 days
 End Sub
 
-#If Not(MinimaList) And Not(No_Database)
 ' Use Database (create if not exist)
 Public Sub ConfigureDatabase (Enable As Boolean)
 	If Not(Enable) Then Return
-	Dim DB As Conn
-	If Config.ContainsKey("DbType") Then DB.DBType = Config.Get("DbType")
-	If Config.ContainsKey("DbName") Then DB.DBName = Config.Get("DbName")
-	If Config.ContainsKey("DbDir") Then DB.DBDir = Config.Get("DbDir")
-	If Config.ContainsKey("DbFile") Then DB.DBFile = Config.Get("DbFile")
-	If Config.ContainsKey("DriverClass") Then DB.DriverClass = Config.Get("DriverClass")
-	If Config.ContainsKey("JdbcUrl") Then DB.JdbcUrl = Config.Get("JdbcUrl")
-	If Config.ContainsKey("User") Then DB.User = Config.Get("User")
-	If Config.ContainsKey("Password") Then DB.Password = Config.Get("Password")
-	If Config.ContainsKey("MaxPoolSize") Then DB.MaxPoolSize = Config.Get("MaxPoolSize")
+	Dim Conn As Conn
+	If Config.ContainsKey("DbType") Then Conn.DBType = Config.Get("DbType")
+	If Config.ContainsKey("DbName") Then Conn.DBName = Config.Get("DbName")
+	If Config.ContainsKey("DbDir") Then Conn.DBDir = Config.Get("DbDir")
+	If Config.ContainsKey("DbFile") Then Conn.DBFile = Config.Get("DbFile")
+	If Config.ContainsKey("DriverClass") Then Conn.DriverClass = Config.Get("DriverClass")
+	If Config.ContainsKey("JdbcUrl") Then Conn.JdbcUrl = Config.Get("JdbcUrl")
+	If Config.ContainsKey("User") Then Conn.User = Config.Get("User")
+	If Config.ContainsKey("Password") Then Conn.Password = Config.Get("Password")
+	If Config.ContainsKey("MaxPoolSize") Then Conn.MaxPoolSize = Config.Get("MaxPoolSize")
 	Try
 		'Log("Checking database...")
-		Select DB.DBType
-			Case "SQLite"
+		Select Conn.DBType.ToUpperCase
+			Case "SQLITE"
+				#If SQLite
 				Dim DBFound As Boolean
-				If File.Exists(DB.DBDir, DB.DBFile) Then
+				If File.Exists(Conn.DBDir, Conn.DBFile) Then
 					DBFound = True
-				End If
-				DBConnector.Initialize(DB)
+				End If				
+				DBConnector.Initialize(Conn)				
+				#Else
+				LogColor($"Build configuration does not match ${conn.DBType} database settings!"$, -65536)
+				LogColor($"Application is terminated."$, -65536)
+				ExitApplication
+				Return
+				#End If
+			Case "MYSQL"
+				#If MYSQL
+				DBConnector.Initialize(conn)
+				Wait For (DBConnector.DBExist) Complete (DBFound As Boolean)
+				#Else
+				LogColor($"Build configuration does not match ${Conn.DBType}!"$, -65536)
+				LogColor($"Application is terminated."$, -65536)
+				ExitApplication
+				Return
+				#End If
 			Case Else
-				DBConnector.Initialize(DB)
+				DBConnector.Initialize(Conn)
 				Wait For (DBConnector.DBExist) Complete (DBFound As Boolean)
 		End Select
 		If DBFound Then
-			Log($"${DB.DBType} database found!"$)
+			Log($"${Conn.DBType} database found!"$)
 			Return
 		End If
 	Catch
@@ -455,128 +442,65 @@ Public Sub ConfigureDatabase (Enable As Boolean)
 		ExitApplication
 	End Try
 
-	LogColor($"${DB.DBType} database not found!"$, -65536)
+	LogColor($"${Conn.DBType} database not found!"$, -65536)
 	Log("Creating database...")
 	CreateDatabase
 End Sub
 
 Private Sub CreateDatabase
 	Dim SQL1 As SQL = DBConnector.DBCreate
-	Select DBConnector.DBEngine
-		Case "SQLite"
-			Dim qry As String
-			qry = $"CREATE TABLE tbl_category (
-			id INTEGER,
-			category_name TEXT,
-			created_date TEXT DEFAULT (dateTime('now', 'localtime')),
-			modified_date TEXT,
-			deleted_date TEXT,
-			PRIMARY KEY(id AUTOINCREMENT))"$
-			SQL1.AddNonQueryToBatch(qry, Null)
+	Dim MDB As MiniORM
+	MDB.Initialize(SQL1, DBConnector.DBEngine)
+	MDB.UseTimestamps = True
+	'MDB.UseDataAuditUserId = True
+	MDB.AddAfterCreate = True ' Add SQL Commands into Batch
+	MDB.AddAfterInsert = True ' Add SQL Commands into Batch
 	
-			qry = $"INSERT INTO tbl_category (category_name) VALUES (?)"$
-			SQL1.AddNonQueryToBatch(qry, Array("Hardwares"))
-			SQL1.AddNonQueryToBatch(qry, Array("Toys"))
+	MDB.Table = "tbl_category"
+	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "category_name"))) ' TEXT / VARCHAR (255) MYSQL
+	MDB.Create
 	
-			qry = $"CREATE TABLE tbl_products (
-			id INTEGER,
-			category_id INTEGER,
-			product_code TEXT,
-			product_name TEXT,
-			product_price NUMERIC DEFAULT 0.00,
-			created_date TEXT DEFAULT (dateTime('now', 'localtime')),
-			modified_date TEXT,
-			deleted_date TEXT,
-			PRIMARY KEY(id AUTOINCREMENT),
-			FOREIGN KEY (category_id) REFERENCES tbl_category (id))"$
-			SQL1.AddNonQueryToBatch(qry, Null)
+	MDB.Columns = Array("category_name")
+	MDB.Parameters = Array("Hardwares")
+	MDB.Insert
+	MDB.Parameters = Array("Toys")
+	MDB.Insert
 	
-			qry = $"INSERT INTO tbl_products (category_id, product_code, product_name, product_price) VALUES (?, ?, ?, ?)"$
-			SQL1.AddNonQueryToBatch(qry, Array(2, "T001", "Teddy Bear", 99.9))
-			SQL1.AddNonQueryToBatch(qry, Array(1, "H001", "Hammer", 15.75))
-			SQL1.AddNonQueryToBatch(qry, Array(2, "T002", "Optimus Prime", 1000.0))
-		Case "MySQL"
-			Dim qry As String
-			qry = $"CREATE TABLE tbl_category (
-			id INT(11) NOT NULL AUTO_INCREMENT,
-			category_name varchar(255),
-			created_date timestamp DEFAULT CURRENT_TIMESTAMP,
-			modified_date datetime DEFAULT NULL,
-			deleted_date datetime DEFAULT NULL,
-			PRIMARY KEY(id))"$
-			SQL1.AddNonQueryToBatch(qry, Null)
+	MDB.Table = "tbl_products"
+	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "category_id", "Type": MDB.INTEGER)))
+	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_code", "Length": "12"))) ' VARCHAR(12) MYSQL
+	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_name")))
 	
-			qry = $"INSERT INTO tbl_category (category_name) VALUES (?)"$
-			SQL1.AddNonQueryToBatch(qry, Array("Hardwares"))
-			SQL1.AddNonQueryToBatch(qry, Array("Toys"))
-
-			qry = $"CREATE TABLE tbl_products (
-			id INT(11) NOT NULL AUTO_INCREMENT,
-			category_id int(255),
-			product_code varchar(12),
-			product_name varchar(255),
-			product_price decimal(10,2) DEFAULT '0.00',
-			created_date timestamp DEFAULT CURRENT_TIMESTAMP,
-			modified_date datetime DEFAULT NULL,
-			deleted_date datetime DEFAULT NULL,
-			PRIMARY KEY(id),
-			FOREIGN KEY (category_id) REFERENCES tbl_category (id))"$
-			SQL1.AddNonQueryToBatch(qry, Null)
+	Dim PriceColumn As ORMColumn
+	PriceColumn.ColumnName = "product_price"
+	PriceColumn.ColumnType = MDB.DECIMAL
+	PriceColumn.ColumnLength = "10,2"
+	PriceColumn.DefaultValue = "0.00"
+	MDB.Columns.Add(PriceColumn)
 	
-			qry = $"INSERT INTO tbl_products (category_id, product_code, product_name, product_price) VALUES (?, ?, ?, ?)"$
-			SQL1.AddNonQueryToBatch(qry, Array(2, "T001", "Teddy Bear", 99.9))
-			SQL1.AddNonQueryToBatch(qry, Array(1, "H001", "Hammer", 15.75))
-			SQL1.AddNonQueryToBatch(qry, Array(2, "T002", "Optimus Prime", 1000.0))
-	End Select
-	Dim SenderFilter As Object = SQL1.ExecNonQueryBatch("SQL")
-	Wait For (SenderFilter) SQL_NonQueryComplete (Success As Boolean)
+	MDB.Foreign("category_id", "id", "tbl_category", "", "")
+	MDB.Create
+	
+	MDB.Columns = Array("category_id", "product_code", "product_name", "product_price")
+	MDB.Parameters = Array(2, "T001", "Teddy Bear", 99.9)
+	MDB.Insert
+	MDB.Parameters = Array(1, "H001", "Hammer", 15.75)
+	MDB.Insert
+	MDB.Parameters = Array(2, "T002", "Optimus Prime", 1000.00)
+	MDB.Insert
+	
+	Wait For (MDB.ExecuteBatch) Complete (Success As Boolean)
 	If Success Then
 		Log("Database is created successfully!")
 	Else
 		Log("Database creation failed!")
 	End If
 	DBConnector.Close(SQL1)
-	Select DBConnector.DBEngine
-		Case "MySQL"
+	Select DBConnector.DBEngine.ToUpperCase
+		Case "MYSQL"
 			ConfigureDatabase(True)
 	End Select
 End Sub
-#End If
-
-#If MinimaList
-' Initialize KeyValueStore
-Public Sub ConfigureKeyValueStore (Enable As Boolean)
-	If Not(Enable) Then Return
-	' ============================================================================
-	' If this is disabled, all MinimaList data will be reset when server restarts
-	' ============================================================================
-	KVS.Initialize(File.DirApp, "kvs.dat")
-	' Load values
-	If CategoryList.IsInitialized Then
-		CategoryList.List = KVS.GetDefault("CategoryList", CategoryList.List)
-	End If
-	If ProductList.IsInitialized Then
-		ProductList.List = KVS.GetDefault("ProductList", ProductList.List)
-	End If
-	KVS_ENABLED = True
-	Log("KeyValueStore is enabled")
-End Sub
-
-' Initialize MinimaList
-Public Sub ConfigureMinimaList (Enable As Boolean)
-	If Not(Enable) Then Return
-	' ========================================
-	' This is required for this demo to work
-	' ========================================
-	CategoryList.Initialize
-	ProductList.Initialize
-End Sub
-
-' Write MinimaList
-Public Sub WriteKVS (List As String, M As MinimaList)
-	KVS.Put(List, M.List)
-End Sub
-#End If
 
 ' Add <link>BasicAuthFilter|https://www.b4x.com/android/forum/threads/web-api-template-2.143310/#post-908109</link> class to the Modules tab
 '

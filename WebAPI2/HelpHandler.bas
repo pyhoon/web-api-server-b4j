@@ -5,12 +5,10 @@ Type=Class
 Version=9.1
 @EndOfDesignText@
 ' Help Handler class
-' Version 2.04
+' Version 2.05
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
-	Private DocScripts As String
-	Private blnGenFile As Boolean = True 'ignore
 End Sub
 
 Public Sub Initialize
@@ -26,17 +24,19 @@ End Sub
 Private Sub ShowHelpPage
 	Dim strMain As String = WebApiUtils.ReadTextFile("main.html")
 	Dim strContents As String
+	Dim strJSFile As String
 	Dim strScripts As String
 	
-	#If release
+	#If RELEASE
 	If File.Exists(File.DirApp, "help.html") Then
 		strContents = File.ReadString(File.DirApp, "help.html")
-		strScripts = File.ReadString(File.DirApp, "help.js")
 	End If
 	#Else
 	' Generate API Documentation from Controller Classes
 	strContents = ReadControllers(File.DirApp.Replace("\Objects", ""))
-	strScripts = DocScripts
+	If File.Exists(File.DirApp, "help.html") = False Then
+		WebApiUtils.WriteTextFile("help.html", strContents)
+	End If
 	#End If
 	
 	strMain = WebApiUtils.BuildDocView(strMain, strContents)
@@ -51,20 +51,16 @@ Private Sub ShowHelpPage
 	'	strMain = WebApiUtils.BuildCsrfToken(strMain, csrf_token)
 	'End If
 	strMain = WebApiUtils.BuildHtml(strMain, Main.Config)
-
-	If strScripts.Length > 0 Then
-		strScripts = $"<script>
-    $(document).ready(function () {
-    ${strScripts}
-    })
-  </script>"$
+	If Main.SimpleResponse.Enable Then
+		strJSFile = "webapi.help.verb.simple.js"
 	Else
-		strScripts = ""
+		strJSFile = "webapi.help.verb.js"
 	End If
+	strScripts = $"<script src="${Main.ROOT_URL}/assets/js/${strJSFile}"></script>"$
 	strMain = WebApiUtils.BuildScript(strMain, strScripts)
 	WebApiUtils.ReturnHtml(strMain, Response)
 End Sub
-	
+
 Public Sub ReadControllers (FileDir As String) As String
 	Dim strHtml As String
 	Log(" ")
@@ -118,9 +114,9 @@ Public Sub ReadControllers (FileDir As String) As String
 			If List2.Get(i).As(String).StartsWith("'") Or List2.Get(i).As(String).StartsWith("#") Then
 				' Ignore the line
 			Else
-				Dim index As Int = List2.Get(i).As(String).ToLowerCase.IndexOf("sub")
+				Dim index As Int = List2.Get(i).As(String).ToLowerCase.IndexOf("sub ") 'bug: desc may contain word like subject, so check "sub "
 				If index > -1 Then
-					Dim Line2 As String = List2.Get(i).As(String).SubString(index).Replace("Sub", "").Trim
+					Dim Line2 As String = List2.Get(i).As(String).SubString(index).Replace("Sub ", "").Trim
 					For Each SubMap As Map In VerbSubs
 						For Each val As String In SubMap.Values
 							For Each verb In verbs
@@ -292,16 +288,7 @@ Public Sub ReadControllers (FileDir As String) As String
 		'Next
 		'#End If
 	Next
-	
-	#if debug
-	' Save these files for Release/Production
-	If blnGenFile Then
-		If File.Exists(File.DirApp, "help.html") Then File.Delete(File.DirApp, "help.html")
-		If File.Exists(File.DirApp, "help.js") Then File.Delete(File.DirApp, "help.js")
-		WebApiUtils.WriteTextFile("help.html", strHtml)
-		WebApiUtils.WriteTextFile("help.js", DocScripts)
-	End If
-	#End If
+
 	Log($"Help page has been generated."$)
 	Return strHtml
 End Sub
@@ -326,163 +313,6 @@ Private Sub GenerateLink (ApiVersion As String, Controller As String, Elements A
 	Return Link
 End Sub
 
-Public Sub GenerateResponseScript (Verb As String, btnButtonId As String, FileUpload As String) As String
-	Dim strHeaders As String
-	'Select Main.AUTHENTICATION_TYPE
-	'	Case "JSON WEB TOKEN AUTHENTICATION"
-	'		strHeaders = $"
-	'	  headers: {
-	'	  	"Accept": "application/json",
-	'	    "Authorization": "Bearer " + localStorage.getItem('access_token')
-	'	  },"$
-	'	Case "TOKEN AUTHENTICATION"
-	'		strHeaders = $"
-	'	  headers: {
-	'	  	"Accept": "application/json",
-	'	    "Authorization": "Bearer " + localStorage.getItem('access_token')
-	'	  },"$
-	'	Case "BASIC AUTHENTICATION"
-	'	'	If Main.AUTH.CLIENT_ID.Length > 0 And Main.AUTH.CLIENT_SECRET.Length > 0 Then
-	'	'		strHeaders = $"
-	'	'  headers: {
-	'	'  	"Accept": "application/json",
-	'	'    "Authorization": "Basic " + btoa("${Main.AUTH.CLIENT_ID}" + ":" + "${Main.AUTH.CLIENT_SECRET}")
-	'	'  },"$
-	'	'	End If
-	'End Select
-	Dim strUploadScript As String = $"$("#${btnButtonId}").click(function(e) {
-		e.preventDefault();
-		var id = $(this).attr("id");
-	    $("#response"+id).val("");
-		var form = new FormData();
-		var files = $('#file1'+id)[0].files;
-	
-		// Check file selected or not
-	    if (files.length == 0) {
-		    alert("Please select a file.");
-		}
-		else {
-			form.append("file1", files[0]);
-			var settings = {
-		  		"url": $("#path"+id).val(),
-		  		"method": "POST",
-		  		"timeout": 0,
-		  		"processData": false,
-		  		"mimeType": "multipart/form-data",
-		  		"contentType": false,
-		  		"data": form
-			};
-
-			$.ajax(settings)
-			.done(function (json) {
-		  		var data = jQuery.parseJSON(json);
-				if (data.s == "ok" || data.s == "success") {
-			  		var content = JSON.stringify(data.r, undefined, 2);
-			  		$("#response" + id).val(content);
-			  		$("#alert" + id).html(data.a + ' ' + data.m);
-			  		$("#alert" + id).removeClass("alert-danger");
-			  		$("#alert" + id).addClass("alert-success");
-			  		$("#alert" + id).fadeIn();			  
-				}
-				else {
-			  		var content = JSON.stringify(data.r, undefined, 2);
-			  		$("#response" + id).val(content);
-			  		$("#alert" + id).html(data.a + ' ' + data.e);
-			  		$("#alert" + id).removeClass("alert-success");
-			  		$("#alert" + id).addClass("alert-danger");
-			  		$("#alert" + id).fadeIn();
-				}
-			})
-			.fail(function (xhr, textStatus, thrownError) {
-			  	$("#response" + id).val('[]');
-			  	$("#alert" + id).html(xhr.status + ' ' + thrownError);
-			  	$("#alert" + id).removeClass("alert-success");
-			  	$("#alert" + id).addClass("alert-danger");
-				$("#alert" + id).fadeIn();
-			})
-		}
-	})
-	"$
-	Dim strScript As String = $"$("#${btnButtonId}").click(function(e) {
-		e.preventDefault();
-	    var id = $(this).attr("id");
-	    $("#response"+id).val("");
-
-        $.ajax({
-			type: "${Verb}",
-	      	dataType: "json",
-          	url: $("#path"+id).val(),
-          	data: $("#body"+id).val(),
-		  	${strHeaders}
-          	success: function (data) {
-            	if (data.s == "ok" || data.s == "success") {
-              		var content = JSON.stringify(data.r, undefined, 2);
-              		$("#response" + id).val(content);
-              		$("#alert" + id).html(data.a + ' ' + data.m);
-              		$("#alert" + id).removeClass("alert-danger");
-              		$("#alert" + id).addClass("alert-success");
-              		$("#alert" + id).fadeIn();			  
-            	}
-            	else {
-		      		var content = JSON.stringify(data.r, undefined, 2);
-              		$("#response" + id).val(content);
-              		$("#alert" + id).html(data.a + ' ' + data.e);
-              		$("#alert" + id).removeClass("alert-success");
-              		$("#alert" + id).addClass("alert-danger");
-              		$("#alert" + id).fadeIn();
-            	}
-          	},
-          	error: function (xhr, textStatus, thrownError) {
-            	$("#alert" + id).html(xhr.status + ' ' + thrownError);
-            	$("#alert" + id).removeClass("alert-success");
-            	$("#alert" + id).addClass("alert-danger");
-            	$("#alert" + id).fadeIn();		  
-          	}
-    	})
-  	})
-	"$
-	Dim strSimpleFormatScript As String = $"$("#${btnButtonId}").click(function(e) {
-		e.preventDefault();
-	    var id = $(this).attr("id");
-	    $("#response"+id).val("");
-		
-        $.ajax({
-			type: "${Verb}",
-	      	dataType: "json",
-          	url: $("#path"+id).val(),
-          	data: $("#body"+id).val(),
-		  	${strHeaders}
-          	success: function (data) {
-          		var content = JSON.stringify(data, undefined, 2);
-          		$("#response" + id).val(content);
-          		$("#alert" + id).html('200 Success');
-          		$("#alert" + id).removeClass("alert-danger");
-          		$("#alert" + id).addClass("alert-success");
-          		$("#alert" + id).fadeIn();			  
-          	},
-          	error: function (xhr, textStatus, thrownError) {
-				if (xhr.status == '404') $("#response" + id).val("{}");
-            	$("#alert" + id).html(xhr.status + ' ' + thrownError);
-            	$("#alert" + id).removeClass("alert-success");
-            	$("#alert" + id).addClass("alert-danger");
-            	$("#alert" + id).fadeIn();		  
-          	}
-    	})
-  	})
-	"$
-	
-	Select FileUpload
-		Case "Image", "PDF"
-			Return strUploadScript
-		Case Else
-			If Main.SimpleResponse Then
-				Return strSimpleFormatScript
-			Else
-				Return strScript
-			End If
-	End Select
-End Sub
-
 Public Sub GenerateVerbSection (Verb As String, strColor As String, strButtonID As String, strLink As String, blnRaw As Boolean, strFileUpload As String, strDesc As String, strParams As String, strBody As String, strExpected As String, strInputDisabled As String, strDisabledBackground As String) As String
 	Dim strBgColor As String
 	Select strColor.ToLowerCase
@@ -503,15 +333,15 @@ Public Sub GenerateVerbSection (Verb As String, strColor As String, strButtonID 
 		Case "Image"
 			strBodySample = ""
 			strBodyInput = $"File: <label for="file1${strButtonID}">Choose an image file:</label><input type="file" id="file1${strButtonID}" class="pb-3" name="file1" accept="image/png, image/jpeg, application/pdf">"$
-			strFileUpload = ""
+			'strFileUpload = ""
 		Case "PDF"
 			strBodySample = ""
 			strBodyInput = $"File: <label for="file1${strButtonID}">Choose a PDF file:</label><input type="file" id="file1${strButtonID}" class="pb-3" name="file1" accept="application/pdf">"$
-			strFileUpload = ""
+			'strFileUpload = ""
 		Case Else
-			strBodySample = $"Body: <p class="form-control" style="height: fit-content; background-color: #F0F9FF; font-size: small">${strBody}</p>"$
+			strBodySample = $"Format: <p class="form-control" style="height: fit-content; background-color: #F0F9FF; font-size: small">${strBody}</p>"$
 			strBodyInput = $"Body: <textarea id="body${strButtonID}" rows="6" class="form-control data-body" style="background-color: #FFFFFF; font-size: small"></textarea></p>"$
-			strFileUpload = ""
+			'strFileUpload = ""
 	End Select
 	Dim strHtml As String = $"
 		<button class="collapsible" style="background-color: ${strBgColor}"><span class="badge badge-${strColor} p-1">${Verb}</span> ${strLink}</button>
@@ -532,9 +362,9 @@ Public Sub GenerateVerbSection (Verb As String, strColor As String, strButtonID 
 	            <div class="col-md-3 p-3">
 					<form id="form1" method="${Verb}">
 					<p><strong>Path</strong><br/>
-	                <input ${strInputDisabled} id="path${strButtonID}" class="form-control data-path" style="background-color: ${IIf(strInputDisabled.EqualsIgnoreCase("disabled"), strDisabledBackground, "#FFFFFF")}; font-size: small" value="${strLink & strFormat}"></p>
+	                <input${IIf(strInputDisabled.Length > 0, " " & strInputDisabled, "")} id="path${strButtonID}" class="form-control data-path" style="background-color: ${IIf(strInputDisabled.EqualsIgnoreCase("disabled"), strDisabledBackground, "#FFFFFF")}; font-size: small" value="${strLink & strFormat}"></p>
 					${IIf(Verb.EqualsIgnoreCase("POST") Or Verb.EqualsIgnoreCase("PUT"), strBodyInput, $""$)}
-	                <button id="${strButtonID}" class="button btn-${strColor} col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+	                <button id="${strButtonID}" class="${IIf(strFileUpload.EqualsIgnoreCase("Image") Or strFileUpload.EqualsIgnoreCase("PDF"), $"file"$, $"${Verb.ToLowerCase}"$)} button btn-${strColor} col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
 	            	</form>								
 				</div>
 				<div class="col-md-6 p-3">
@@ -569,7 +399,7 @@ Public Sub GenerateDocItem (ApiVersion As String, Controller As String, Elements
 	Select Verb
 		Case "GET"
 			strColor = "success"
-		Case "POST"			
+		Case "POST"
 			strColor = "warning"
 			strExpected = "201 Created"
 		Case "PUT"
@@ -578,9 +408,9 @@ Public Sub GenerateDocItem (ApiVersion As String, Controller As String, Elements
 			strColor = "danger"
 	End Select
 	' Add other expected response
-	strExpected = strExpected & "<br/>400 Bad Request"
-	strExpected = strExpected & "<br/>404 Not Found"
-	strExpected = strExpected & "<br/>422 Error Execute Query"
+	strExpected = strExpected & "<br/>400 Bad request"
+	strExpected = strExpected & "<br/>404 Not found"
+	strExpected = strExpected & "<br/>422 Error execute query"
 
 	If Params.Size > 0 Then
 		For i = 0 To Params.Size - 1
@@ -598,6 +428,5 @@ Public Sub GenerateDocItem (ApiVersion As String, Controller As String, Elements
 	strLink = GenerateLink(ApiVersion, Controller, Elements)
 	If DefaultFormat.EqualsIgnoreCase("raw") And Verb = "GET" Then blnRaw = True
 	strHTML = strHTML & GenerateVerbSection(Verb, strColor, "btn" & MethodName & Controller, strLink, blnRaw, FileUpload, Desc, strParams, Body, strExpected, strInputDisabled, strDisabledBackground)
-	DocScripts = DocScripts & GenerateResponseScript(Verb, "btn" & MethodName & Controller, FileUpload)
 	Return strHTML
 End Sub

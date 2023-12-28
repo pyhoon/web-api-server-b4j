@@ -5,16 +5,15 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Api Handler class
-' Version 2.04
+' Version 2.05
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
-	Private HRM As HttpResponseMessage
 	Private Elements() As String
 End Sub
 
 Public Sub Initialize
-	HRM.Initialize
+
 End Sub
 
 Sub Handle (req As ServletRequest, resp As ServletResponse)
