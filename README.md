@@ -2,20 +2,13 @@
 
 Version: 2.04
 
-Build REST API Server Using B4X Template
-
-This is a very minimum template where you don't even need to connect to a database to work.
-
-Optionally you can start with keyValueStore to persist the model. This will be a foundation to more complex Web API projects.
+Build Web API Server Using B4X Template
 
 ---
 
 **Depends on following libraries:** 
-- ByteConverter
-- jServer
-- Json
-- JavaObject
-- KeyValueStore
+- [WebApiUtils.b4xlib](https://www.b4x.com/android/forum/attachments/webapiutils-b4xlib.148485/)
+- [MiniORMUtils.b4xlib](https://www.b4x.com/android/forum/attachments/miniormutils-b4xlib.148489/)
 
 *For older version **webapi-b4j**, please check https://github.com/pyhoon/webapi-b4j*
 
@@ -39,15 +32,20 @@ Optionally you can start with keyValueStore to persist the model. This will be a
 
 ### Code Example
 ```basic
-Private Sub GetOneItem (id As Long)
+Private Sub GetCategory (id As Long)
+    ' #Plural = Categories
     ' #Version = v2
-    ' #Desc = Read one Item in MinimaList
+    ' #Desc = Get a Category by id
     ' #Elements = [":id"]
-    Dim M1 As Map = Main.MinimaItem.Find(id)
-    HRM.ResponseCode = 200
-    HRM.ResponseData.Initialize
-    HRM.ResponseData.Add(M1)
-    Utility.ReturnHttpResponse(HRM, Response)
+ 
+    Dim M1 As Map = Main.CategoryList.Find(id)
+    If M1.Size > 0 Then
+        HRM.ResponseCode = 200
+    Else
+        HRM.ResponseCode = 404
+    End If
+    HRM.ResponseObject = M1
+    ReturnApiResponse
 End Sub
 ```
 
