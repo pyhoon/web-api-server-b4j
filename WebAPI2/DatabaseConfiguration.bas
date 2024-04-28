@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 ' Database Configuration class
-' Version 2.06
+' Version 2.07
 Sub Class_Globals
 	
 End Sub

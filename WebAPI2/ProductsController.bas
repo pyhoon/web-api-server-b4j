@@ -6,6 +6,7 @@ Version=10
 @EndOfDesignText@
 ' Api Controller
 ' Version 1.05
+' ProductsController
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -24,12 +25,12 @@ End Sub
 Public Sub Initialize (req As ServletRequest, resp As ServletResponse)
 	Request = req
 	Response = resp
-	HRM.Initialize
-	HRM.SimpleResponse = Main.SimpleResponse
+	HRM.Initialize	
 	DB.Initialize(Main.DBOpen, Main.DBEngine)
 End Sub
 
 Private Sub ReturnApiResponse
+	HRM.SimpleResponse = Main.SimpleResponse
 	WebApiUtils.ReturnHttpResponse(HRM, Response)
 End Sub
 
@@ -246,7 +247,7 @@ Private Sub PostProduct
 	DB.Parameters = Values
 	DB.Save
 
-	' Retrive new row
+	' Retrieve new row
 	HRM.ResponseCode = 201
 	HRM.ResponseObject = DB.First
 	HRM.ResponseMessage = "Product created successfully"

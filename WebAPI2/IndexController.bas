@@ -28,10 +28,20 @@ End Sub
 Public Sub Show
 	Dim strMain As String = WebApiUtils.ReadTextFile("main.html")
 	Dim strView As String = WebApiUtils.ReadTextFile("index.html")
+	Dim strHelp As String
 	Dim strJSFile As String
 	Dim strScripts As String
 	
+	If Main.SHOW_API_ICON Then
+		strHelp = $"        <li class="nav-item">
+          <a class="nav-link mr-3 font-weight-bold text-white" href="${Main.Config.Get("ROOT_URL")}${Main.Config.Get("ROOT_PATH")}help"><i class="fas fa-cog" title="API"></i> API</a>
+	</li>"$
+	Else
+		strHelp = ""
+	End If
+	
 	strMain = WebApiUtils.BuildDocView(strMain, strView)
+	strMain = WebApiUtils.BuildTag(strMain, "HELP", strHelp)
 	strMain = WebApiUtils.BuildHtml(strMain, Main.Config)
 	If Main.SimpleResponse.Enable Then
 		If Main.SimpleResponse.Format = "Map" Then

@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 ' Server Configuration class
-' Version 2.06
+' Version 2.07
 Sub Class_Globals
 	Private SERVER_PORT As Int
 	Private SSL_PORT As Int
@@ -13,18 +13,21 @@ Sub Class_Globals
 	Private ROOT_PATH As String
 	Private API_PATH As String
 	Private API_NAME As String
+	Private API_VERSIONING As String
+	Private SSL_KEYSTORE_DIR As String
+	Private SSL_KEYSTORE_FILE As String
+	Private SSL_KEYSTORE_PASSWORD As String
 	Private ENABLE_SSL As Boolean
 	Private ENABLE_CORS As Boolean
+	Private ENABLE_HELP As Boolean
 	Private ENABLE_BASIC_AUTH As Boolean
 	Private ENABLE_JWT_AUTH As Boolean
 	Private SESSIONS_ENABLED As Boolean
 	Private COOKIES_ENABLED As Boolean
 	Private COOKIES_EXPIRATION As Long
-	Private ALLOW_STATIC_FILES As Boolean
+	Private STATIC_FILES_BROWSING As Boolean
 	Private STATIC_FILES_FOLDER As String
-	Private SIMPLE_RESPONSE_ENABLED As Boolean
-	Private SIMPLE_RESPONSE_FORMAT As String
-	Private SIMPLE_RESPONSE_DATA_KEY As String
+	Private SIMPLE_RESPONSE As SimpleResponse
 End Sub
 
 Public Sub Initialize
@@ -32,14 +35,28 @@ Public Sub Initialize
 	If Not(File.Exists(File.DirApp, "config.ini")) Then
 		File.Copy(File.DirAssets, "config.example", File.DirApp, "config.ini")
 	End If
-	
 	Main.Config = WebApiUtils.ReadMapFile(File.DirApp, "config.ini")
 	Main.Config.Put("VERSION", Main.VERSION)
 	'Main.Config.Put("PREFIX", Main.PREFIX)
 	
+	' Initialize Simple Response
+	SIMPLE_RESPONSE.Initialize
+	
 	' Setting default static files folder
-	ALLOW_STATIC_FILES = True
 	STATIC_FILES_FOLDER = File.Combine(File.DirApp, "www")
+	
+	' Load configuration to variables
+	SERVER_PORT = Main.Config.GetDefault("ServerPort", 0)
+	SSL_PORT = Main.Config.GetDefault("SSLPort", 0)
+	ROOT_URL = Main.Config.GetDefault("ROOT_URL", "http://localhost")
+	ROOT_PATH = Main.Config.GetDefault("ROOT_PATH", "/web/")
+	API_NAME = Main.Config.GetDefault("API_NAME", "api")
+	API_VERSIONING = Main.Config.GetDefault("API_VERSIONING", "True")
+	
+	' Set KeyStore file
+	SSL_KEYSTORE_DIR = Main.Config.GetDefault("SSL_KEYSTORE_DIR", "")
+	SSL_KEYSTORE_FILE = Main.Config.GetDefault("SSL_KEYSTORE_FILE", "")
+	SSL_KEYSTORE_PASSWORD = Main.Config.GetDefault("SSL_KEYSTORE_PASSWORD", "")
 End Sub
 
 ' Apply Server Configurations
@@ -52,11 +69,10 @@ Public Sub Finalize
 	ConfigureSSL
 	ConfigureBasicAuth
 	ConfigureJWTAuth
+	ConfigureSessions
+	ConfigureCookies
 	ConfigureStaticFiles
 	ConfigureSimpleResponse
-	Main.SESSIONS_ENABLED = SESSIONS_ENABLED
-	Main.COOKIES_ENABLED = COOKIES_ENABLED
-	Main.COOKIES_EXPIRATION = COOKIES_EXPIRATION
 End Sub
 
 ' Display some information in Logs (debug) or terminal (release)
@@ -80,6 +96,10 @@ End Sub
 
 Public Sub getEnableCORS As Boolean
 	Return ENABLE_CORS
+End Sub
+
+Public Sub getEnableHelp As Boolean
+	Return ENABLE_HELP
 End Sub
 
 Public Sub getBasicAuthentication As Boolean
@@ -110,24 +130,16 @@ Public Sub getRootPath As String
 	Return ROOT_PATH
 End Sub
 
-Public Sub getAllowStaticFiles As Boolean
-	Return ALLOW_STATIC_FILES
+Public Sub getStaticFilesBrowsable As Boolean
+	Return STATIC_FILES_BROWSING
 End Sub
 
 Public Sub getStaticFilesFolder As String
 	Return STATIC_FILES_FOLDER
 End Sub
 
-Public Sub getSimpleResponse As Boolean
-	Return SIMPLE_RESPONSE_ENABLED
-End Sub
-
-Public Sub getSimpleResponseFormat As String
-	Return SIMPLE_RESPONSE_FORMAT
-End Sub
-
-Public Sub getSimpleResponseDataKey As String
-	Return SIMPLE_RESPONSE_DATA_KEY
+Public Sub getSimpleResponse As SimpleResponse
+	Return SIMPLE_RESPONSE
 End Sub
 
 ' Set Server Port
@@ -148,6 +160,11 @@ End Sub
 ' Enable Cross Origin filter
 Public Sub setEnableCORS (Value As Boolean)
 	ENABLE_CORS = Value
+End Sub
+
+' Enable Documentation
+Public Sub setEnableHelp (Value As Boolean)
+	ENABLE_HELP = Value
 End Sub
 
 ' Enable Basic Authentication
@@ -185,9 +202,9 @@ Public Sub setRootPath (Value As String)
 	ROOT_PATH = Value
 End Sub
 
-' Allow Static Files (default is True)
-Public Sub setAllowStaticFiles (Value As Boolean)
-	ALLOW_STATIC_FILES = Value
+' Allow Browsing Static Files Directory
+Public Sub setStaticFilesBrowsable (Value As Boolean)
+	STATIC_FILES_BROWSING = Value
 End Sub
 
 ' Set Static Files Folder
@@ -195,38 +212,33 @@ Public Sub setStaticFilesFolder (Value As String)
 	STATIC_FILES_FOLDER = Value
 End Sub
 
-' Enable Simple JSON Response
-Public Sub setSimpleResponse (Value As Boolean)
-	SIMPLE_RESPONSE_ENABLED = Value
-End Sub
-
-' Set Simple Response Format
-Public Sub setSimpleResponseFormat (Value As String)
-	SIMPLE_RESPONSE_FORMAT = Value
-End Sub
-
-' Set Simple Response DataKey
-Public Sub setSimpleResponseDataKey (Value As String)
-	SIMPLE_RESPONSE_DATA_KEY = Value
+' Set Simple JSON Response (disabled by default)
+' =======================================================================================
+' By default, standard JSON format will be returned
+' It is a map with keys 'm', 'e', 's', 'r', 'a' where the response (r) is always a list
+' When enabled, JSON format can be set to 'Auto', 'List' or 'Map'
+' SimpleResponse.Format = "Auto"	' no conversion
+' SimpleResponse.Format = "List"	' always convert to a list
+' SimpleResponse.Format = "Map"	' always convert to a map with "data" as the default key
+' SimpleResponse.DataKey = "data"	' overwrite with different key
+' =======================================================================================
+Public Sub setSimpleResponse (Value As SimpleResponse)
+	SIMPLE_RESPONSE = Value
 End Sub
 
 ' Set Server Port
 Private Sub ConfigurePort
-	SERVER_PORT = Main.Config.GetDefault("ServerPort", 0)
-	SSL_PORT = Main.Config.GetDefault("SSLPort", 0)
 	If IsNumber(SSL_PORT) = False Then SSL_PORT = 0
 	If SERVER_PORT = 0 Then
 		SERVER_PORT = 8080
 		Log($"Server Port is set to 8080"$)
 	Else
-		Main.Server.Port = SERVER_PORT	' Set server port
+		Main.Server.Port = SERVER_PORT
 	End If
 End Sub
 
 ' Set Paths
 Private Sub ConfigurePaths
-	ROOT_URL = Main.Config.GetDefault("ROOT_URL", "http://localhost")
-
 	If SSL_PORT <> 0 Then
 		If SSL_PORT <> 443 Then
 			ROOT_URL = ROOT_URL & ":" & SSL_PORT
@@ -240,7 +252,6 @@ Private Sub ConfigurePaths
 	Main.Config.Put("ROOT_URL", ROOT_URL)
 	
 	' Root Path
-	ROOT_PATH = Main.Config.GetDefault("ROOT_PATH", "/web/")
 	If ROOT_PATH = "" Then ROOT_PATH = "/"
 	If ROOT_PATH <> "/" Then
 		If ROOT_PATH.StartsWith("/") = False Then ROOT_PATH = "/" & ROOT_PATH
@@ -249,7 +260,6 @@ Private Sub ConfigurePaths
 	Main.Config.Put("ROOT_PATH", ROOT_PATH)
 	
 	' API Name
-	API_NAME = Main.Config.GetDefault("API_NAME", "api")
 	API_NAME = API_NAME.Replace("/", "")
 	Main.Config.Put("API_NAME", API_NAME)
 	
@@ -259,7 +269,7 @@ Private Sub ConfigurePaths
 End Sub
 
 ' Set Elements
-Public Sub ConfigureElements
+Private Sub ConfigureElements
 	Main.Element.Initialize
 	Main.Element.Elements.Initialize
 	
@@ -278,7 +288,6 @@ Public Sub ConfigureElements
 	End If
 	
 	' API Versioning
-	Dim API_VERSIONING As String = Main.Config.GetDefault("API_VERSIONING", "True")
 	If API_VERSIONING.EqualsIgnoreCase("True") Then
 		Main.Element.Api.Versioning = True
 		Main.Element.Elements.Add("version") ' just a placeholder
@@ -304,7 +313,7 @@ Public Sub ConfigureElements
 End Sub
 
 ' Set Handlers
-Public Sub ConfigureHandlers
+Private Sub ConfigureHandlers
 	If API_NAME.Length = 0 Then
 		' ===================================================================
 		' Note: You can either enable ApiHandler or WebHandler, not both
@@ -334,11 +343,12 @@ Public Sub ConfigureHandlers
 	' =======================================================================
 	' Note: Documentation for debugging APIs without client app or Postman
 	' =======================================================================
-	' Help route - /web/help (optional) not required in release mode
+	' Help route - /web/help (optional)
 	' =======================================================================
-	#If DEBUG
-	Main.Server.AddHandler(ROOT_PATH & "help", "HelpHandler", False) 			' Add Help handler
-	#End If
+	If ENABLE_HELP Then
+		Main.Server.AddHandler(ROOT_PATH & "help", "HelpHandler", False) 		' Add Help handler
+		Main.SHOW_API_ICON = True
+	End If
 	' =======================================================================
 	' Web Sockets route (optional)
 	' =======================================================================
@@ -348,17 +358,12 @@ End Sub
 ' Configure SSL and Keystore
 Private Sub ConfigureSSL
 	If Not(ENABLE_SSL) Then Return
-	'SSL_PORT = Main.Config.Get("SSLPort") : If IsNumber(Main.config.get("SSL_PORT")) = False Then SSL_PORT = 0
 	If SSL_PORT = 0 Then Return
-	
-	Dim KeyStoreDir As String = Main.Config.Get("SSL_KEYSTORE_DIR")
-	Dim KeyStoreFile As String = Main.Config.Get("SSL_KEYSTORE_FILE")
-	Dim KeyStorePassword As String = Main.Config.Get("SSL_KEYSTORE_PASSWORD")
 	
 	Dim ssl As SslConfiguration
 	ssl.Initialize
-	ssl.SetKeyStorePath(KeyStoreDir, KeyStoreFile)
-	ssl.KeyStorePassword = KeyStorePassword
+	ssl.SetKeyStorePath(SSL_KEYSTORE_DIR, SSL_KEYSTORE_FILE)
+	ssl.KeyStorePassword = SSL_KEYSTORE_PASSWORD
 	'ssl.KeyManagerPassword = ""
 	Main.Server.SetSslConfiguration(ssl, SSL_PORT)
 	
@@ -426,7 +431,7 @@ End Sub
 ' Public JRT As JSONWebToken
 ' Public Secret As Secret
 ' Type Secret (Access_Token As String, Refresh_Token As String)</code>
-Public Sub ConfigureJWTAuth
+Private Sub ConfigureJWTAuth
 	' =================================================================
 	' Why don't use JWTs?
 	' https://gist.github.com/samsch/0d1f3d3b4745d778f78b230cf6061452
@@ -451,24 +456,24 @@ Public Sub ConfigureJWTAuth
 	Next
 End Sub
 
+' Configure Sessions
+Private Sub ConfigureSessions
+	Main.SESSIONS_ENABLED = SESSIONS_ENABLED
+End Sub
+
+' Configure Cookies
+Private Sub ConfigureCookies
+	Main.COOKIES_ENABLED = COOKIES_ENABLED
+	Main.COOKIES_EXPIRATION = COOKIES_EXPIRATION
+End Sub
+
 ' Configure permission for browsing static files folder
 Private Sub ConfigureStaticFiles
 	Main.Server.StaticFilesFolder = STATIC_FILES_FOLDER
-	Main.Server.SetStaticFilesOptions(CreateMap("dirAllowed": ALLOW_STATIC_FILES))
+	Main.Server.SetStaticFilesOptions(CreateMap("dirAllowed": STATIC_FILES_BROWSING))
 End Sub
 
 ' Configure Simple JSON Response
 Private Sub ConfigureSimpleResponse
-	' =======================================================================================
-	' SimpleResponse is disabled by default, standard JSON format will be returned
-	' It is a map with keys 'm', 'e', 's', 'r', 'a' where the response (r) is always a list
-	' When enabled, JSON format can be set to 'Auto', 'List' or 'Map'
-	' SimpleResponse.Format = "Auto"	' no conversion
-	' SimpleResponse.Format = "List"	' always convert to a list
-	' SimpleResponse.Format = "Map"		' always convert to a map with "data" as the default key
-	' SimpleResponse.DataKey = "data"	' overwrite with different key
-	' =======================================================================================
-	Main.SimpleResponse.Enable = SIMPLE_RESPONSE_ENABLED
-	Main.SimpleResponse.Format = SIMPLE_RESPONSE_FORMAT
-	Main.SimpleResponse.DataKey = SIMPLE_RESPONSE_DATA_KEY
+	Main.SimpleResponse = SIMPLE_RESPONSE
 End Sub

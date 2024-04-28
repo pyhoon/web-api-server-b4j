@@ -33,7 +33,7 @@ NumberOfModules=11
 Version=10
 @EndOfDesignText@
 ' Product: 			Web API Server
-' Version: 			2.06
+' Version: 			2.07
 ' Description: 		Server application project template
 ' Developer:		Aeric Poon (https://www.b4x.com/android/forum/members/aeric.74499/)
 ' License:			Open Source
@@ -69,11 +69,12 @@ Sub Process_Globals
 	Public SimpleResponse 			As SimpleResponse
 	Public DBConnector				As DatabaseConnector
 	Public PRINT_FULL_REQUEST_URL	As Boolean
+	Public SHOW_API_ICON			As Boolean
 	Public SESSIONS_ENABLED 		As Boolean
 	Public COOKIES_ENABLED 			As Boolean
 	Public COOKIES_EXPIRATION 		As Long
-	Public Const VERSION 			As String = "2.06"
-	'Public Const PREFIX 			As String = "WebAPI_v206_" ' use for cookies and sessions
+	Public Const VERSION 			As String = "2.07"
+	'Public Const PREFIX 			As String = "WebAPI_v207_" ' use for cookies and sessions
 End Sub
 
 ' <link>Open in browser|http://localhost:19800/web</link>
@@ -84,6 +85,9 @@ Sub AppStart (Args() As String)
 	
 	Dim sc As ServerConfiguration
 	sc.Initialize
+	'sc.SimpleResponse.Enable = True
+	sc.EnableCORS = True
+	sc.EnableHelp = True
 	sc.Finalize
 	sc.ShowWelcomeText
 	

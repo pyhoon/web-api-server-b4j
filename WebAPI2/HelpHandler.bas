@@ -5,7 +5,7 @@ Type=Class
 Version=9.1
 @EndOfDesignText@
 ' Help Handler class
-' Version 2.06
+' Version 2.07
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
@@ -50,6 +50,7 @@ Private Sub ShowHelpPage
 	'	' Append csrf_token into page header. Comment this line to check
 	'	strMain = WebApiUtils.BuildCsrfToken(strMain, csrf_token)
 	'End If
+	strMain = WebApiUtils.BuildTag(strMain, "HELP", "") ' Hide API icon
 	strMain = WebApiUtils.BuildHtml(strMain, Main.Config)
 	If Main.SimpleResponse.Enable Then
 		strJSFile = "webapi.help.verb.simple.js"
