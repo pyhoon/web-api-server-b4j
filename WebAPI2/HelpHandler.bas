@@ -5,7 +5,7 @@ Type=Class
 Version=9.1
 @EndOfDesignText@
 ' Help Handler class
-' Version 2.05
+' Version 2.06
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
@@ -56,7 +56,7 @@ Private Sub ShowHelpPage
 	Else
 		strJSFile = "webapi.help.verb.js"
 	End If
-	strScripts = $"<script src="${Main.ROOT_URL}/assets/js/${strJSFile}"></script>"$
+	strScripts = $"<script src="${Main.Config.Get("ROOT_URL")}/assets/js/${strJSFile}"></script>"$
 	strMain = WebApiUtils.BuildScript(strMain, strScripts)
 	WebApiUtils.ReturnHtml(strMain, Response)
 End Sub
@@ -155,6 +155,7 @@ Public Sub ReadControllers (FileDir As String) As String
 					' CAUTION: Do not use commented hashtag keyword inside non-verb subs!
 					' =====================================================================
 					' Supported hashtag keywords: (case-insensitive)
+					' #name (formerly #plural)
 					' #version
 					' #desc
 					' #body
@@ -162,8 +163,7 @@ Public Sub ReadControllers (FileDir As String) As String
 					' #defaultformat
 					' #upload
 					'
-					' Single keywords:
-					' #plural
+					' Single keywords:					
 					' #hide
 					
 					Dim Line3 As String = List2.Get(i).As(String)
@@ -208,15 +208,15 @@ Public Sub ReadControllers (FileDir As String) As String
 								Map3.Put("Body", body(1).Trim)
 							End If
 						End If
-									
-						' search for Plural
-						If Line3.ToLowerCase.IndexOf("#plural") > -1 Then
-							Dim plural() As String
-							plural = Regex.Split("=", Line3)
-							If plural.Length = 2 Then
-								' Override Controller with plural
+
+						' search for Name
+						If Line3.ToLowerCase.IndexOf("#name") > -1 Then
+							Dim name() As String
+							name = Regex.Split("=", Line3)
+							If name.Length = 2 Then
+								' Override Controller with name
 								Dim Map3 As Map = Methods.Get(Methods.Size-1)
-								Map3.Put("Controller", plural(1).Trim)
+								Map3.Put("Controller", name(1).Trim)
 							End If
 						End If
 
@@ -295,10 +295,10 @@ End Sub
 
 Private Sub GenerateLink (ApiVersion As String, Controller As String, Elements As List) As String
 	If ApiVersion.EqualsIgnoreCase("null") Then
-		Dim Link As String = Main.ROOT_PATH
+		Dim Link As String = Main.Config.Get("ROOT_PATH")
 		If Link.EndsWith("/") = False Then Link = Link & "/"
 	Else
-		Dim Link As String = Main.ROOT_PATH & Main.API_NAME
+		Dim Link As String = Main.Config.Get("ROOT_PATH") & Main.Config.Get("API_NAME")
 		If Link.EndsWith("/") = False Then Link = Link & "/"
 		If Main.Element.Api.Versioning Then Link = Link & ApiVersion
 		If Link.EndsWith("/") = False Then Link = Link & "/"

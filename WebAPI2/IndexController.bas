@@ -2,10 +2,10 @@
 Group=Controllers
 ModulesStructureVersion=1
 Type=Class
-Version=9.8
+Version=10
 @EndOfDesignText@
 ' Web Controller
-' Version 1.04
+' Version 1.05
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -18,19 +18,7 @@ Public Sub Initialize (req As ServletRequest, resp As ServletResponse)
 	Response = resp
 	HRM.Initialize
 	HRM.SimpleResponse = Main.SimpleResponse
-	DB.Initialize(OpenDBConnection, DBEngine)
-End Sub
-
-Private Sub DBEngine As String
-	Return Main.DBConnector.DBEngine
-End Sub
-
-Private Sub OpenDBConnection As SQL
-	Return Main.DBConnector.DBOpen
-End Sub
-
-Private Sub CloseDBConnection
-	Main.DBConnector.DBClose
+	DB.Initialize(Main.DBOpen, Main.DBEngine)
 End Sub
 
 Private Sub ReturnApiResponse
@@ -44,7 +32,7 @@ Public Sub Show
 	Dim strScripts As String
 	
 	strMain = WebApiUtils.BuildDocView(strMain, strView)
-	strMain = WebApiUtils.BuildHtml(strMain, Main.config)
+	strMain = WebApiUtils.BuildHtml(strMain, Main.Config)
 	If Main.SimpleResponse.Enable Then
 		If Main.SimpleResponse.Format = "Map" Then
 			strJSFile = "webapi.search.simple.map.js"
@@ -54,7 +42,7 @@ Public Sub Show
 	Else
 		strJSFile = "webapi.search.js"
 	End If
-	strScripts = $"<script src="${Main.ROOT_URL}/assets/js/${strJSFile}"></script>"$
+	strScripts = $"<script src="${Main.Config.Get("ROOT_URL")}/assets/js/${strJSFile}"></script>"$
 	strMain = WebApiUtils.BuildScript(strMain, strScripts)
 	WebApiUtils.ReturnHTML(strMain, Response)
 End Sub
@@ -62,12 +50,12 @@ End Sub
 Public Sub GetSearch
 	DB.Table = "tbl_products p"
 	DB.Select = Array("p.*", "c.category_name")
-	DB.Join = DB.CreateORMJoin("tbl_category c", "p.category_id = c.id", "")
+	DB.Join = DB.CreateORMJoin("tbl_categories c", "p.category_id = c.id", "")
 	DB.OrderBy = CreateMap("p.id": "")
 	DB.Query
 	HRM.ResponseCode = 200
 	HRM.ResponseData = DB.Results
-	CloseDBConnection
+	DB.Close
 	ReturnApiResponse
 End Sub
 
@@ -80,15 +68,15 @@ Public Sub PostSearch
 
 	DB.Table = "tbl_products p"
 	DB.Select = Array("p.*", "c.category_name")
-	DB.Join = DB.CreateORMJoin("tbl_category c", "p.category_id = c.id", "")
+	DB.Join = DB.CreateORMJoin("tbl_categories c", "p.category_id = c.id", "")
 	If SearchForText <> "" Then
-		DB.Where = Array("product_code LIKE ? Or product_name LIKE ? Or category_name LIKE ?")
-		DB.Parameters = Array("%" & SearchForText & "%", "%" & SearchForText & "%", "%" & SearchForText & "%")
+		DB.Where = Array("p.product_code LIKE ? Or UPPER(p.product_name) LIKE ? Or UPPER(c.category_name) LIKE ?")
+		DB.Parameters = Array("%" & SearchForText & "%", "%" & SearchForText.ToUpperCase & "%", "%" & SearchForText.ToUpperCase & "%")
 	End If
 	DB.OrderBy = CreateMap("p.id": "")
 	DB.Query
 	HRM.ResponseCode = 200
 	HRM.ResponseData = DB.Results
-	CloseDBConnection
+	DB.Close
 	ReturnApiResponse
 End Sub

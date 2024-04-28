@@ -5,7 +5,7 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Api Handler class
-' Version 2.05
+' Version 2.06
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -24,6 +24,10 @@ End Sub
 
 Private Sub ElementLastIndex As Int
 	Return Elements.Length - 1
+End Sub
+
+Private Sub ReturnBadRequest
+	WebApiUtils.ReturnBadRequest(Response)
 End Sub
 
 Private Sub ProcessRequest
@@ -51,10 +55,11 @@ Private Sub ProcessRequest
 	If Main.PRINT_FULL_REQUEST_URL Then
 		Log($"${Request.Method}: ${Request.FullRequestURI}"$)
 	End If
+	
 	Elements = WebApiUtils.GetUriElements(Request.RequestURI)
 	
 	If ElementLastIndex < Main.Element.ApiControllerIndex Then
-		WebApiUtils.ReturnBadRequest(Response)
+		ReturnBadRequest
 		Return
 	End If
 
@@ -62,12 +67,12 @@ Private Sub ProcessRequest
 	Dim ControllerElement As String = Elements(ControllerIndex)
 	Select ControllerElement
 		Case "categories"
-			Dim Categories As CategoryController
+			Dim Categories As CategoriesController
 			Categories.Initialize(Request, Response)
 			Categories.RouteApi
 			Return
 		Case "products"
-			Dim Products As ProductController
+			Dim Products As ProductsController
 			Products.Initialize(Request, Response)
 			Products.RouteApi
 			Return
@@ -77,7 +82,6 @@ Private Sub ProcessRequest
 			Find.RouteApi
 			Return
 	End Select
-	
 	Log("Unknown controller: " & ControllerElement)
-	WebApiUtils.ReturnBadRequest(Response)
+	ReturnBadRequest
 End Sub

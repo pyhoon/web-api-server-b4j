@@ -2,10 +2,10 @@
 Group=Controllers
 ModulesStructureVersion=1
 Type=Class
-Version=9.8
+Version=10
 @EndOfDesignText@
 ' Api Controller
-' Version 1.04
+' Version 1.05
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -26,34 +26,33 @@ Public Sub Initialize (req As ServletRequest, resp As ServletResponse)
 	Response = resp
 	HRM.Initialize
 	HRM.SimpleResponse = Main.SimpleResponse
-	DB.Initialize(OpenDBConnection, DBEngine)
-	DB.UseTimestamps = True
-End Sub
-
-Private Sub DBEngine As String
-	Return Main.DBConnector.DBEngine
-End Sub
-
-Private Sub OpenDBConnection As SQL
-	Return Main.DBConnector.DBOpen
-End Sub
-
-Private Sub CloseDBConnection
-	Main.DBConnector.DBClose
+	DB.Initialize(Main.DBOpen, Main.DBEngine)
 End Sub
 
 Private Sub ReturnApiResponse
 	WebApiUtils.ReturnHttpResponse(HRM, Response)
 End Sub
 
-' API Router
+Private Sub ReturnBadRequest
+	WebApiUtils.ReturnBadRequest(Response)
+End Sub
+
+Private Sub ReturnMethodNotAllow
+	WebApiUtils.ReturnMethodNotAllow(Response)
+End Sub
+
+Private Sub ReturnErrorUnprocessableEntity
+	WebApiUtils.ReturnErrorUnprocessableEntity(Response)
+End Sub
+
+' Api Router
 Public Sub RouteApi
 	Method = Request.Method.ToUpperCase
 	Elements = WebApiUtils.GetUriElements(Request.RequestURI)
-	ElementLastIndex = Elements.Length - 1
 	ApiVersionIndex = Main.Element.ApiVersionIndex
-	Version = Elements(ApiVersionIndex)
 	ControllerIndex = Main.Element.ApiControllerIndex
+	Version = Elements(ApiVersionIndex)
+	ElementLastIndex = Elements.Length - 1
 	If ElementLastIndex > ControllerIndex Then
 		FirstIndex = ControllerIndex + 1
 		FirstElement = Elements(FirstIndex)
@@ -70,7 +69,7 @@ Public Sub RouteApi
 			RouteDelete
 		Case Else
 			Log("Unsupported method: " & Method)
-			WebApiUtils.ReturnMethodNotAllow(Response)
+			ReturnMethodNotAllow
 	End Select
 End Sub
 
@@ -82,16 +81,16 @@ Private Sub RouteGet
 				Case ControllerIndex
 					GetProducts
 					Return
-				Case FirstIndex					
-					If WebApiUtils.CheckInteger(FirstElement) = False Then
-						WebApiUtils.ReturnErrorUnprocessableEntity(Response)
+				Case FirstIndex
+					If IsNumber(FirstElement) = False Then
+						ReturnErrorUnprocessableEntity
 						Return
 					End If
 					GetProduct(FirstElement)
 					Return
 			End Select
 	End Select
-	WebApiUtils.ReturnBadRequest(Response)
+	ReturnBadRequest
 End Sub
 
 ' Router for POST request
@@ -104,7 +103,7 @@ Private Sub RoutePost
 					Return
 			End Select
 	End Select
-	WebApiUtils.ReturnBadRequest(Response)
+	ReturnBadRequest
 End Sub
 
 ' Router for PUT request
@@ -113,15 +112,15 @@ Private Sub RoutePut
 		Case "v2"
 			Select ElementLastIndex
 				Case FirstIndex
-					If WebApiUtils.CheckInteger(FirstElement) = False Then
-						WebApiUtils.ReturnErrorUnprocessableEntity(Response)
+					If IsNumber(FirstElement) = False Then
+						ReturnErrorUnprocessableEntity
 						Return
 					End If
 					PutProduct(FirstElement)
 					Return
 			End Select
 	End Select
-	WebApiUtils.ReturnBadRequest(Response)
+	ReturnBadRequest
 End Sub
 
 ' Router for DELETE request
@@ -130,51 +129,48 @@ Private Sub RouteDelete
 		Case "v2"
 			Select ElementLastIndex
 				Case FirstIndex
-					If WebApiUtils.CheckInteger(FirstElement) = False Then
-						WebApiUtils.ReturnErrorUnprocessableEntity(Response)
+					If IsNumber(FirstElement) = False Then
+						ReturnErrorUnprocessableEntity
 						Return
 					End If
 					DeleteProduct(FirstElement)
 					Return
 			End Select
 	End Select
-	WebApiUtils.ReturnBadRequest(Response)
+	ReturnBadRequest
 End Sub
 
 Private Sub GetProducts
-	' #Plural = Products
 	' #Version = v2
 	' #Desc = Read all Products
 
-	DB.Table = "tbl_products"
-	DB.Query
-	HRM.ResponseCode = 200
-	HRM.ResponseData = DB.Results
-	CloseDBConnection
+    DB.Table = "tbl_products"
+    DB.Query
+    HRM.ResponseCode = 200
+    HRM.ResponseData = DB.Results
+	DB.Close
 	ReturnApiResponse
 End Sub
 
 Private Sub GetProduct (id As Long)
-	' #Plural = Products
 	' #Version = v2
 	' #Desc = Read one Product by id
 	' #Elements = [":id"]
-	
-	DB.Table = "tbl_products"
-	Dim map As Map = DB.Find(id)
-	If map.IsInitialized Then
+
+    DB.Table = "tbl_products"
+	DB.Find(id)
+	If DB.Found Then
 		HRM.ResponseCode = 200
-		HRM.ResponseObject = map
+		HRM.ResponseObject = DB.First
 	Else
 		HRM.ResponseCode = 404
 		HRM.ResponseError = "Product not found"
 	End If
-	CloseDBConnection
+	DB.Close
 	ReturnApiResponse
 End Sub
 
 Private Sub PostProduct
-	' #Plural = Products
 	' #Version = v2
 	' #Desc = Add a new Product
 	' #Body = {<br>&nbsp;"cat_id": category_id,<br>&nbsp;"code": "product_code",<br>&nbsp;"name": "product_name",<br>&nbsp;"price": product_price<br>}
@@ -186,6 +182,7 @@ Private Sub PostProduct
 		ReturnApiResponse
 		Return
 	End If
+
 	' Make it compatible with Web API Client v1
 	If data.ContainsKey("cat_id") Then
 		data.Put("category_id", data.Get("cat_id"))
@@ -203,6 +200,7 @@ Private Sub PostProduct
 		data.Put("product_price", data.Get("price"))
 		data.Remove("price")
 	End If
+	
 	' Check whether required keys are provided
 	Dim RequiredKeys As List = Array As String("category_id", "product_code", "product_name") ' "product_price" is optional
 	For Each requiredkey As String In RequiredKeys
@@ -213,48 +211,50 @@ Private Sub PostProduct
 			Return
 		End If
 	Next
+	
 	' Check conflict product code
 	DB.Table = "tbl_products"
 	DB.Where = Array("product_code = ?")
 	DB.Parameters = Array As String(data.Get("product_code"))
 	DB.Query
-	If DB.Results.Size > 0 Then
+	If DB.Found Then
 		HRM.ResponseCode = 409
-		HRM.ResponseError = "Product Code already exist"
-		CloseDBConnection
+		HRM.ResponseError = "Product already exist"
+		DB.Close
 		ReturnApiResponse
 		Return
 	End If
+
 	' Adding parameters to list
-	Dim columns As List
-	columns.Initialize
+	Dim Columns As List
+	Columns.Initialize
 	Dim Values As List
 	Values.Initialize
 	For Each key As String In data.Keys
 		Select key
 			Case "category_id", "product_code", "product_name", "product_price", "created_date"
-				columns.Add(key)
+				Columns.Add(key)
 				Values.Add(data.Get(key))
 			Case Else
 				Log(key)
-				Exit
 		End Select
 	Next
+
 	' Insert new row
 	DB.Reset
-	DB.Columns = columns
+	DB.Columns = Columns
 	DB.Parameters = Values
 	DB.Save
+
 	' Retrive new row
 	HRM.ResponseCode = 201
 	HRM.ResponseObject = DB.First
 	HRM.ResponseMessage = "Product created successfully"
-	CloseDBConnection
+	DB.Close
 	ReturnApiResponse
 End Sub
 
 Private Sub PutProduct (id As Long)
-	' #Plural = Products
 	' #Version = v2
 	' #Desc = Update Product by id
 	' #Body = {<br>&nbsp;"cat_id": category_id,<br>&nbsp;"code": "product_code",<br>&nbsp;"name": "product_name",<br>&nbsp;"price": product_price<br>}
@@ -267,6 +267,7 @@ Private Sub PutProduct (id As Long)
 		ReturnApiResponse
 		Return
 	End If
+
 	' Make it compatible with Web API Client v1
 	If data.ContainsKey("cat_id") Then
 		data.Put("category_id", data.Get("cat_id"))
@@ -284,26 +285,29 @@ Private Sub PutProduct (id As Long)
 		data.Put("product_price", data.Get("price"))
 		data.Remove("price")
 	End If
+
 	' Check conflict product code
 	DB.Table = "tbl_products"
 	DB.Where = Array("product_code = ?", "id <> ?")
 	DB.Parameters = Array As String(data.Get("product_code"), id)
 	DB.Query
-	If DB.First.IsInitialized Then
+	If DB.Found Then
 		HRM.ResponseCode = 409
 		HRM.ResponseError = "Product Code already exist"
-		CloseDBConnection
+		DB.Close
 		ReturnApiResponse
 		Return
 	End If
-	If Not(DB.Find(id).IsInitialized) Then
+	
+	DB.Find(id)
+	If Not(DB.Found) Then
 		HRM.ResponseCode = 404
 		HRM.ResponseError = "Product not found"
-		CloseDBConnection
+		DB.Close
 		ReturnApiResponse
 		Return
 	End If
-
+						
 	Dim Columns As List
 	Columns.Initialize
 	Dim Values As List
@@ -315,41 +319,40 @@ Private Sub PutProduct (id As Long)
 				Values.Add(data.Get(key))
 		End Select
 	Next
-	
+
 	DB.Reset
 	DB.Columns = Columns
 	DB.Parameters = Values
 	If Not(data.ContainsKey("modified_date")) Then
-		DB.UpdateModifiedDate = DB.UseTimestamps
+		DB.UpdateModifiedDate = True
 	End If
 	DB.Id = id
 	DB.Save
-	Log(DB.ToString)
 
 	HRM.ResponseCode = 200
-	HRM.ResponseObject = DB.First ' DB.Find(id) ' comment this line to show message as object
 	HRM.ResponseMessage = "Product updated successfully"
-	CloseDBConnection
+	HRM.ResponseObject = DB.First
+	DB.Close
 	ReturnApiResponse
 End Sub
 
 Private Sub DeleteProduct (id As Long)
-	' #Plural = Products
 	' #Version = v2
 	' #Desc = Delete Product by id
 	' #Elements = [":id"]
-
+	
 	DB.Table = "tbl_products"
-	If Not(DB.Find(id).IsInitialized) Then
-		HRM.ResponseCode = 404
-		HRM.ResponseError = "Product not found"
-	Else
+	DB.Find(id)
+	If DB.Found Then
 		DB.Reset
 		DB.Id = id
 		DB.Delete
 		HRM.ResponseCode = 200
 		HRM.ResponseMessage = "Product deleted successfully"
+	Else
+		HRM.ResponseCode = 404
+		HRM.ResponseError = "Product not found"
 	End If
-	CloseDBConnection
-	ReturnApiResponse
+	DB.Close
+	ReturnApiResponse	
 End Sub

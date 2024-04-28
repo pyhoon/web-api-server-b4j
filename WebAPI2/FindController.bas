@@ -2,10 +2,10 @@
 Group=Controllers
 ModulesStructureVersion=1
 Type=Class
-Version=9.8
+Version=10
 @EndOfDesignText@
-' Api Controller
-' Version 1.04
+' Find Controller
+' Version 1.05
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -30,23 +30,28 @@ Public Sub Initialize (req As ServletRequest, resp As ServletResponse)
 	Response = resp
 	HRM.Initialize
 	HRM.SimpleResponse = Main.SimpleResponse
-	DB.Initialize(OpenDBConnection, DBEngine)
-End Sub
-
-Private Sub DBEngine As String
-	Return Main.DBConnector.DBEngine
-End Sub
-
-Private Sub OpenDBConnection As SQL
-	Return Main.DBConnector.DBOpen
-End Sub
-
-Private Sub CloseDBConnection
-	Main.DBConnector.DBClose
+	DB.Initialize(Main.DBOpen, Main.DBEngine)
 End Sub
 
 Private Sub ReturnApiResponse
 	WebApiUtils.ReturnHttpResponse(HRM, Response)
+End Sub
+
+Private Sub ReturnBadRequest
+	WebApiUtils.ReturnBadRequest(Response)
+End Sub
+
+Private Sub ReturnMethodNotAllow
+	WebApiUtils.ReturnMethodNotAllow(Response)
+End Sub
+
+Private Sub ReturnInvalidKeywordValue
+	HRM.ResponseCode = 400
+	HRM.ResponseError = "Invalid keyword value"
+End Sub
+
+Private Sub ReturnErrorUnprocessableEntity
+	WebApiUtils.ReturnErrorUnprocessableEntity(Response)
 End Sub
 
 ' Api Router
@@ -75,7 +80,7 @@ Public Sub RouteApi
 			RouteGet
 		Case Else
 			Log("Unsupported method: " & Method)
-			WebApiUtils.ReturnMethodNotAllow(Response)
+			ReturnMethodNotAllow
 	End Select
 End Sub
 
@@ -95,7 +100,7 @@ Private Sub RouteGet
 					End Select					
 			End Select
 	End Select
-	WebApiUtils.ReturnBadRequest(Response)
+	ReturnBadRequest
 End Sub
 
 Private Sub GetFindCategory (keyword As String, value As String)
@@ -105,11 +110,12 @@ Private Sub GetFindCategory (keyword As String, value As String)
 
 	Select keyword
 		Case "category_name", "name"
-			QueryCategoryByKeyword(Array("category_name = ?"), Array(value))
+			QueryCategoryByKeyword(Array("UPPER(category_name) LIKE ?"), Array($"%${value.ToUpperCase}%"$))
 		Case Else
 			ReturnInvalidKeywordValue
+			Return
 	End Select
-	CloseDBConnection
+	DB.Close
 	ReturnApiResponse
 End Sub
 
@@ -120,32 +126,35 @@ Private Sub GetFindProduct (keyword As String, value As String)
 
 	Select keyword
 		Case "id"
-			If Not(IsNumber(value)) Then
-				ReturnUnprocessableEntity
-			Else
+			If IsNumber(value) Then
 				QueryProductByKeyword(Array("p.id = ?"), Array(value))
+			Else
+				ReturnErrorUnprocessableEntity
+				Return
 			End If
 		Case "category_id", "cid", "catid"
-			If Not(IsNumber(value)) Then
-				ReturnUnprocessableEntity
-			Else
+			If IsNumber(value) Then
 				QueryProductByKeyword(Array("c.id = ?"), Array(value))
+			Else
+				ReturnErrorUnprocessableEntity
+				Return
 			End If
 		Case "product_code", "code"		
-			QueryProductByKeyword(Array("p.product_code = ?"), Array(value))
+			QueryProductByKeyword(Array("p.product_code = ?"), Array(value)) ' product_code is case sensitive
 		Case "category_name", "category"					
-			QueryProductByKeyword(Array("c.category_name = ?"), Array(value))
+			QueryProductByKeyword(Array("UPPER(c.category_name) LIKE ?"), Array($"%${value.ToUpperCase}%"$))
 		Case "product_name", "name"			
-			QueryProductByKeyword(Array("p.product_name LIKE ?"), Array("%" & value & "%"))
+			QueryProductByKeyword(Array("UPPER(p.product_name) LIKE ?"), Array($"%${value.ToUpperCase}%"$))
 		Case Else
 			ReturnInvalidKeywordValue
+			Return
 	End Select
-	CloseDBConnection
+	DB.Close
 	ReturnApiResponse
 End Sub
 
 Private Sub QueryCategoryByKeyword (Condition As List, Value As List)
-	DB.Table = "tbl_category"
+	DB.Table = "tbl_categories"
 	DB.setWhereValue(Condition, Value)
 	DB.Query
 	HRM.ResponseCode = 200
@@ -155,19 +164,9 @@ End Sub
 Private Sub QueryProductByKeyword (Condition As List, Value As List)
 	DB.Table = "tbl_products p"
 	DB.Select = Array("p.*", "c.category_name")
-	DB.Join = DB.CreateORMJoin("tbl_category c", "p.category_id = c.id", "")
+	DB.Join = DB.CreateORMJoin("tbl_categories c", "p.category_id = c.id", "")
 	DB.setWhereValue(Condition, Value)
 	DB.Query
 	HRM.ResponseCode = 200
 	HRM.ResponseData = DB.Results
-End Sub
-
-Private Sub ReturnUnprocessableEntity
-	HRM.ResponseCode = 422
-	HRM.ResponseError = "Error Unprocessable Entity"
-End Sub
-
-Private Sub ReturnInvalidKeywordValue
-	HRM.ResponseCode = 400
-	HRM.ResponseError = "Invalid keyword value"
 End Sub

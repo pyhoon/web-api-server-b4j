@@ -19,7 +19,7 @@ Public Sub Filter (req As ServletRequest, resp As ServletResponse) As Boolean
 		Return True
 	Else
 		resp.SendRedirect(req.FullRequestURI.Replace("http:", "https:") _
-       .Replace(Main.srvr.Port, Main.srvr.SslPort))
+       .Replace(Main.Server.Port, Main.Server.SslPort))
 		Return False
 	End If
 End Sub

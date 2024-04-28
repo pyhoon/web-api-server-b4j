@@ -1,5 +1,5 @@
 # Product:      Web API Server
-# Version:      2.05
+# Version:      2.06
 # Developer:    Aeric Poon
 # License:      Donationware
 # Paypal:       https://paypal.me/aeric80/
@@ -15,10 +15,10 @@
 HOME_TITLE=WEB API SERVER
 APP_TITLE=Web API Server
 APP_TRADEMARK=B4X
-APP_COPYRIGHT=Copyright Computerise System Solutions 2023
+APP_COPYRIGHT=Copyright Computerise System Solutions 2024
 
 # Server Path
-ROOT_URL=http://127.0.0.1
+ROOT_URL=http://localhost
 ROOT_PATH=web
 API_NAME=api
 API_VERSIONING=True
@@ -54,20 +54,24 @@ SSLPort=0
 
 # DATABASE CONFIGURATION
 
-# SQLite
+## SQLite configuration:
 DbType=SQLite
-DbName=WebAPI2
+DbName=webapi2.db
 DbDir=
-DbFile=webapi2.db
 DriverClass=org.sqlite.JDBC
-JdbcUrl=jdbc:sqlite:webapi2.db
-; JdbcUrl=jdbc:sqlite:C:/Users/aeric/AppData/Roaming/B4X/webapi2.db
+JdbcUrl=jdbc:sqlite:{DbDir}/{DbName}
+## For custom directory
+## Use DbDir=C:/B4X/Development/Web API Server 2.06/Objects
 
-# MySQL
-; DbType=MySQL
-; DbName=webapi2
-; DriverClass=com.mysql.cj.jdbc.Driver
-; JdbcUrl=jdbc:mysql://localhost/webapi2?characterEncoding=utf8&useSSL=false
-; User=root
-; Password=password
-; MaxPoolSize=100
+## MySQL configuration:
+#DbType=MySQL
+#DbName=webapi2
+#DbHost=localhost
+#DbPort=
+#DriverClass=com.mysql.cj.jdbc.Driver
+#JdbcUrl=jdbc:mysql://{DbHost}:{DbPort}/{DbName}?characterEncoding=utf8&useSSL=false
+#User=root
+#Password=password
+#MaxPoolSize=100
+## For mysql-connector-java-5.1.49 (deprecated)
+## Use DriverClass=com.mysql.jdbc.Driver
