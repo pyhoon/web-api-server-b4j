@@ -5,8 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 ' Api Controller
-' Version 1.05
-' ProductsController
+' Version 1.06
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse

@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 ' Api Controller
-' Version 1.05
+' Version 1.06
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -255,7 +255,7 @@ Private Sub PostCategory
 	DB.Parameters = Values
 	DB.Save
 	
-	' Retrive new row
+	' Retrieve new row
 	HRM.ResponseCode = 201
 	HRM.ResponseObject = DB.First
 	HRM.ResponseMessage = "Category created successfully"
