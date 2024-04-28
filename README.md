@@ -1,56 +1,67 @@
 # webapi-2-b4j
 
-Version: 2.05
+Version: 2.06
 
-Build Web API Server Using B4X Template
+Create Web API Server using B4X project template
+
+### Preview
+![Web API Template](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/Web%20API%20Template.png)
+
+*If you don't want to connect to any SQL database, see [MinimaList API Server](https://github.com/pyhoon/minimalist-api-b4j)*
+*For older version **webapi-b4j**, please check https://github.com/pyhoon/webapi-b4j*
 
 ---
 
-**Depends on following libraries:** 
+## Template:
+- Web API Server (2.06).b4xtemplate
+
+## Depends on:
 - [WebApiUtils.b4xlib](https://www.b4x.com/android/forum/attachments/webapiutils-b4xlib.148485/)
 - [MiniORMUtils.b4xlib](https://www.b4x.com/android/forum/attachments/miniormutils-b4xlib.148489/)
 
-*For older version **webapi-b4j**, please check https://github.com/pyhoon/webapi-b4j*
-
-## Features
-- The core handler - ApiHandler, acts like BaseController or Routes class
-- ApiHandler routes the RequestURI to controllers e.g /web/api/v2/data
-- HelpHandler (optional) generates API documentation for easy debugging without external tools or clients which embed tokens in request header. HelpHandler is now scanning through controllers class for APIs to list in the documentation instead of reading handlers from b4j project main module in version 1.x
-- Web and API paths can be changed in config.ini
-- Versioning can be enabled or disabled
-- Simple JSON response (Map or List)
-- Session can be toggled
-- Cookies can be toggled
-- Welcome message can be toggled
-- One stop ConfigServer sub to control all the settings
-- Default endpoint name is based on controller's name (e.g /web/api/v2/item for ItemController)
-- Overide endpoint name using #Plural (e.g /web/api/v2/items)
-- Custom version name using #Version (e.g v2, live, demo, dev, staging)
-- Description is set using #Desc (i.e no more using #Desc1, #Desc2 or Literals that was very confusing in version 1.x)
-- API endpoint can be hidden using #Hide
-- INTRODUCING: **MinimaList** -> store as Map/List. API server can run without database (or optionally persist as KeyValueStore).
+## Features:
+- ApiHandler and WebHandler are used for routing to Controller classes
+- HelpHandler (optional)
+- API documentation is generated automatically. You don't need external tools (e.g Postman or Swagger) for testing.
+- Access tokens can be embeded into request header in HelpHandler.
+- Controller classes are added to a list in Main module to show in the documentation.
+- Configuration
+    - Web and API paths
+    - Versioning
+    - Simple JSON Response (Map or List)
+    - Session
+    - Cookies
+    - Welcome message
+- Endpoint
+    - Endpoint name is based on controller's name by default e.g ProductsController produces /web/api/v2/products
+    - Endpoint name can be overridden by using #Name tag e.g /web/api/v2/product
+    - Custom version name using #Version tag e.g v2, live, demo, dev, staging
+    - Description in documentation is set using #Desc tag (in Web API v1, it was set by #Desc1, #Desc2 or Literals that was very confusing)
+    - API endpoint can be hidden using #Hide tag
+- Clients
+    - Build-in front-end client (web)
+    - Compatible with [**Web API Client (1.05).b4xtemplate**](https://github.com/pyhoon/webapi-client-b4x) (B4X UI apps)
 
 ### Code Example
 ```basic
 Private Sub GetCategory (id As Long)
-    ' #Plural = Categories
     ' #Version = v2
-    ' #Desc = Get a Category by id
+    ' #Desc = Read one Category by id
     ' #Elements = [":id"]
- 
-    Dim M1 As Map = Main.CategoryList.Find(id)
-    If M1.Size > 0 Then
+
+    DB.Table = "tbl_category"
+    DB.Find(id)
+    If DB.Found Then
         HRM.ResponseCode = 200
+        HRM.ResponseObject = DB.First
     Else
         HRM.ResponseCode = 404
+        HRM.ResponseError = "Category not found"
     End If
-    HRM.ResponseObject = M1
+    DB.Close
     ReturnApiResponse
 End Sub
 ```
-
-### Preview
-![Web API Template](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/Web%20API%20Template.png)
 
 **Support this project**
 
