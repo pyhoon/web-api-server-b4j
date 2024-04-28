@@ -17,8 +17,8 @@ Create Web API Server using B4X project template
 - Web API Server (2.06).b4xtemplate
 
 ## Depends on:
-- [WebApiUtils.b4xlib](https://www.b4x.com/android/forum/attachments/webapiutils-b4xlib.148485/)
-- [MiniORMUtils.b4xlib](https://www.b4x.com/android/forum/attachments/miniormutils-b4xlib.148489/)
+- [WebApiUtils.b4xlib](https://github.com/pyhoon/WebApiUtils-B4J)
+- [MiniORMUtils.b4xlib](https://github.com/pyhoon/MiniORMUtils-B4X)
 - Optional:
     - [WebAPIController.jar](https://github.com/pyhoon/WebApiController-B4J) and WebAPIController.xml
 
