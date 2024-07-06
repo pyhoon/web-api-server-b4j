@@ -34,6 +34,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=Main
+NavigationStack=Main,AppStart,40,1
 SelectedBuild=0
 VisibleModules=

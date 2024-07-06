@@ -5,7 +5,7 @@ Type=Class
 Version=9.1
 @EndOfDesignText@
 ' Help Handler class
-' Version 2.07
+' Version 2.08
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
@@ -40,12 +40,12 @@ Private Sub ShowHelpPage
 	#End If
 	
 	strMain = WebApiUtils.BuildDocView(strMain, strContents)
-	'' Requires EncryptionUtils
+	'' Requires HashGenerator
 	'If Main.SESSIONS_ENABLED Then
 	'	' Store csrf_token inside server session variables
-	'	Dim HasherUtils As Hasher
-	'	HasherUtils.Initialize
-	'	Dim csrf_token As String =  HasherUtils.RandomHash2
+	'	Dim Hasher As HashGenerator
+	'	Hasher.Initialize
+	'	Dim csrf_token As String =  Hasher.RandomHash2
 	'	Request.GetSession.SetAttribute(Main.PREFIX & "csrf_token", csrf_token)
 	'	' Append csrf_token into page header. Comment this line to check
 	'	strMain = WebApiUtils.BuildCsrfToken(strMain, csrf_token)
@@ -164,7 +164,7 @@ Public Sub ReadControllers (FileDir As String) As String
 					' #defaultformat
 					' #upload
 					'
-					' Single keywords:					
+					' Single keywords:
 					' #hide
 					
 					Dim Line3 As String = List2.Get(i).As(String)
@@ -264,7 +264,7 @@ Public Sub ReadControllers (FileDir As String) As String
 		Next
 
 		' Retain this part for debugging purpose
-		'#If debug
+		'#If DEBUG
 		'For Each m As Map In Methods
 		'	Log(" ")
 		'	Log("[" & m.Get("Verb") & "]")

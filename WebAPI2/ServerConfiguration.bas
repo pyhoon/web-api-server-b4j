@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 ' Server Configuration class
-' Version 2.07
+' Version 2.08
 Sub Class_Globals
 	Private SERVER_PORT As Int
 	Private SSL_PORT As Int

@@ -1,9 +1,6 @@
 ﻿AppType=StandardJava
-Build1=Default,b4j.webapi,SQLite,hu2_acceptall
-Build2=Firebird,b4j.webapi,Firebird,server,hu2_acceptall
-Build3=MSSQL,b4j.webapi,MSSQL,server,hu2_acceptall
-Build4=MySQL,b4j.webapi,MySQL,server,hu2_acceptall
-Build5=PostgreSQL,b4j.webapi,PostgreSQL,server,hu2_acceptall
+Build1=Default,b4j.webapi,SQLite,server,hu2_acceptall
+Build2=MySQL,b4j.webapi,MySQL,server,hu2_acceptall
 File1=category.html
 File2=config.example
 File3=index.html
@@ -33,7 +30,7 @@ NumberOfModules=11
 Version=10
 @EndOfDesignText@
 ' Product: 			Web API Server
-' Version: 			2.07
+' Version: 			2.08
 ' Description: 		Server application project template
 ' Developer:		Aeric Poon (https://www.b4x.com/android/forum/members/aeric.74499/)
 ' License:			Open Source
@@ -49,16 +46,10 @@ Version=10
 #IgnoreWarnings: 32
 #End Region
 
-#If SQLite
-#AdditionalJar: sqlite-jdbc-3.39.3.0
-#Else If MySQL
+#If MySQL
 #AdditionalJar: mysql-connector-java-8.0.30
-#Else If MSSQL
-#AdditionalJar: jtds-1.3.1
-#Else If PostgreSQL
-#AdditionalJar: postgresql-42.6.0
-#Else If Firebird
-#AdditionalJar: jaybird-5.0.0.java11
+#Else
+#AdditionalJar: sqlite-jdbc-3.39.3.0
 #End If
 
 Sub Process_Globals
@@ -73,8 +64,8 @@ Sub Process_Globals
 	Public SESSIONS_ENABLED 		As Boolean
 	Public COOKIES_ENABLED 			As Boolean
 	Public COOKIES_EXPIRATION 		As Long
-	Public Const VERSION 			As String = "2.07"
-	'Public Const PREFIX 			As String = "WebAPI_v207_" ' use for cookies and sessions
+	Public Const VERSION 			As String = "2.08"
+	'Public Const PREFIX 			As String = "WebAPI_v208_" ' use for cookies and sessions
 End Sub
 
 ' <link>Open in browser|http://localhost:19800/web</link>
@@ -85,9 +76,13 @@ Sub AppStart (Args() As String)
 	
 	Dim sc As ServerConfiguration
 	sc.Initialize
-	'sc.SimpleResponse.Enable = True
 	sc.EnableCORS = True
+	#If DEBUG
 	sc.EnableHelp = True
+	#End If
+	#If Release
+	sc.EnableSSL = True
+	#End If
 	sc.Finalize
 	sc.ShowWelcomeText
 	
@@ -98,13 +93,12 @@ Sub AppStart (Args() As String)
 	Server.Start
 	
 	' Show Controllers in Documentation
-	' Tips: You can unlist an API using #Hide tag
-	Controllers.Initialize
-	Controllers.Add("CategoriesController")
-	Controllers.Add("ProductsController")
-	Controllers.Add("FindController")
-	
-	PRINT_FULL_REQUEST_URL = True
+	If sc.EnableHelp Then
+		Controllers.Initialize
+		Controllers.Add("CategoriesController")
+		Controllers.Add("ProductsController")
+		Controllers.Add("FindController")
+	End If
 	StartMessageLoop
 End Sub
 

@@ -5,11 +5,12 @@ Type=Class
 Version=9.8
 @EndOfDesignText@
 ' Web Handler class
-' Version 2.07
+' Version 2.08
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
 	Private Elements() As String
+	Private const COLOR_RED As Int = -65536
 End Sub
 
 Public Sub Initialize
@@ -28,6 +29,10 @@ End Sub
 
 Private Sub ReturnHtmlPageNotFound
 	WebApiUtils.ReturnHtmlPageNotFound(Response)
+End Sub
+
+Private Sub ReturnMethodNotAllow
+	WebApiUtils.ReturnMethodNotAllow(Response)
 End Sub
 
 Private Sub ProcessRequest
@@ -66,6 +71,11 @@ Private Sub ProcessRequest
 			Categories.RouteWeb
 			Return
 	End Select
-	Log("Unknown url: " & Request.FullRequestURI)
-	ReturnHtmlPageNotFound
+	
+	LogColor("Unknown url: " & Request.FullRequestURI, COLOR_RED)
+	If Request.Method.ToUpperCase = "GET" Then
+		ReturnHtmlPageNotFound
+	Else
+		ReturnMethodNotAllow
+	End If
 End Sub

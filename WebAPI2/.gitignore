@@ -1,0 +1,11 @@
+# ignore files
+*.b4j.meta
+
+# ignore ALL files in these directories
+AutoBackups/
+Objects/b4xlibs/
+Objects/bin/
+Objects/logs/
+Objects/shell/
+Objects/src/
+Objects/*.db

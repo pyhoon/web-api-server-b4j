@@ -5,68 +5,66 @@ Type=Class
 Version=10
 @EndOfDesignText@
 ' Database Configuration class
-' Version 2.07
+' Version 2.08
 Sub Class_Globals
-	
+	Private Conn As Conn
+	Private const COLOR_RED 	As Int = -65536     'ignore
+	Private const COLOR_GREEN 	As Int = -16711936  'ignore
+	Private const COLOR_BLUE 	As Int = -16776961  'ignore
+	Private const COLOR_MAGENTA	As Int = -65281     'ignore
 End Sub
 
 Public Sub Initialize
+	If Not(File.Exists(File.DirApp, "config.ini")) Then
+		File.Copy(File.DirAssets, "config.example", File.DirApp, "config.ini")
+	End If
+	Dim Config As Map = WebApiUtils.ReadMapFile(File.DirApp, "config.ini")
 	
+	Conn.Initialize
+	Conn.DBDir = Config.GetDefault("DbDir", "")
+	Conn.DBFile = Config.GetDefault("DbFile", "")
+	Conn.DBType = Config.GetDefault("DbType", "")
+	Conn.DBHost = Config.GetDefault("DbHost", "")
+	Conn.DBPort = Config.GetDefault("DbPort", "")
+	Conn.DBName = Config.GetDefault("DbName", "")
+	Conn.DriverClass = Config.GetDefault("DriverClass", "")
+	Conn.JdbcUrl = Config.GetDefault("JdbcUrl", "")
+	Conn.User = Config.GetDefault("User", "")
+	Conn.Password = Config.GetDefault("Password", "")
+	Conn.MaxPoolSize = Config.GetDefault("MaxPoolSize", 0)
 End Sub
 
 ' Configure Database (create if not exist)
 Public Sub ConfigureDatabase
-	Dim Conn As Conn
-	Conn.Initialize
-	Conn.DBType = Main.Config.GetDefault("DbType", "")
-	Conn.DBName = Main.Config.GetDefault("DbName", "")
-	Conn.DBHost = Main.Config.GetDefault("DbHost", "")
-	Conn.DBPort = Main.Config.GetDefault("DbPort", "")
-	Conn.DBDir = Main.Config.GetDefault("DbDir", "")
-	Conn.DriverClass = Main.Config.GetDefault("DriverClass", "")
-	Conn.JdbcUrl = Main.Config.GetDefault("JdbcUrl", "")
-	Conn.User = Main.Config.GetDefault("User", "")
-	Conn.Password = Main.Config.GetDefault("Password", "")
-	Conn.MaxPoolSize = Main.Config.GetDefault("MaxPoolSize", 0)
 	Try
-		'Log("Checking database...")
-		Select Conn.DBType.ToUpperCase
-			Case "SQLITE"
-				#If SQLite
-				Dim DBFound As Boolean
-				If File.Exists(Conn.DBDir, Conn.DBName) Then
-					DBFound = True
-				End If
-				Main.DBConnector.Initialize(Conn)
-				#Else
-				LogColor($"Build configuration does not match ${Conn.DBType} database settings!"$, -65536)
-				LogColor($"Application is terminated."$, -65536)
-				ExitApplication
-				Return
-				#End If
-			Case "MYSQL"
-				#If MYSQL
-				Main.DBConnector.Initialize(Conn)
-				Wait For (Main.DBConnector.DBExist) Complete (DBFound As Boolean)
-				#Else
-				LogColor($"Build configuration does not match ${Conn.DBType}!"$, -65536)
-				LogColor($"Application is terminated."$, -65536)
-				ExitApplication
-				Return
-				#End If
-			Case Else
-				Main.DBConnector.Initialize(Conn)
-				Wait For (Main.DBConnector.DBExist) Complete (DBFound As Boolean)
-		End Select
-		If DBFound Then
-			Log($"${Conn.DBType} database found!"$)
+		Log("Checking database...")
+		#If MySQL
+		Dim DBType As String = "MySQL"
+		#Else
+		Dim DBType As String = "SQLite"
+		#End If
+		
+		If Conn.DBType.EqualsIgnoreCase(DBType) Then
+			Main.DBConnector.Initialize(Conn)
+			#If MySQL
+			Wait For (Main.DBConnector.DBExist2) Complete (DBFound As Boolean)
+			#Else
+			Dim DBFound As Boolean = Main.DBConnector.DBExist
+			#End If
 		Else
-			LogColor($"${Conn.DBType} database not found!"$, -65536)			
+			ShowBuildConfigurationNotMatch
+			Return
+		End If
+		
+		If DBFound Then
+			LogColor($"${Conn.DBType} database found!"$, COLOR_BLUE)
+		Else
+			LogColor($"${Conn.DBType} database not found!"$, COLOR_RED)
 			CreateDatabase
 		End If
 	Catch
 		LogError(LastException.Message)
-		LogColor("Error checking database!", -65536)
+		LogColor("Error checking database!", COLOR_RED)
 		Log("Application is terminated.")
 		ExitApplication
 	End Try
@@ -74,7 +72,12 @@ End Sub
 
 Private Sub CreateDatabase
 	Log("Creating database...")
-	Wait For (Main.DBConnector.DBCreate) Complete (Success As Boolean)
+	Select Conn.DBType.ToUpperCase
+		Case "MYSQL"
+			Wait For (Main.DBConnector.DBCreateMySQL) Complete (Success As Boolean)
+		Case "SQLITE"
+			Wait For (Main.DBConnector.DBCreateSQLite) Complete (Success As Boolean)
+	End Select
 	If Not(Success) Then
 		Log("Database creation failed!")
 		Return
@@ -96,7 +99,7 @@ Private Sub CreateDatabase
 	MDB.Insert
 	MDB.Parameters = Array("Toys")
 	MDB.Insert
-	
+
 	MDB.Table = "tbl_products"
 	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "category_id", "Type": MDB.INTEGER)))
 	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_code", "Length": "12")))
@@ -115,9 +118,15 @@ Private Sub CreateDatabase
 	
 	Wait For (MDB.ExecuteBatch) Complete (Success As Boolean)
 	If Success Then
-		Log("Database is created successfully!")
+		LogColor("Database is created successfully!", COLOR_BLUE)
 	Else
-		Log("Database creation failed!")
+		LogColor("Database creation failed!", COLOR_RED)
 	End If
 	MDB.Close
+End Sub
+
+Private Sub ShowBuildConfigurationNotMatch
+	LogColor($"Build configuration does not match ${Conn.DBType}!"$, COLOR_RED)
+	LogColor($"Application is terminated."$, COLOR_RED)
+	ExitApplication
 End Sub
