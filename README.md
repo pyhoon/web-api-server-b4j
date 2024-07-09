@@ -1,4 +1,4 @@
-# web-api-server-b4j
+# Web API Server
 
 Version: 2.08
 
@@ -43,7 +43,7 @@ Create Web API Server using B4X project template
     - API endpoint can be hidden using #Hide tag
 - Clients
     - Build-in front-end client (web)
-    - Compatible with [**Web API Client (1.05).b4xtemplate**](https://github.com/pyhoon/webapi-client-b4x) (B4X UI apps)
+    - Compatible with [**Web API Client (1.05).b4xtemplate**](https://github.com/pyhoon/web-api-client-b4x) (B4A, B4i, B4J)
 
 ### Code Example
 ```basic
