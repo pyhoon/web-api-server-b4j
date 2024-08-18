@@ -19,8 +19,7 @@ Create Web API Server using B4X project template
 ## Depends on:
 - [WebApiUtils.b4xlib](https://github.com/pyhoon/WebApiUtils-B4J)
 - [MiniORMUtils.b4xlib](https://github.com/pyhoon/MiniORMUtils-B4X)
-- Optional:
-    - [WebAPIController.jar](https://github.com/pyhoon/WebApiController-B4J) and WebAPIController.xml
+- [WebAPIController.b4xlib](https://github.com/pyhoon/WebApiController-B4J) (optional)
 
 ## Features:
 - ApiHandler and WebHandler are used for routing to Controller classes
