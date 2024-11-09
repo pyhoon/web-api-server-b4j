@@ -1,8 +1,0 @@
-# ignore files
-*.b4j.meta
-*.b4j
-
-# ignore ALL files in these directories
-AutoBackups/
-Objects/
-Files/
