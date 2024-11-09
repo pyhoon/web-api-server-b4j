@@ -1,11 +1,11 @@
 # Web API Server
 
-Version: 2.08
+Version: 3.00
 
 Create Web API Server using B4X project template
 
 ### Preview
-![Web API Template](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/Web%20API%20Template.png)
+![Web API Template](https://raw.githubusercontent.com/pyhoon/web-api-server-b4j/main/Preview/Web%20API%20Template.png)
 
 *If you don't want to connect to any SQL database, see [MinimaList API Server](https://github.com/pyhoon/minimalist-api-b4j)*
 
@@ -14,12 +14,11 @@ Create Web API Server using B4X project template
 ---
 
 ## Template:
-- Web API Server (2.08).b4xtemplate
+- Web API Server (3.00).b4xtemplate
 
 ## Depends on:
 - [WebApiUtils.b4xlib](https://github.com/pyhoon/WebApiUtils-B4J)
 - [MiniORMUtils.b4xlib](https://github.com/pyhoon/MiniORMUtils-B4X)
-- [WebAPIController.b4xlib](https://github.com/pyhoon/WebApiController-B4J) (optional)
 
 ## Features:
 - ApiHandler and WebHandler are used for routing to Controller classes
