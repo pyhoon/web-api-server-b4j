@@ -5,7 +5,7 @@ Version: 2.08
 Create Web API Server using B4X project template
 
 ### Preview
-![Web API Template](https://raw.githubusercontent.com/pyhoon/webapi-2-b4j/main/Preview/Web%20API%20Template.png)
+![Web API Template](https://raw.githubusercontent.com/pyhoon/web-api-server-b4j/refs/heads/v2.08/Preview/Web%20API%20Template.png)
 
 *If you don't want to connect to any SQL database, see [MinimaList API Server](https://github.com/pyhoon/minimalist-api-b4j)*
 
