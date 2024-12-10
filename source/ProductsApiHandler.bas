@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 'Api Handler class
-'Version 3.00
+'Version 3.10
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -118,7 +118,7 @@ End Sub
 
 Private Sub PostProduct
 	' #Desc = Add a new Product
-	' #Body = {<br>&nbsp;"cat_id": category_id,<br>&nbsp;"code": "product_code",<br>&nbsp;"name": "product_name",<br>&nbsp;"price": product_price<br>}
+	' #Body = {<br>&nbsp; "cat_id": category_id,<br>&nbsp; "code": "product_code",<br>&nbsp; "name": "product_name",<br>&nbsp; "price": 0<br>}
 	Dim data As Map = WebApiUtils.RequestData(Request)
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
@@ -193,7 +193,7 @@ End Sub
 
 Private Sub PutProductById (Id As Int)
 	' #Desc = Update Product by id
-	' #Body = {<br>&nbsp;"cat_id": category_id,<br>&nbsp;"code": "product_code",<br>&nbsp;"name": "product_name",<br>&nbsp;"price": product_price<br>}
+	' #Body = {<br>&nbsp; "cat_id": category_id,<br>&nbsp; "code": "product_code",<br>&nbsp; "name": "product_name",<br>&nbsp; "price": 0<br>}
 	' #Elements = [":id"]
 	Dim data As Map = WebApiUtils.RequestData(Request)
 	If Not(data.IsInitialized) Then

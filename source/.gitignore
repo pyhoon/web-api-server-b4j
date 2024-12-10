@@ -1,5 +1,9 @@
 # ignore files
-Objects/*.db
+Objects/config.ini
+Objects/help.html
+Objects/*.jar
+Objects/*.db*
+Objects/keystore*
 
 # ignore ALL files in these directories
 AutoBackups/

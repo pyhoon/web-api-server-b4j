@@ -4,13 +4,11 @@ $(".get, .post, .put, .delete").click(function (e) {
 	const element = $(this)
 	const id = element.attr("id").substring(3)
 	makeApiRequest(id)
-
 })
 // Function to set options
 function setOptions(id) {
 	const element = $("#btn" + id)
 	const headers = setHeaders(element)
-
 	switch (true) {
 		case element.hasClass("get"):
 			return {

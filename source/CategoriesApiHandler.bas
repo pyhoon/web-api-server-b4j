@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 'Api Handler class
-'Version 3.00
+'Version 3.10
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -118,7 +118,7 @@ End Sub
 
 Private Sub PostCategory
 	' #Desc = Add a new Category
-	' #Body = {<br>&nbsp;"name": "category_name"<br>}
+	' #Body = {<br>&nbsp; "name": "category_name"<br>}
 	Dim data As Map = WebApiUtils.RequestData(Request)
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
@@ -170,7 +170,7 @@ End Sub
 
 Private Sub PutCategoryById (Id As Int)
 	' #Desc = Update Category by id
-	' #Body = {<br>&nbsp;"name": "category_name"<br>}
+	' #Body = {<br>&nbsp; "name": "category_name"<br>}
 	' #Elements = [":id"]
 	Dim data As Map = WebApiUtils.RequestData(Request)
 	If Not(data.IsInitialized) Then
