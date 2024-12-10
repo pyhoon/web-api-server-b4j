@@ -9,7 +9,6 @@ $(".get, .post, .put, .delete").click(function (e) {
 function setOptions(id) {
 	const element = $("#btn" + id)
 	const headers = setHeaders(element)
-
 	switch (true) {
 		case element.hasClass("get"):
 			return {

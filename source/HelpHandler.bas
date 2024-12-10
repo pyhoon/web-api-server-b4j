@@ -5,10 +5,11 @@ Type=Class
 Version=9.1
 @EndOfDesignText@
 'Help Handler class
-'Version 3.00
+'Version 3.10
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
+	Type VerbSection (Verb As String, Color As String, ElementId As String, Link As String, FileUpload As String, Authenticate As String, Description As String, Params As String, Body As String, Expected As String, InputDisabled As Boolean, DisabledBackground As String, Raw As Boolean)
 End Sub
 
 Public Sub Initialize
@@ -22,56 +23,38 @@ Sub Handle (req As ServletRequest, resp As ServletResponse)
 End Sub
 
 Private Sub ShowHelpPage
-	Dim strMain As String = WebApiUtils.ReadTextFile("main.html")
-	Dim strContents As String
-	Dim strJSFile As String
-	Dim strScripts As String
-	
-	#If RELEASE
-	If File.Exists(File.DirApp, "help.html") Then
-		strContents = File.ReadString(File.DirApp, "help.html")
-	End If
-	#Else
+	#If Debug
 	' Generate API Documentation from API Handler Classes
-	strContents = ReadHandlers(File.DirApp.Replace("\Objects", ""))
+	Dim strContents As String = ReadHandlers(File.DirApp.Replace("\Objects", ""))
 	If File.Exists(File.DirApp, "help.html") = False Then
 		WebApiUtils.WriteTextFile("help.html", strContents)
 	End If
+	#Else
+	If File.Exists(File.DirApp, "help.html") Then
+		Dim strContents As String = File.ReadString(File.DirApp, "help.html")
+	End If
 	#End If
-	
-	strMain = WebApiUtils.BuildDocView(strMain, strContents)
-	'' Requires HashGenerator
-	'If Main.SESSIONS_ENABLED Then
-	'	' Store csrf_token inside server session variables
-	'	Dim Hasher As HashGenerator
-	'	Hasher.Initialize
-	'	Dim csrf_token As String =  Hasher.RandomHash2
-	'	Request.GetSession.SetAttribute(Main.PREFIX & "csrf_token", csrf_token)
-	'	' Append csrf_token into page header. Comment this line to check
-	'	strMain = WebApiUtils.BuildCsrfToken(strMain, csrf_token)
-	'End If
+	Dim strMain As String = WebApiUtils.BuildDocView(WebApiUtils.ReadTextFile("main.html"), strContents)
+	' Requires Hasher
+	' Store csrf_token inside server session variables
+	'Dim HSR As Hasher
+	'HSR.Initialize
+	'Dim csrf_token As String = HSR.RandomHash2
+	'Request.GetSession.SetAttribute(Main.PREFIX & "csrf_token", csrf_token)
+	' Append csrf_token into page header. Comment this line to check
+	'strMain = WebApiUtils.BuildCsrfToken(strMain, csrf_token)
 	strMain = WebApiUtils.BuildTag(strMain, "HELP", "") ' Hide API icon
 	strMain = WebApiUtils.BuildHtml(strMain, Main.ctx)
-	If Main.Config.SimpleResponse.Enable Then
-		strJSFile = "help.simple.js"
-	Else
-		strJSFile = "help.js"
-	End If
-	strScripts = $"<script src="${Main.Config.RootUrl}/assets/scripts/${strJSFile}"></script>"$
-	strMain = WebApiUtils.BuildScript(strMain, strScripts)
+	strMain = WebApiUtils.BuildScript(strMain, $"<script src="${Main.Config.ServerUrl}/assets/scripts/help${IIf(Main.Config.SimpleResponse.Enable, ".simple", "")}.js"></script>"$)
 	WebApiUtils.ReturnHtml(strMain, Response)
 End Sub
 
 Public Sub ReadHandlers (FileDir As String) As String
-	Dim strHtml As String
 	Log(TAB)
 	Log("Generating Help page ...")
-	
 	Dim verbs(4) As String = Array As String("GET", "POST", "PUT", "DELETE")
-
-	Dim DocumentedHandlers As List
-	DocumentedHandlers.Initialize
-	
+	'Dim DocumentedHandlers As List
+	'DocumentedHandlers.Initialize
 	Dim Handlers As List
 	Handlers.Initialize
 	Handlers.Add("CategoriesApiHandler")
@@ -84,11 +67,11 @@ Public Sub ReadHandlers (FileDir As String) As String
 	'		DocumentedHandlers.Add(TempHandler)
 	'	End If
 	'Next
-			
+	Dim strHtml As String
 	For Each Handler As String In Handlers 'DocumentedHandlers
 		Dim Methods As List
 		Methods.Initialize
-				
+
 		Dim SubStartsWithGet As List
 		SubStartsWithGet.Initialize
 	
@@ -108,12 +91,13 @@ Public Sub ReadHandlers (FileDir As String) As String
 		VerbSubs.Add(CreateMap(SubStartsWithPut: "SubStartsWithPut"))
 		VerbSubs.Add(CreateMap(SubStartsWithDelete: "SubStartsWithDelete"))
 
-		Dim HandlerName As String = Handler.Replace("ApiHandler", "")
+		Dim HandlerName As String = Handler.Replace("Handler", "")
+		HandlerName = HandlerName.Replace("Api", "")
+		HandlerName = HandlerName.Replace("Web", "")
 		strHtml = strHtml & GenerateHeaderByHandler(HandlerName)
 		
 		Dim List2 As List
 		List2 = File.ReadList(FileDir, Handler & ".bas")
-
 		For i = 0 To List2.Size - 1
 			If List2.Get(i).As(String).StartsWith("'") Or List2.Get(i).As(String).StartsWith("#") Then
 				' Ignore the line
@@ -145,7 +129,7 @@ Public Sub ReadHandlers (FileDir As String) As String
 										End If
 										key.Add(Line2)
 
-										Dim MethodProperties As Map = CreateMap("Verb": verb, "Method": Line2, "Args": Arguments, "Prm": plist, "Body": "&nbsp;", "File": False, "Plural": False, "Format": "")
+										Dim MethodProperties As Map = CreateMap("Verb": verb, "Method": Line2, "Args": Arguments, "Prm": plist, "Body": "&nbsp;", "Noapi": False, "Format": "")
 										Methods.Add(MethodProperties)
 									Next
 								End If
@@ -166,9 +150,11 @@ Public Sub ReadHandlers (FileDir As String) As String
 					' #elements
 					' #defaultformat
 					' #upload
+					' #authenticate
 					'
 					' Single keywords:
 					' #hide
+					' #noapi
 					
 					Dim Line3 As String = List2.Get(i).As(String)
 					If Line3.IndexOf("'") > -1 Then
@@ -230,6 +216,12 @@ Public Sub ReadHandlers (FileDir As String) As String
 							Map3.Put("Hide", True)
 						End If
 						
+						' search for Noapi
+						If Line3.ToLowerCase.IndexOf("#noapi") > -1 Then
+							Dim Map3 As Map = Methods.Get(Methods.Size-1)
+							Map3.Put("Noapi", True)
+						End If
+						
 						' search for Upload
 						If Line3.ToLowerCase.IndexOf("#upload") > -1 Then
 							Dim upd() As String
@@ -237,6 +229,16 @@ Public Sub ReadHandlers (FileDir As String) As String
 							If upd.Length = 2 Then
 								Dim Map3 As Map = Methods.Get(Methods.Size-1)
 								Map3.Put("Upload", upd(1).Trim)
+							End If
+						End If
+						
+						' search for Authenticate
+						If Line3.ToLowerCase.IndexOf("#authenticate") > -1 Then
+							Dim aut() As String
+							aut = Regex.Split("=", Line3)
+							If aut.Length = 2 Then
+								Dim Map3 As Map = Methods.Get(Methods.Size-1)
+								Map3.Put("Authenticate", aut(1).Trim)
 							End If
 						End If
 						
@@ -259,11 +261,11 @@ Public Sub ReadHandlers (FileDir As String) As String
 		For Each m As Map In Methods
 			Dim MM(2) As String
 			MM = Regex.Split(" As ", m.Get("Method")) ' Ignore return type
-			Dim MethodName As String = MM(0).Trim
+			m.Put("Method", MM(0).Trim)
 			If m.ContainsKey("Hide") Then Continue ' Skip Hidden sub
 			' Default Handler for singular
 			If m.ContainsKey("Handler") = False Then m.Put("Handler", HandlerName)
-			strHtml = strHtml & GenerateDocItem(m.Get("Version"), m.Get("Handler"), m.Get("Elements"), m.Get("Verb"), MethodName, m.Get("Prm"), m.Get("Body"), m.Get("Upload"), m.Get("Format"), m.Get("Desc"))
+			strHtml = strHtml & GenerateDocItem(m)
 		Next
 
 		' Retain this part for debugging purpose
@@ -292,13 +294,12 @@ Public Sub ReadHandlers (FileDir As String) As String
 		'Next
 		'#End If
 	Next
-
 	Log($"Help page has been generated."$)
 	Return strHtml
 End Sub
 
 Private Sub GenerateLink (ApiVersion As String, Handler As String, Elements As List) As String
-	Dim Link As String = Main.Config.RootPath & Main.Config.ApiName
+	Dim Link As String = "$SERVER_URL$/" & Main.Config.ApiName
 	If Link.EndsWith("/") = False Then Link = Link & "/"
 	If ApiVersion.EqualsIgnoreCase("null") = False Then
 		If Main.Config.ApiVersioning Then Link = Link & ApiVersion
@@ -311,64 +312,85 @@ Private Sub GenerateLink (ApiVersion As String, Handler As String, Elements As L
 	Return Link
 End Sub
 
-Public Sub GenerateVerbSection (Verb As String, strColor As String, strButtonID As String, strLink As String, blnRaw As Boolean, strFileUpload As String, strDesc As String, strParams As String, strBody As String, strExpected As String, strInputDisabled As String, strDisabledBackground As String) As String
-	Dim strBgColor As String
-	Select strColor.ToLowerCase
+Private Sub GenerateNoApiLink (Handler As String, Elements As List) As String
+	Dim Link As String = "$SERVER_URL$/" & Handler.ToLowerCase
+	For i = 0 To Elements.Size - 1
+		Link = Link & "/" & Elements.Get(i)
+	Next
+	Return Link
+End Sub
+
+Public Sub GenerateVerbSection (section As VerbSection) As String
+	Dim Color As String = section.Color
+	Dim Body As String = section.Body
+	Dim Link As String = section.Link
+	Dim Verb As String = section.Verb
+	Dim Params As String = section.Params
+	Dim Expected As String = section.Expected
+	Dim ElementId As String = section.ElementId
+	Dim FileUpload As String = section.FileUpload
+	Dim Description As String = section.Description
+	Dim Authenticate As String = section.Authenticate
+	Dim DisabledBackground As String = section.DisabledBackground
+	Dim InputDisabled As Boolean = section.InputDisabled
+	Select Color.ToLowerCase
 		Case "success"
-			strBgColor = "#d4edda"
+			Dim BgColor As String = "#d4edda"
 		Case "warning"
-			strBgColor = "#fff3cd"
+			Dim BgColor As String = "#fff3cd"
 		Case "primary"
-			strBgColor = "#cce5ff"
+			Dim BgColor As String = "#cce5ff"
 		Case "danger"
-			strBgColor = "#f8d7da"
+			Dim BgColor As String = "#f8d7da"
 	End Select
 	Dim strFormat As String
-	If blnRaw Then strFormat = "?format=json"
+	If section.Raw Then strFormat = "?format=json"
 	Dim strBodySample As String
 	Dim strBodyInput As String
-	Select strFileUpload
+	Select FileUpload
 		Case "Image"
 			strBodySample = ""
-			strBodyInput = $"File: <label for="file1${strButtonID}">Choose an image file:</label><input type="file" id="file1${strButtonID}" class="pb-3" name="file1" accept="image/png, image/jpeg, application/pdf">"$
+			strBodyInput = $"File: <label for="file1${ElementId}">Choose an image file:</label><input type="file" id="file1${ElementId}" class="pb-3" name="file1" accept="image/png, image/jpeg, application/pdf">"$
 			'strFileUpload = ""
 		Case "PDF"
 			strBodySample = ""
-			strBodyInput = $"File: <label for="file1${strButtonID}">Choose a PDF file:</label><input type="file" id="file1${strButtonID}" class="pb-3" name="file1" accept="application/pdf">"$
+			strBodyInput = $"File: <label for="file1${ElementId}">Choose a PDF file:</label><input type="file" id="file1${ElementId}" class="pb-3" name="file1" accept="application/pdf">"$
 			'strFileUpload = ""
 		Case Else
-			strBodySample = $"Format: <p class="form-control" style="height: fit-content; background-color: #F0F9FF; font-size: small">${strBody}</p>"$
-			strBodyInput = $"Body: <textarea id="body${strButtonID}" rows="6" class="form-control data-body" style="background-color: #FFFFFF; font-size: small"></textarea></p>"$
+			strBodySample = $"Format: <p class="form-control" style="height: fit-content; background-color: #F0F9FF; font-size: small">${Body}</p>"$
+			strBodyInput = $"Body: <textarea id="body${ElementId}" rows="6" class="form-control data-body" style="background-color: #FFFFFF; font-size: small"></textarea></p>"$
 			'strFileUpload = ""
 	End Select
 	Dim strHtml As String = $"
-		<button class="collapsible" style="background-color: ${strBgColor}"><span class="badge badge-${strColor} p-1">${Verb}</span> ${strLink}</button>
+		<button class="collapsible" style="background-color: ${BgColor}"><span class="badge badge-${Color} p-1">${Verb}</span> ${Link}</button>
         <div class="details">
 			<div class="row">
 				<div class="col-md-6 pt-3">
-					${strDesc}
+					${IIf(Authenticate.EqualsIgnoreCase("Basic") Or Authenticate.EqualsIgnoreCase("Token"), _
+					$"<span class="badge rounded-pill bg-info text-white px-2 py-1">${WebApiUtils.ProperCase(Authenticate)} Authentication</span><br>"$, "")}
+					${Description}
 				</div>
 			</div>
 			<div class="row">
 	            <div class="col-md-3 p-3">
 					<p><strong>Parameters</strong><br/>
-	                <label class="col control-label border rounded" style="padding-top: 5px; padding-bottom: 5px; background-color: #F0F9FF; font-size: small; white-space: pre-wrap;">${strParams}</label></p>					
+	                <label class="col control-label border rounded" style="padding-top: 5px; padding-bottom: 5px; background-color: #F0F9FF; font-size: small; white-space: pre-wrap;">${Params}</label></p>					
 	                ${IIf(Verb.EqualsIgnoreCase("POST") Or Verb.EqualsIgnoreCase("PUT"), strBodySample, "")}
 	            	<p><strong>Status Code</strong><br/>
-					${strExpected}</p>
+					${Expected}</p>
 				</div>
 	            <div class="col-md-3 p-3">
 					<form id="form1" method="${Verb}">
 					<p><strong>Path</strong><br/>
-	                <input${IIf(strInputDisabled.Length > 0, " " & strInputDisabled, "")} id="path${strButtonID}" class="form-control data-path" style="background-color: ${IIf(strInputDisabled.EqualsIgnoreCase("disabled"), strDisabledBackground, "#FFFFFF")}; font-size: small" value="${strLink & strFormat}"></p>
+	                <input${IIf(InputDisabled, " disabled", "")} id="path${ElementId}" class="form-control data-path" style="background-color: ${IIf(InputDisabled, DisabledBackground, "#FFFFFF")}; font-size: small" value="${Link & strFormat}"></p>
 					${IIf(Verb.EqualsIgnoreCase("POST") Or Verb.EqualsIgnoreCase("PUT"), strBodyInput, $""$)}
-	                <button id="${strButtonID}" class="${IIf(strFileUpload.EqualsIgnoreCase("Image") Or strFileUpload.EqualsIgnoreCase("PDF"), $"file"$, $"${Verb.ToLowerCase}"$)} button btn-${strColor} col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+					<button id="btn${ElementId}" class="${IIf(FileUpload.EqualsIgnoreCase("Image") Or FileUpload.EqualsIgnoreCase("PDF"), $"file"$, $"${Verb.ToLowerCase}"$)}${IIf(Authenticate.ToUpperCase = "BASIC" Or Authenticate.ToUpperCase = "TOKEN", " " & Authenticate.ToLowerCase, "")} button btn-${Color} col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
 	            	</form>								
 				</div>
 				<div class="col-md-6 p-3">
 					<p><strong>Response</strong><br/>
-					<textarea rows="10" id="response${strButtonID}" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
-					<div id="alert${strButtonID}" class="alert alert-default" role="alert" style="display: block"></div>
+					<textarea rows="10" id="response${ElementId}" class="form-control" style="background-color: #696969; color: white; font-size: small"></textarea></p>
+					<div id="alert${ElementId}" class="alert alert-default" role="alert" style="display: block"></div>
 				</div>
 			</div>
         </div>"$
@@ -385,15 +407,22 @@ Public Sub GenerateHeaderByHandler (Header As String) As String
 	Return strHtml
 End Sub
 
-Public Sub GenerateDocItem (ApiVersion As String, Handler As String, Elements As List, Verb As String, MethodName As String, Params As List, Body As String, FileUpload As String, DefaultFormat As String, Desc As String) As String
+Public Sub GenerateDocItem (Props As Map) As String
+	Dim Verb As String = Props.Get("Verb")
+	Dim Handler As String = Props.Get("Handler")
+	Dim ApiVersion As String = Props.Get("Version")
+	Dim Method As String = Props.Get("Method")
+	Dim DefaultFormat As String = Props.Get("DefaultFormat")
+	Dim Params As List = Props.Get("Prm")
+	Dim Elements As List = Props.Get("Elements")
+	Dim NoApi As Boolean = Props.Get("Noapi")
 	Dim strHTML As String
 	Dim strParams As String
 	Dim strColor As String
 	Dim strLink As String
-	Dim blnRaw As Boolean
 	Dim strExpected As String = "200 Success"
-	Dim strInputDisabled As String
 	Dim strDisabledBackground As String = "#FFFFFF"
+	Dim InputDisabled As Boolean
 	Select Verb
 		Case "GET"
 			strColor = "success"
@@ -419,12 +448,31 @@ Public Sub GenerateDocItem (ApiVersion As String, Handler As String, Elements As
 		Next
 	Else
 		strParams = "Not required"
-		strInputDisabled = "disabled"
+		InputDisabled = True
 		strDisabledBackground = "#F0F9FF"
 	End If
-	If Not(Elements.IsInitialized) Then Elements.Initialize
-	strLink = GenerateLink(ApiVersion, Handler, Elements)
-	If DefaultFormat.EqualsIgnoreCase("raw") And Verb = "GET" Then blnRaw = True
-	strHTML = strHTML & GenerateVerbSection(Verb, strColor, "btn" & MethodName & Handler, strLink, blnRaw, FileUpload, Desc, strParams, Body, strExpected, strInputDisabled, strDisabledBackground)
+	If Elements.IsInitialized = False Then Elements.Initialize
+	If NoApi Then
+		strLink = GenerateNoApiLink(Handler, Elements)
+	Else
+		strLink = GenerateLink(ApiVersion, Handler, Elements)
+	End If
+	
+	Dim section As VerbSection
+	section.Initialize
+	section.Verb = Verb
+	section.Color = strColor
+	section.ElementId = Method & Handler
+	section.Link = strLink
+	section.Raw = DefaultFormat.EqualsIgnoreCase("raw") And Verb = "GET"
+	section.FileUpload = Props.Get("FileUpload")
+	section.Authenticate = Props.Get("Authenticate")
+	section.Description = Props.Get("Desc")
+	section.Params = strParams
+	section.Body = Props.Get("Body")
+	section.Expected = strExpected
+	section.InputDisabled = InputDisabled
+	section.DisabledBackground = strDisabledBackground
+	strHTML = strHTML & GenerateVerbSection(section)
 	Return strHTML
 End Sub

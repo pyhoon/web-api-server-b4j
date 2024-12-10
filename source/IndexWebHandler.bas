@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 'Web Handler class
-'Version 3.00
+'Version 3.10
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -50,7 +50,7 @@ Private Sub ReturnPage
 	Else
 		strJSFile = "search.js"
 	End If
-	strScripts = $"<script src="${Main.Config.RootUrl}/assets/scripts/${strJSFile}"></script>"$
+	strScripts = $"<script src="${Main.Config.ServerUrl}/assets/scripts/${strJSFile}"></script>"$
 	strMain = WebApiUtils.BuildScript(strMain, strScripts)
 	WebApiUtils.ReturnHTML(strMain, Response)
 End Sub
@@ -60,6 +60,6 @@ Private Sub ReturnHelpElement As String
 		Return ""
 	End If
 	Return $"${CRLF & TAB & TAB}<li class="nav-item">
-${TAB & TAB & TAB}<a class="nav-link mr-3 font-weight-bold text-white" href="${Main.Config.RootUrl}${Main.Config.RootPath}help"><i class="fas fa-cog" title="API"></i> API</a>
+${TAB & TAB & TAB}<a class="nav-link mr-3 font-weight-bold text-white" href="${Main.Config.ServerUrl}/help"><i class="fas fa-cog" title="API"></i> API</a>
 ${TAB & TAB}</li>"$
 End Sub
