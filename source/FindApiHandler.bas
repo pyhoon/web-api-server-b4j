@@ -86,7 +86,9 @@ Public Sub GetAllProducts
 	ReturnApiResponse
 End Sub
 
-Public Sub SearchByKeywords ' #Post PostSearchByKeywords
+Public Sub SearchByKeywords ' #post
+	'  	#Desc = Read all Products joined by Category and filter by keywords  
+	'#Body = {<br>&nbsp;&nbsp;"keywords": "search words"<br>} 	
 	Dim Data As Map = WebApiUtils.RequestData(Request)
 	If Not(Data.IsInitialized) Then
 		HRM.ResponseCode = 400

@@ -35,8 +35,8 @@ Private Sub ShowHelpPage
 	' Generate API Documentation from API Handler Classes
 	Log(TAB)
 	Log("Generating Help page ...")
-	'ReadHandlers
-	BuildMethods
+	ReadHandlers
+	'BuildMethods
 	Log($"Help page has been generated."$)
 	'If File.Exists(File.DirApp, "help.html") = False Then
 	'WebApiUtils.WriteTextFile("help.html", Contents)
@@ -63,7 +63,8 @@ Private Sub ShowHelpPage
 	#End Region
 	strMain = WebApiUtils.BuildTag(strMain, "HELP", "") ' Hide API icon
 	strMain = WebApiUtils.BuildHtml(strMain, Main.ctx)
-	strMain = WebApiUtils.BuildScript(strMain, $"<script src="${Main.Config.ServerUrl}/assets/scripts/help${IIf(Main.Config.SimpleResponse.Enable, ".simple", "")}.js"></script>"$)
+	'strMain = WebApiUtils.BuildScript(strMain, $"<script src="${Main.Config.ServerUrl}/assets/scripts/help${IIf(Main.Config.SimpleResponse.Enable, ".simple", "")}.js"></script>"$)
+	strMain = WebApiUtils.BuildScript(strMain, $"<script src="${Main.Config.ServerUrl}/assets/scripts/help.js"></script>"$)
 	WebApiUtils.ReturnHtml(strMain, Response)
 End Sub
 
@@ -137,29 +138,29 @@ Public Sub BuildMethods
 	'AllMethods.Add(Method)
 	ReplaceMethod(Method)
 	
-	Dim index As Int = FindMethod("SearchByKeywords")
-	If index > -1 Then
-		Dim Method As Map = AllMethods.Get(index)
-		'Method.Put("Verb", "POST")
-	Else
-		Dim Method As Map = CreateMethodProperties("Find", "SearchByKeywords")
-		Method.Put("Verb", "POST")
-	End If
-	' Overide if existed
-	Method.Put("Body", $"{
-	    "keywords": "search words"
-	}"$)
-	Method.Put("Desc", "Read all Products joined by Category and filter by keywords (" & Method.Get("Method") & ")")
-	Dim strExpected As String = $"200 Success
-	<br/>400 Bad request
-	<br/>404 Not found
-	<br/>422 Error execute query"$
-	Method.Put("Expected", strExpected)
-	If index > -1 Then
-		ReplaceMethod(Method)
-	Else
-		AllMethods.Add(Method)
-	End If
+'	Dim index As Int = FindMethod("SearchByKeywords")
+'	If index > -1 Then
+'		Dim Method As Map = AllMethods.Get(index)
+'		'Method.Put("Verb", "POST")
+'	Else
+'		Dim Method As Map = CreateMethodProperties("Find", "SearchByKeywords")
+'		Method.Put("Verb", "POST")
+'	End If
+'	' Overide if existed
+'	Method.Put("Body", $"{
+'	    "keywords": "search words"
+'	}"$)
+'	Method.Put("Desc", "Read all Products joined by Category and filter by keywords (" & Method.Get("Method") & ")")
+'	Dim strExpected As String = $"200 Success
+'	<br/>400 Bad request
+'	<br/>404 Not found
+'	<br/>422 Error execute query"$
+'	Method.Put("Expected", strExpected)
+'	If index > -1 Then
+'		ReplaceMethod(Method)
+'	Else
+'		AllMethods.Add(Method)
+'	End If
 End Sub
 
 Public Sub ReadHandlers
@@ -466,6 +467,7 @@ Private Sub GetExpectedResponse (verb As String) As String
 	' Add other expected response
 	strExpected = strExpected & "<br/>400 Bad request"
 	strExpected = strExpected & "<br/>404 Not found"
+	strExpected = strExpected & "<br/>405 Method not allowed"
 	strExpected = strExpected & "<br/>422 Error execute query"
 	Return strExpected
 End Sub
