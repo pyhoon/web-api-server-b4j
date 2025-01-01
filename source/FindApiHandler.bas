@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 'Api Handler class
-'Version 3.10
+'Version 3.20
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -35,7 +35,8 @@ Sub Handle (req As ServletRequest, resp As ServletResponse)
 			End If
 		Case "POST"
 			If ElementMatch("") Then
-				PostSearchByKeywords
+				'PostSearchByKeywords
+				SearchByKeywords
 				Return
 			End If
 		Case Else
@@ -85,9 +86,7 @@ Public Sub GetAllProducts
 	ReturnApiResponse
 End Sub
 
-Public Sub PostSearchByKeywords
-	' #Desc = Read all Products joined by Category and filter by keywords
-	' #Body = {<br>&nbsp;"keywords": "keywords"<br>}
+Public Sub SearchByKeywords ' #Post PostSearchByKeywords
 	Dim Data As Map = WebApiUtils.RequestData(Request)
 	If Not(Data.IsInitialized) Then
 		HRM.ResponseCode = 400
@@ -99,7 +98,7 @@ Public Sub PostSearchByKeywords
 	' Check whether required keys are provided
 	If Data.ContainsKey("keywords") = False Then
 		HRM.ResponseCode = 400
-		HRM.ResponseError = "Key 'category_name' not found"
+		HRM.ResponseError = "Key 'keywords' not found"
 		ReturnApiResponse
 		Return
 	End If

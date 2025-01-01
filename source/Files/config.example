@@ -1,8 +1,9 @@
 # Product:      Web API Server
-# Version:      3.10
-# Developer:    Aeric Poon
-# License:      Donationware
-# Paypal:       https://paypal.me/aeric80/
+# Version:      3.20
+# Developer:    Poon Yip Hoon (Aeric)
+# License:      MIT License
+# Donation:		https://paypal.me/aeric80/ (PayPal)
+# Web Link:     https://www.b4x.com/android/forum/threads/project-template-web-api-server-3.163725/
 
 # Thanks to Erel, Anywhere Software for the great products and B4X community for encouragement and supports.
 # Please consider to donate to me so I can continue to improve this project
@@ -15,7 +16,7 @@
 HOME_TITLE=WEB API SERVER
 APP_TITLE=Web API Server
 APP_TRADEMARK=B4X
-APP_COPYRIGHT=Copyright Computerise System Solutions 2024
+APP_COPYRIGHT=Copyright Computerise System Solutions 2025
 
 # Server Path
 ROOT_URL=http://127.0.0.1

@@ -28,18 +28,19 @@ Version=10
 @EndOfDesignText@
 #Region Project Attributes
 ' Product: 			Web API Server
-' Version: 			3.10
+' Version: 			3.20 beta 1
 ' Description: 		Server application project template
 ' Developer:		Aeric Poon (https://www.b4x.com/android/forum/members/aeric.74499/)
-' License:			Open Source
-' Paypal:			https://paypal.me/aeric80/
+' License:			MIT License
+' Donation:			PayPal (https://paypal.me/aeric80/)
+' Forum thread:		https://www.b4x.com/android/forum/threads/project-template-web-api-server-3.163725/
 
 ' CreateDatabase: 	ide://goto?Module=Main&Sub=CreateDatabase
 ' Objects folder: 	ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\Objects
-' Publish: 			ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&Args=-cMf&Args=Publish.zip&Args=www&Args=*.jar&Args=*.ini&Args=*.db&Args=help.html
+' Publish: 			ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&Args=-cMf&Args=Publish.zip&Args=www&Args=*.jar&Args=*.ini '&Args=*.db&Args=*.html (optional db and html)
 #CommandLineArgs:
 #MergeLibraries: True
-#IgnoreWarnings: 32
+'#IgnoreWarnings: 32
 #End Region
 #If MySQL
 #AdditionalJar: mysql-connector-java-8.0.30
@@ -52,7 +53,7 @@ Sub Process_Globals
 	Public srvr 				As Server
 	Public DBConnector			As DatabaseConnector
 	Public Config 				As ServerConfigurations
-	Public Const VERSION_NAME	As String = "3.10"
+	Public Const VERSION_NAME	As String = "3.20 beta 1"
 	Private const COLOR_RED 	As Int = -65536
 	Private const COLOR_BLUE 	As Int = -16776961
 	Type ServerConfigurations (EnableCORS As Boolean, EnableHelp As Boolean, EnableSSL As Boolean, Port As Int, SSLPort As Int, RootUrl As String, RootPath As String, ServerUrl As String, ApiName As String, ApiVersioning As Boolean, SslKeystoreDir As String, SslKeystoreFile As String, SslKeystorePassword As String, StaticFilesBrowsable As Boolean, StaticFilesFolder As String, SimpleResponse As SimpleResponse, Version As String)
@@ -94,7 +95,7 @@ Private Sub InitServer
 	#End If
 	#If Release
 	Config.EnableSSL = True
-	'Config.EnableHelp = True
+	Config.EnableHelp = True
 	#End If
 	Config.EnableCORS = True
 	Config.Port = ctx.GetDefault("ServerPort", 8080)
