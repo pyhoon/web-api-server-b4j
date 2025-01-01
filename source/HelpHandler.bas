@@ -63,7 +63,6 @@ Private Sub ShowHelpPage
 	#End Region
 	strMain = WebApiUtils.BuildTag(strMain, "HELP", "") ' Hide API icon
 	strMain = WebApiUtils.BuildHtml(strMain, Main.ctx)
-	'strMain = WebApiUtils.BuildScript(strMain, $"<script src="${Main.Config.ServerUrl}/assets/scripts/help${IIf(Main.Config.SimpleResponse.Enable, ".simple", "")}.js"></script>"$)
 	strMain = WebApiUtils.BuildScript(strMain, $"<script src="${Main.Config.ServerUrl}/assets/scripts/help.js"></script>"$)
 	WebApiUtils.ReturnHtml(strMain, Response)
 End Sub

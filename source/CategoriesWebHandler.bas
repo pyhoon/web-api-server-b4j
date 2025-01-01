@@ -35,23 +35,12 @@ Sub Handle (req As ServletRequest, resp As ServletResponse)
 End Sub
 
 Private Sub ReturnPage
-	'Dim strJSFile As String
 	Dim strScripts As String
 	Dim strMain As String = WebApiUtils.ReadTextFile("main.html")
 	Dim strView As String = WebApiUtils.ReadTextFile("category.html")
 	strMain = WebApiUtils.BuildDocView(strMain, strView)
 	strMain = WebApiUtils.BuildTag(strMain, "HELP", ReturnHelpElement)
 	strMain = WebApiUtils.BuildHtml(strMain, Main.ctx)
-	'If Main.Config.SimpleResponse.Enable Then
-	'	If Main.Config.SimpleResponse.Format = "Map" Then
-	'		strJSFile = "category.simple.map.js"
-	'	Else
-	'		strJSFile = "category.simple.js"
-	'	End If
-	'Else
-	'	strJSFile = "category.js"
-	'End If
-	'strScripts = $"<script src="${Main.Config.ServerUrl}/assets/scripts/${strJSFile}"></script>"$
 	strScripts = $"<script src="${Main.Config.ServerUrl}/assets/scripts/category.js"></script>"$
 	strMain = WebApiUtils.BuildScript(strMain, strScripts)
 	WebApiUtils.ReturnHTML(strMain, Response)
