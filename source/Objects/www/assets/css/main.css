@@ -84,6 +84,14 @@ button:focus {
     background-color: darkorange !important;
 }
 
+.pill-yellow {
+    background-color: #fde047;
+}
+
+.pill-yellow-text {
+    color: #854d0e;
+}
+
 .submit-button- {
     background-color: #ccc;
 }

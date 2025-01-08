@@ -29,7 +29,7 @@ Version=10
 @EndOfDesignText@
 #Region Project Attributes
 ' Product: 			Web API Server
-' Version: 			3.20 beta 3
+' Version: 			3.20 beta 4
 ' Description: 		Server application project template
 ' Developer:		Aeric Poon (https://www.b4x.com/android/forum/members/aeric.74499/)
 ' License:			MIT License
@@ -54,7 +54,7 @@ Sub Process_Globals
 	Public srvr 				As Server
 	Public DBConnector			As DatabaseConnector
 	Public Config 				As ServerConfigurations
-	Public Const VERSION_NAME	As String = "3.20 beta 3"
+	Public Const VERSION_NAME	As String = "3.20 beta 4"
 	Private const COLOR_RED 	As Int = -65536
 	Private const COLOR_BLUE 	As Int = -16776961
 	Type ServerConfigurations (EnableCORS As Boolean, EnableHelp As Boolean, EnableSSL As Boolean, Port As Int, SSLPort As Int, RootUrl As String, RootPath As String, ServerUrl As String, ApiName As String, ApiVersioning As Boolean, SslKeystoreDir As String, SslKeystoreFile As String, SslKeystorePassword As String, StaticFilesBrowsable As Boolean, StaticFilesFolder As String, SimpleResponse As SimpleResponse, Version As String)

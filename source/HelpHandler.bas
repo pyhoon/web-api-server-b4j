@@ -71,7 +71,7 @@ Private Sub ShowHelpPage
 	WebApiUtils.ReturnHtml(strMain, Response)
 End Sub
 
-Public Sub GenerateHtml As String
+Private Sub GenerateHtml As String
 	For Each method As Map In AllMethods ' Avoid duplicate groups
 		AllGroups.Put(method.Get("Group"), "unused")
 	Next
@@ -79,7 +79,7 @@ Public Sub GenerateHtml As String
 	Dim Html As StringBuilder
 	Html.Initialize
 	For Each GroupName As String In AllGroups.Keys
-		'If GroupName = "Categories" Then Continue ' Hide Categories group header for screenshot
+		'If GroupName = "Products" Then Continue ' Hide Categories group header for screenshot
 		Html.Append(GenerateHeaderByGroup(GroupName))
 		For Each method As Map In AllMethods
 			'If method.Get("Group") = "Categories" Then Continue ' Hide Categories group methods
@@ -117,14 +117,30 @@ Private Sub ReplaceMethod (Method As Map)
 	End If
 End Sub
 
-Public Sub BuildMethods
-	Dim Method As Map = CreateMethodProperties("Categories", "GetCategories")
-	Method.Put("Desc", "Read all Categories (" & Method.Get("Method") & ")")
+Private Sub BuildMethods
+	Dim Method As Map = CreateMethodProperties("Categories", "DummyMethod ' #Get")
+	Method.Put("Desc", "Just a test (" & Method.Get("Method") & ")")
+	AllMethods.Add(Method)
+
+	Dim index As Int = FindMethod("GetCategories")
+	If index > -1 Then
+		Dim Method As Map = AllMethods.Get(index)
+	Else
+		Dim Method As Map = CreateMethodProperties("Categories", "GetCategories")
+	End If
+	'Method.Put("Desc", "Read all Categories (" & Method.Get("Method") & ")")
+	Method.Put("Desc", "Read all Categories")
 	ReplaceMethod(Method)
 	
-	Dim Method As Map = CreateMethodProperties("Categories", "GetCategoryById (Id As Int)")
-	Method.Put("Desc", "Read one Category by id (" & Method.Get("Method") & ")")
-	Method.Put("Elements", $"[":id"]"$)
+	Dim index As Int = FindMethod("GetCategoryById")
+	If index > -1 Then
+		Dim Method As Map = AllMethods.Get(index)
+	Else
+		Dim Method As Map = CreateMethodProperties("Categories", "GetCategoryById (Id As Int)")
+	End If
+	'Method.Put("Desc", "Read one Category by id (" & Method.Get("Method") & ")")
+	Method.Put("Desc", "Read one Category by id")
+	'Method.Put("Elements", $"[":id"]"$)
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = CreateMethodProperties("Products", "GetProductById (Id As Int)")
@@ -141,8 +157,9 @@ Public Sub BuildMethods
 		'Method.Put("Verb", "POST")
 		' option 2
 		Dim Method As Map = CreateMethodProperties("Categories", "CreateNewCategory '#post")
-	End If	
-	Method.Put("Desc", "Add a new Category (" & Method.Get("Method") & ")")
+	End If
+	'Method.Put("Desc", "Add a new Category (" & Method.Get("Method") & ")")
+	Method.Put("Desc", "Add a new Category")
 	' We can use String Literals to create the JSON
 	' whitespace x4 -> &nbsp;&nbsp;
 	' CRLF 			-> <br>
@@ -181,7 +198,7 @@ Public Sub BuildMethods
 	ReplaceMethod(Method)
 End Sub
 
-Public Sub ReadHandlers
+Private Sub ReadHandlers 'ignore
 	Dim verbs() As String = Array As String("GET", "POST", "PUT", "DELETE")
 	For Each Handler As String In Handlers
 		Dim Methods As List
@@ -372,7 +389,7 @@ Private Sub GenerateNoApiLink (Handler As String, Elements As List) As String
 	Return Link
 End Sub
 
-Public Sub GenerateVerbSection (section As VerbSection) As String
+Private Sub GenerateVerbSection (section As VerbSection) As String
 	Select section.FileUpload
 		Case "Image", "PDF"
 			Dim strBodyInput As String = $"File: <label for="file1${section.ElementId}">Choose a file:</label><input type="file" id="file1${section.ElementId}" class="pb-3" name="file1">"$
@@ -381,15 +398,18 @@ Public Sub GenerateVerbSection (section As VerbSection) As String
 			Dim strBodyInput As String = $"Body: <textarea id="body${section.ElementId}" rows="6" class="form-control data-body" style="background-color: #FFFFFF; font-size: small"></textarea></p>"$
 	End Select
 	Return $"
-        <button style="color: #363636" class="collapsible collapsible-background-${section.Color}"><span style="width: 60px" class="badge badge-${section.Color} text-white py-1">${section.Verb}</span> ${section.Link}</button>
+        <button style="color: #363636" class="collapsible collapsible-background-${section.Color}"><span style="width: 60px" class="badge badge-${section.Color} text-white py-1 mr-1">${section.Verb}</span>
+		${IIf(section.Authenticate.EqualsIgnoreCase("Basic") Or section.Authenticate.EqualsIgnoreCase("Token"), _
+			$"<span style="width: 50px" class="badge rounded-pill pill-yellow pill-yellow-text px-2 py-1">${WebApiUtils.ProperCase(section.Authenticate)}</span>"$, "")} ${section.Description}
+		</button>
         <div class="details">
-            <div class="row">
+            <!--<div class="row">
                 <div class="col-md-6 pt-3">
                     ${IIf(section.Authenticate.EqualsIgnoreCase("Basic") Or section.Authenticate.EqualsIgnoreCase("Token"), _
                     $"<span class="badge rounded-pill bg-info text-white px-2 py-1">${WebApiUtils.ProperCase(section.Authenticate)} Authentication</span><br>"$, "")}
                     ${section.Description}
                 </div>
-            </div>
+            </div>-->
             <div class="row">
                 <div class="col-md-3 p-3">
                     <p><strong>Parameters</strong><br/>
@@ -415,7 +435,7 @@ Public Sub GenerateVerbSection (section As VerbSection) As String
         </div>"$
 End Sub
 
-Public Sub GenerateHeaderByGroup (Group As String) As String
+Private Sub GenerateHeaderByGroup (Group As String) As String
 	Return $"
 		<div class="row mt-3">
             <div class="col-md-12">
@@ -457,6 +477,7 @@ Private Sub GenerateDocItem (Props As Map) As String
 End Sub
 
 Private Sub GetColorForVerb (verb As String) As String
+	' https://tailwindcss.com/docs/customizing-colors
 	Select verb
 		Case "GET"
 			Return "green"

@@ -92,6 +92,7 @@ End Sub
 
 Private Sub GetCategories
 	' #Desc = Read all Categories
+	' #Authenticate = Basic
 	DB.Table = "tbl_categories"
 	DB.Query
 	HRM.ResponseCode = 200
@@ -101,6 +102,7 @@ Private Sub GetCategories
 End Sub
 
 Private Sub GetCategoryById (Id As Int)
+	' #Authenticate = Token
 	' #Desc = Read one Category by id
 	' #Elements = [":id"]
 	DB.Table = "tbl_categories"
@@ -119,6 +121,7 @@ End Sub
 ' Test support for method name which is not starting with verb
 'Private Sub PostCategory
 Private Sub CreateNewCategory ' #post ' this hashtag will tell HelpHandler that this is a POST endpoint
+	' #Authenticate = Token
 	Dim data As Map = WebApiUtils.RequestData(Request)
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
@@ -172,6 +175,7 @@ Private Sub PutCategoryById (Id As Int)
 	' #Desc = Update Category by id
 	' #Body = {<br>&nbsp; "name": "category_name"<br>}
 	' #Elements = [":id"]
+	' #Authenticate = Token
 	Dim data As Map = WebApiUtils.RequestData(Request)
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
@@ -234,6 +238,7 @@ End Sub
 Private Sub DeleteCategoryById (Id As Int)
 	' #Desc = Delete Category by id
 	' #Elements = [":id"]
+	' #Authenticate = Basic
 	DB.Table = "tbl_categories"
 	DB.Find(Id)
 	If DB.Found = False Then
