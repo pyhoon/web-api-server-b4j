@@ -79,7 +79,7 @@ Private Sub GenerateHtml As String
 	Dim Html As StringBuilder
 	Html.Initialize
 	For Each GroupName As String In AllGroups.Keys
-		'If GroupName = "Products" Then Continue ' Hide Categories group header for screenshot
+		'If GroupName = "Categories" Then Continue ' Hide Categories group header for screenshot
 		Html.Append(GenerateHeaderByGroup(GroupName))
 		For Each method As Map In AllMethods
 			'If method.Get("Group") = "Categories" Then Continue ' Hide Categories group methods

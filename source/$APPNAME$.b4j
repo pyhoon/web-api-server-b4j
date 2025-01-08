@@ -216,13 +216,20 @@ End Sub
 
 ' Generate JS files from code to save some file size
 Private Sub CreateJSFiles
-	#If DEBUG
-	File.MakeDir(File.Combine(Config.StaticFilesFolder, "assets"), "scripts")
+	Dim gen As Boolean = True
 	Dim DirName As String = File.Combine(File.Combine(Config.StaticFilesFolder, "assets"), "scripts")
-	Utility.GenerateJSFileForCategory(DirName, "category.js", Config.SimpleResponse)
-	Utility.GenerateJSFileForSearch(DirName, "search.js", Config.SimpleResponse)
-	Utility.GenerateJSFileForHelp(DirName, "help.js", Config.SimpleResponse)
-	#End If
+	If File.Exists(DirName, "") = False Then
+		File.MakeDir(File.Combine(Config.StaticFilesFolder, "assets"), "scripts")
+	Else
+		#If Release
+		gen = False ' skip overwriting files in release
+		#End If
+	End If
+	If gen Then
+		Utility.GenerateJSFileForCategory(DirName, "category.js", Config.SimpleResponse)
+		Utility.GenerateJSFileForSearch(DirName, "search.js", Config.SimpleResponse)
+		Utility.GenerateJSFileForHelp(DirName, "help.js", Config.SimpleResponse)
+	End If
 End Sub
 
 ' Configure Cross Origin in JavaScript call
