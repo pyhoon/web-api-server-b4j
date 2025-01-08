@@ -12,95 +12,13 @@
     <link rel="stylesheet" href="$SERVER_URL$/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="$SERVER_URL$/assets/css/fontawesome.min.css">
     <link rel="stylesheet" href="$SERVER_URL$/assets/css/solid.min.css">
-    <style type="text/css">
-        body {
-            font-family: Arial, Helvetica, Tahoma, Times New Roman;
-            margin-top: 60px;
-        }
-
-        button {
-            border-radius: 3px;
-        }
-
-        button:focus {
-            outline: 0px;
-        }
-
-        .custom-toggler .navbar-toggler-icon {
-            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(0,123,255, 0.9)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
-        }
-
-        .collapsible {
-            background-color: #dedede;
-            color: black;
-            cursor: pointer;
-            padding: 8px;
-            width: 100%;
-            border: none;
-            text-align: left;
-            font-size: 15px;
-            margin-bottom: 3px;
-        }
-
-        .active,
-        .collapsible:hover {
-            background-color: #cdcdcd;
-        }
-
-        .collapsible:after {
-        content: '\002B';
-        color: black;
-        font-weight: bold;
-        float: right;
-        margin-left: 5px;
-        border: none;
-        }
-
-        .active:after {
-            content: "\2212";
-        }
-
-        .details {
-            font-size: 0.8em;
-            padding: 0 18px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.2s ease-out;
-            background-color: #f1f1f1;
-        }
-
-        .bottom {
-            position: relative;
-            width: 100%;
-            margin-top: 30px;
-            margin-bottom: 60px;
-        }
-
-        .footer {
-            position: fixed;
-            padding: 10px 10px 0px 10px;
-            bottom: 0;
-            width: 100%;
-            height: 60px;
-        }
-
-        @media screen and (max-width: 768px) {
-            .footer {
-                height: 60px;
-            }
-        }
-
-        .error {
-            font-size: 0.8em;
-            color: red;
-        }
-    </style>
+    <link rel="stylesheet" href="$SERVER_URL$/assets/css/main.css">
 </head>
 
-<body class="bg-light">
-  <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark pt-1 pb-1">
-    <a class="text-primary mr-3" href="#"><i class="fas fa-cloud ml-3"></i></a>
-    <a class="navbar-brand font-weight-bold text-primary" href="$SERVER_URL$">$APP_TRADEMARK$</a>
+<body class="bg-white">
+  <nav class="navbar navbar-expand-lg fixed-top navbar-dark darkorange pt-1 pb-1">
+    <a class="text-white mr-3" href="#"><i class="fas fa-cloud ml-3"></i></a>
+    <a class="navbar-brand font-weight-bold text-white" href="$SERVER_URL$">$APP_TRADEMARK$</a>
     <button class="navbar-toggler custom-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
       style="border: none">
       <span class="navbar-toggler-icon"></span>
@@ -134,8 +52,8 @@
   </div>
   <div class="bottom">
   </div>
-  <footer class="footer footer-dark bg-dark pl-4 pt-2 pb-2">
-    <div class="footer small text-white text-center d-md-block">
+  <footer class="footer footer-dark bg-light pl-4 pt-2 pb-2">
+    <div class="footer small text-dark text-center d-md-block">
       <caption>$APP_COPYRIGHT$<br />
         Powered by Web API Server | Developed with <span style="color: red">❤</span> in B4X</caption>
     </div>
@@ -143,39 +61,8 @@
   <script src="$SERVER_URL$/assets/js/jquery.min.js"></script>
   <script src="$SERVER_URL$/assets/js/jquery.validate.min.js"></script>
   <script src="$SERVER_URL$/assets/js/bootstrap.bundle.min.js"></script>
+  <script src="$SERVER_URL$/assets/js/main.js"></script>
   @SCRIPT@
-  <script>
-    var coll = document.getElementsByClassName("collapsible");
-    var i;
-
-    for (i = 0; i < coll.length; i++) {
-      coll[i].addEventListener("click", function () {
-        this.classList.toggle("active");
-        var details = this.nextElementSibling;
-        if (details.style.maxHeight) {
-          details.style.maxHeight = null;
-        } else {
-          details.style.maxHeight = details.scrollHeight + "px";
-        }
-      });
-    }
-  </script>
-  <script type="text/javascript">
-    var csrf_token = $('meta[name="csrf-token"]').attr('content');
-
-    function csrfSafeMethod(method) {
-      // these HTTP methods do not require CSRF protection
-      return (/^(GET|HEAD|OPTIONS)$/.test(method));
-    }
-
-    $.ajaxSetup({
-      beforeSend: function (xhr, settings) {
-        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-          xhr.setRequestHeader("x-csrf-token", csrf_token);
-        }
-      }
-    });
-  </script>
 </body>
 
 </html>

@@ -35,7 +35,6 @@ Sub Handle (req As ServletRequest, resp As ServletResponse)
 			End If
 		Case "POST"
 			If ElementMatch("") Then
-				'PostSearchByKeywords
 				SearchByKeywords
 				Return
 			End If

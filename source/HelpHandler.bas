@@ -11,11 +11,13 @@ Sub Class_Globals
 	Private Response As ServletResponse
 	Private Handlers As List
 	Private AllMethods As List
+	Private AllGroups As Map
 	Type VerbSection (Verb As String, Color As String, ElementId As String, Link As String, FileUpload As String, Authenticate As String, Description As String, Params As String, Body As String, Expected As String, InputDisabled As Boolean, DisabledBackground As String, Raw As Boolean, Noapi As Boolean)
 End Sub
 
 Public Sub Initialize
 	AllMethods.Initialize
+	AllGroups.Initialize
 	Handlers.Initialize
 	Handlers.Add("CategoriesApiHandler")
 	Handlers.Add("ProductsApiHandler")
@@ -29,29 +31,30 @@ Sub Handle (req As ServletRequest, resp As ServletResponse)
 End Sub
 
 Private Sub ShowHelpPage
-	Dim Contents As String
-	Dim strMain As String = WebApiUtils.ReadTextFile("main.html")
 	#If Debug
-	' Generate API Documentation from API Handler Classes
-	Log(TAB)
-	Log("Generating Help page ...")
-	ReadHandlers
-	'BuildMethods
-	Log($"Help page has been generated."$)
-	'If File.Exists(File.DirApp, "help.html") = False Then
+	ReadHandlers ' Read from source
+	#End If
+	
+	BuildMethods ' Build programatically
+	
+	Dim Contents As String = GenerateHtml
+	
+	#If Debug
+	''If File.Exists(File.DirApp, "help.html") = False Then
 	'WebApiUtils.WriteTextFile("help.html", Contents)
-	'End If
-	'Contents = GenerateHtml
-	#Else
+	''End If
+	#End If
+	
+	#If Release
 	' Read from file
 	'If File.Exists(File.DirApp, "help.html") Then
 	'	Contents = File.ReadString(File.DirApp, "help.html")
 	'End If
-	' Build programatically
-	BuildMethods
 	#End If
-	Contents = GenerateHtml
+	
+	Dim strMain As String = WebApiUtils.ReadTextFile("main.html")
 	strMain = WebApiUtils.BuildDocView(strMain, Contents)
+	
 	#Region CSRF TOKEN
 	' Store csrf_token inside server session variables
 	'Dim HSR As Hasher
@@ -61,6 +64,7 @@ Private Sub ShowHelpPage
 	' Append csrf_token into page header. Comment this line to check
 	'strMain = WebApiUtils.BuildCsrfToken(strMain, csrf_token)
 	#End Region
+	
 	strMain = WebApiUtils.BuildTag(strMain, "HELP", "") ' Hide API icon
 	strMain = WebApiUtils.BuildHtml(strMain, Main.ctx)
 	strMain = WebApiUtils.BuildScript(strMain, $"<script src="${Main.Config.ServerUrl}/assets/scripts/help.js"></script>"$)
@@ -68,34 +72,42 @@ Private Sub ShowHelpPage
 End Sub
 
 Public Sub GenerateHtml As String
+	For Each method As Map In AllMethods ' Avoid duplicate groups
+		AllGroups.Put(method.Get("Group"), "unused")
+	Next
+	
 	Dim Html As StringBuilder
 	Html.Initialize
-	Dim GroupName As String
-	For Each method As Map In AllMethods
-		If GroupName <> method.Get("Group") Then
-			GroupName = method.Get("Group")
-			Html.Append(GenerateHeaderByGroup(GroupName))
-		End If
-		If method.ContainsKey("Hide") Then Continue ' Skip Hidden sub
-		'If method.Get("Group") <> GroupName Then Continue
-		Html.Append(GenerateDocItem(method))
+	For Each GroupName As String In AllGroups.Keys
+		'If GroupName = "Categories" Then Continue ' Hide Categories group header for screenshot
+		Html.Append(GenerateHeaderByGroup(GroupName))
+		For Each method As Map In AllMethods
+			'If method.Get("Group") = "Categories" Then Continue ' Hide Categories group methods
+			If method.Get("Group") = GroupName Then
+				If method.ContainsKey("Hide") = False Then ' Skip Hidden sub
+					Html.Append(GenerateDocItem(method))				
+				End If
+			End If			
+		Next
 	Next
 	Return Html.ToString
 End Sub
 
 Private Sub FindMethod (MethodName As String) As Int
 	For i = 0 To AllMethods.Size - 1
-		'Log(AllMethods.Get(i).As(Map).Get("Method"))
-		If AllMethods.Get(i).As(Map).Get("Method") = MethodName Then
+		Dim Method As Map = AllMethods.Get(i)
+		If Method.Get("Method") = MethodName Then
+			'Log(Method.Get("Method"))
 			Return i
 		End If
 	Next
 	Return -1
 End Sub
 
+' Replacement will failed if the Method name cannot be found
 Private Sub ReplaceMethod (Method As Map)
 	' Use this function if you are calling BuildMethods after calling ReadHandlers in Debug
-	' to overide documentation generated from handlers
+	' to override documentation generated from handlers
 	Dim index As Int = FindMethod(Method.Get("Method"))
 	If index > -1 Then
 		AllMethods.RemoveAt(index)
@@ -108,58 +120,65 @@ End Sub
 Public Sub BuildMethods
 	Dim Method As Map = CreateMethodProperties("Categories", "GetCategories")
 	Method.Put("Desc", "Read all Categories (" & Method.Get("Method") & ")")
-	'AllMethods.Add(Method)
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = CreateMethodProperties("Categories", "GetCategoryById (Id As Int)")
 	Method.Put("Desc", "Read one Category by id (" & Method.Get("Method") & ")")
 	Method.Put("Elements", $"[":id"]"$)
-	'AllMethods.Add(Method)
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = CreateMethodProperties("Products", "GetProductById (Id As Int)")
 	Method.Put("Desc", "Read one Product by id (" & Method.Get("Method") & ")")
 	Method.Put("Elements", $"[":id"]"$)
-	'AllMethods.Add(Method)
+	ReplaceMethod(Method)
+
+	Dim index As Int = FindMethod("CreateNewCategory")
+	If index > -1 Then
+		Dim Method As Map = AllMethods.Get(index)
+	Else ' Force create an endpoint documentation manually even though the method cannot be found
+		' option 1
+		'Dim Method As Map = CreateMethodProperties("Categories", "CreateNewCategory")
+		'Method.Put("Verb", "POST")
+		' option 2
+		Dim Method As Map = CreateMethodProperties("Categories", "CreateNewCategory '#post")
+	End If	
+	Method.Put("Desc", "Add a new Category (" & Method.Get("Method") & ")")
+	' We can use String Literals to create the JSON
+	' whitespace x4 -> &nbsp;&nbsp;
+	' CRLF 			-> <br>
+	Dim BodyJSON As String = $"{
+    "name": "category_name"
+}"$
+	Method.Put("Body", BodyJSON)
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = CreateMethodProperties("Products", "PostProduct")
 	Method.Put("Desc", "Add a new Product (" & Method.Get("Method") & ")")
+	' We can also use Map to convert to JSON
 	'Method.Put("Body", $"{<br>&nbsp; "cat_id": category_id,<br>&nbsp; "code": "product_code",<br>&nbsp; "name": "product_name",<br>&nbsp; "price": 0<br>}"$)
-	' whitespace x2 -> &nbsp;
-	' CRLF 			-> <br>
-	Method.Put("Body", $"{
-    "cat_id": category_id,
-    "code": "product_code",
-    "name": "product_name",
-    "price": 0
-}"$)
-	'AllMethods.Add(Method)
+	Dim BodyMap As Map = CreateMap("cat_id": "category_id", "code": "product_code", "name": "product_name", "price": 0)
+	Method.Put("Body", BodyMap.As(JSON).ToString)
 	ReplaceMethod(Method)
 	
-'	Dim index As Int = FindMethod("SearchByKeywords")
-'	If index > -1 Then
-'		Dim Method As Map = AllMethods.Get(index)
-'		'Method.Put("Verb", "POST")
-'	Else
-'		Dim Method As Map = CreateMethodProperties("Find", "SearchByKeywords")
-'		Method.Put("Verb", "POST")
-'	End If
-'	' Overide if existed
-'	Method.Put("Body", $"{
-'	    "keywords": "search words"
-'	}"$)
-'	Method.Put("Desc", "Read all Products joined by Category and filter by keywords (" & Method.Get("Method") & ")")
-'	Dim strExpected As String = $"200 Success
-'	<br/>400 Bad request
-'	<br/>404 Not found
-'	<br/>422 Error execute query"$
-'	Method.Put("Expected", strExpected)
-'	If index > -1 Then
-'		ReplaceMethod(Method)
-'	Else
-'		AllMethods.Add(Method)
-'	End If
+	Dim index As Int = FindMethod("SearchByKeywords")
+	If index > -1 Then
+		Dim Method As Map = AllMethods.Get(index)
+	Else
+		Dim Method As Map = CreateMethodProperties("Find", "SearchByKeywords")
+		Method.Put("Verb", "POST")
+	End If
+	' Override values if existed
+	Dim BodyMap As Map = CreateMap("keywords": "search words")
+	Method.Put("Body", BodyMap.As(JSON).ToString)
+	Method.Put("Desc", "Read all Products joined by Category and filter by keywords (" & Method.Get("Method") & ")")
+	Dim Expected As StringBuilder
+	Expected.Initialize
+	Expected.Append("200 Success")
+	Expected.Append("<br/>400 Bad Request")
+	Expected.Append("<br/>404 Not found")
+	Expected.Append("<br/>422 Error execute query")
+	Method.Put("Expected", Expected.ToString)
+	ReplaceMethod(Method)
 End Sub
 
 Public Sub ReadHandlers
@@ -262,6 +281,7 @@ Private Sub CreateMethodProperties (groupName As String, methodLine As String) A
 	methodProps.Initialize
 	methodProps.Put("Group", groupName)
 	methodProps.Put("Method", ExtractMethod(methodLine))
+	methodProps.Put("Desc", methodProps.Get("Method"))
 	methodProps.Put("Verb", ExtractVerb(methodLine))
 	methodProps.Put("Params", ExtractParams(methodLine))
 	methodProps.Put("Body", "&nbsp;")
@@ -283,17 +303,28 @@ End Sub
 
 Private Sub ExtractVerb (methodLine As String) As String
 	' Determine the HTTP verb based on the method name
-	If methodLine.ToUpperCase.StartsWith("GET") Or methodLine.ToUpperCase.Contains("#GET") Then
-		Return "GET"
-	Else If methodLine.ToUpperCase.StartsWith("POST") Or methodLine.ToUpperCase.Contains("#POST") Then
-		Return "POST"
-	Else If methodLine.ToUpperCase.StartsWith("PUT") Or methodLine.ToUpperCase.Contains("#PUT") Then
-		Return "PUT"
-	Else If methodLine.ToUpperCase.StartsWith("DELETE") Or methodLine.ToUpperCase.Contains("#DELETE") Then
-		Return "DELETE"
-	Else
-		Return ""
+	Dim MethodVerb As String
+	If methodLine.ToUpperCase.StartsWith("GET") Then
+		MethodVerb = "GET"
+	Else If methodLine.ToUpperCase.StartsWith("POST") Then
+		MethodVerb = "POST"
+	Else If methodLine.ToUpperCase.StartsWith("PUT") Then
+		MethodVerb = "PUT"
+	Else If methodLine.ToUpperCase.StartsWith("DELETE") Then
+		MethodVerb = "DELETE"
 	End If
+	' Override if #hashtag comment exists
+	Select True
+		Case methodLine.ToUpperCase.Contains("#GET")
+			MethodVerb = "GET"
+		Case methodLine.ToUpperCase.Contains("#POST")
+			MethodVerb = "POST"
+		Case methodLine.ToUpperCase.Contains("#PUT")
+			MethodVerb = "PUT"
+		Case methodLine.ToUpperCase.Contains("#DELETE")
+			MethodVerb = "DELETE"
+	End Select
+	Return MethodVerb
 End Sub
 
 Private Sub ExtractParams (methodLine As String) As String
@@ -342,7 +373,6 @@ Private Sub GenerateNoApiLink (Handler As String, Elements As List) As String
 End Sub
 
 Public Sub GenerateVerbSection (section As VerbSection) As String
-	Dim BgColor As String = GetBackgroundColor(section.Color)
 	Select section.FileUpload
 		Case "Image", "PDF"
 			Dim strBodyInput As String = $"File: <label for="file1${section.ElementId}">Choose a file:</label><input type="file" id="file1${section.ElementId}" class="pb-3" name="file1">"$
@@ -351,7 +381,7 @@ Public Sub GenerateVerbSection (section As VerbSection) As String
 			Dim strBodyInput As String = $"Body: <textarea id="body${section.ElementId}" rows="6" class="form-control data-body" style="background-color: #FFFFFF; font-size: small"></textarea></p>"$
 	End Select
 	Return $"
-        <button class="collapsible" style="background-color: ${BgColor}"><span class="badge badge-${section.Color} p-1">${section.Verb}</span> ${section.Link}</button>
+        <button style="color: #363636" class="collapsible collapsible-background-${section.Color}"><span style="width: 60px" class="badge badge-${section.Color} text-white py-1">${section.Verb}</span> ${section.Link}</button>
         <div class="details">
             <div class="row">
                 <div class="col-md-6 pt-3">
@@ -373,7 +403,7 @@ Public Sub GenerateVerbSection (section As VerbSection) As String
 					<p><strong>Path</strong><br/>
 	                <input${IIf(section.InputDisabled, " disabled", "")} id="path${section.ElementId}" class="form-control data-path" style="background-color: ${section.DisabledBackground}; font-size: small" value="${section.Link & IIf(section.Raw, "?format=json", "")}"></p>
 					${IIf(section.Verb.EqualsIgnoreCase("POST") Or section.Verb.EqualsIgnoreCase("PUT"), strBodyInput, $""$)}
-					<button id="btn${section.ElementId}" class="${IIf(section.FileUpload.EqualsIgnoreCase("Image") Or section.FileUpload.EqualsIgnoreCase("PDF"), $"file"$, $"${section.Verb.ToLowerCase}"$)}${IIf(section.Authenticate.ToUpperCase = "BASIC" Or section.Authenticate.ToUpperCase = "TOKEN", " " & section.Authenticate.ToLowerCase, "")} button btn-${section.Color} col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
+					<button id="btn${section.ElementId}" class="${IIf(section.FileUpload.EqualsIgnoreCase("Image") Or section.FileUpload.EqualsIgnoreCase("PDF"), $"file"$, $"${section.Verb.ToLowerCase}"$)}${IIf(section.Authenticate.ToUpperCase = "BASIC" Or section.Authenticate.ToUpperCase = "TOKEN", " " & section.Authenticate.ToLowerCase, "")} button submit-button-${section.Color} text-white col-md-6 col-lg-4 p-2 float-right" style="cursor: pointer; padding-bottom: 60px"><strong>Submit</strong></button>
 	            	</form>
 				</div>
                 <div class="col-md-6 p-3">
@@ -429,44 +459,30 @@ End Sub
 Private Sub GetColorForVerb (verb As String) As String
 	Select verb
 		Case "GET"
-			Return "success"
+			Return "green"
 		Case "POST"
-			Return "warning"
+			Return "purple"
 		Case "PUT"
-			Return "primary"
+			Return "blue"
 		Case "DELETE"
-			Return "danger"
-		Case Else
-			Return ""
-	End Select
-End Sub
-
-Private Sub GetBackgroundColor (color As String) As String
-	Select color.ToLowerCase
-		Case "success"
-			Return "#d4edda"
-		Case "warning"
-			Return "#fff3cd"
-		Case "primary"
-			Return "#cce5ff"
-		Case "danger"
-			Return "#f8d7da"
+			Return "red"
 		Case Else
 			Return ""
 	End Select
 End Sub
 
 Private Sub GetExpectedResponse (verb As String) As String
+	Dim Expected As StringBuilder
+	Expected.Initialize
 	Select verb
 		Case "POST"
-			Dim strExpected As String = "201 Created"
+			Expected.Append("201 Created")
 		Case Else
-			Dim strExpected As String = "200 Success"
+			Expected.Append("200 Success")
 	End Select
-	' Add other expected response
-	strExpected = strExpected & "<br/>400 Bad request"
-	strExpected = strExpected & "<br/>404 Not found"
-	strExpected = strExpected & "<br/>405 Method not allowed"
-	strExpected = strExpected & "<br/>422 Error execute query"
-	Return strExpected
+	Expected.Append("<br/>400 Bad Request")
+	Expected.Append("<br/>404 Not found")
+	Expected.Append("<br/>405 Method not allowed")
+	Expected.Append("<br/>422 Error execute query")
+	Return Expected.ToString
 End Sub

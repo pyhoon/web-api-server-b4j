@@ -40,7 +40,7 @@ Sub Handle (req As ServletRequest, resp As ServletResponse)
 			End If
 		Case "POST"
 			If ElementMatch("") Then
-				PostCategory
+				CreateNewCategory
 				Return
 			End If
 		Case "PUT"
@@ -116,9 +116,9 @@ Private Sub GetCategoryById (Id As Int)
 	DB.Close
 End Sub
 
-Private Sub PostCategory
-	' #Desc = Add a new Category
-	' #Body = {<br>&nbsp; "name": "category_name"<br>}
+' Test support for method name which is not starting with verb
+'Private Sub PostCategory
+Private Sub CreateNewCategory ' #post ' this hashtag will tell HelpHandler that this is a POST endpoint
 	Dim data As Map = WebApiUtils.RequestData(Request)
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
