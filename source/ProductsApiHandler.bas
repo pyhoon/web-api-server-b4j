@@ -91,7 +91,6 @@ Private Sub ReturnMethodNotAllow
 End Sub
 
 Private Sub GetProducts
-	' #Desc = Read all Products
 	DB.Table = "tbl_products"
 	DB.Query
 	HRM.ResponseCode = 200
@@ -100,11 +99,9 @@ Private Sub GetProducts
 	DB.Close
 End Sub
 
-Private Sub GetProductById (Id As Int)
-	' #Desc = Read one Product by id
-	' #Elements = [":id"]
+Private Sub GetProductById (id As Int)
 	DB.Table = "tbl_products"
-	DB.Find(Id)
+	DB.Find(id)
 	If DB.Found Then
 		HRM.ResponseCode = 200
 		HRM.ResponseObject = DB.First
@@ -117,8 +114,6 @@ Private Sub GetProductById (Id As Int)
 End Sub
 
 Private Sub PostProduct
-	' #Desc = Add a new Product
-	' #Body = {<br>&nbsp; "cat_id": category_id,<br>&nbsp; "code": "product_code",<br>&nbsp; "name": "product_name",<br>&nbsp; "price": 0<br>}
 	Dim data As Map = WebApiUtils.RequestData(Request)
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
@@ -191,10 +186,7 @@ Private Sub PostProduct
 	DB.Close
 End Sub
 
-Private Sub PutProductById (Id As Int)
-	' #Desc = Update Product by id
-	' #Body = {<br>&nbsp; "cat_id": category_id,<br>&nbsp; "code": "product_code",<br>&nbsp; "name": "product_name",<br>&nbsp; "price": 0<br>}
-	' #Elements = [":id"]
+Private Sub PutProductById (id As Int)
 	Dim data As Map = WebApiUtils.RequestData(Request)
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
@@ -224,7 +216,7 @@ Private Sub PutProductById (Id As Int)
 	' Check conflict product code
 	DB.Table = "tbl_products"
 	DB.Where = Array("product_code = ?", "id <> ?")
-	DB.Parameters = Array As String(data.Get("product_code"), Id)
+	DB.Parameters = Array As String(data.Get("product_code"), id)
 	DB.Query
 	If DB.Found Then
 		HRM.ResponseCode = 409
@@ -234,7 +226,7 @@ Private Sub PutProductById (Id As Int)
 		Return
 	End If
 	
-	DB.Find(Id)
+	DB.Find(id)
 	If DB.Found = False Then
 		HRM.ResponseCode = 404
 		HRM.ResponseError = "Product not found"
@@ -254,7 +246,7 @@ Private Sub PutProductById (Id As Int)
 	data.Get("product_name"), _
 	data.GetDefault("product_price", 0), _
 	data.GetDefault("modified_date", WebApiUtils.CurrentDateTime))
-	DB.Id = Id
+	DB.Id = id
 	DB.Save
 
 	HRM.ResponseCode = 200
@@ -264,11 +256,9 @@ Private Sub PutProductById (Id As Int)
 	DB.Close
 End Sub
 
-Private Sub DeleteProductById (Id As Int)
-	' #Desc = Delete Product by id
-	' #Elements = [":id"]
+Private Sub DeleteProductById (id As Int)
 	DB.Table = "tbl_products"
-	DB.Find(Id)
+	DB.Find(id)
 	If DB.Found = False Then
 		HRM.ResponseCode = 404
 		HRM.ResponseError = "Product not found"
@@ -278,7 +268,7 @@ Private Sub DeleteProductById (Id As Int)
 	End If
 	
 	DB.Reset
-	DB.Id = Id
+	DB.Id = id
 	DB.Delete
 	HRM.ResponseCode = 200
 	HRM.ResponseMessage = "Product deleted successfully"

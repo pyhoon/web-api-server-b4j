@@ -32,11 +32,12 @@ End Sub
 
 Private Sub ShowHelpPage
 	#If Debug
-	ReadHandlers ' Read from source
-	#End If
-	
+	'ReadHandlers ' Read from source (optional) - comment hashtags are required
+	BuildMethods
+	#Else
 	BuildMethods ' Build programatically
-	
+	#End If
+
 	Dim Contents As String = GenerateHtml
 	
 	#If Debug
@@ -104,10 +105,19 @@ Private Sub FindMethod (MethodName As String) As Int
 	Return -1
 End Sub
 
-' Replacement will failed if the Method name cannot be found
+Private Sub RetrieveMethod (GroupName As String, MethodLine As String) As Map
+	Dim index As Int = FindMethod(ExtractMethod(MethodLine))
+	If index > -1 Then
+		Return AllMethods.Get(index)
+	Else
+		Return CreateMethodProperties(GroupName, MethodLine)
+	End If
+End Sub
+
+' Use this sub if you are calling BuildMethods after calling ReadHandlers in Debug to override method properties
+' Order in list is preserved
 Private Sub ReplaceMethod (Method As Map)
-	' Use this function if you are calling BuildMethods after calling ReadHandlers in Debug
-	' to override documentation generated from handlers
+	' Replacement will failed if the Method name cannot be found
 	Dim index As Int = FindMethod(Method.Get("Method"))
 	If index > -1 Then
 		AllMethods.RemoveAt(index)
@@ -117,77 +127,75 @@ Private Sub ReplaceMethod (Method As Map)
 	End If
 End Sub
 
-Private Sub BuildMethods
-	Dim Method As Map = CreateMethodProperties("Categories", "DummyMethod ' #Get")
-	Method.Put("Desc", "Just a test (" & Method.Get("Method") & ")")
-	AllMethods.Add(Method)
-
-	Dim index As Int = FindMethod("GetCategories")
+Private Sub RemoveMethodAndReAdd (Method As Map)
+	Dim index As Int = FindMethod(Method.Get("Method"))
 	If index > -1 Then
-		Dim Method As Map = AllMethods.Get(index)
-	Else
-		Dim Method As Map = CreateMethodProperties("Categories", "GetCategories")
+		AllMethods.RemoveAt(index)
 	End If
-	'Method.Put("Desc", "Read all Categories (" & Method.Get("Method") & ")")
+	AllMethods.Add(Method) ' Add at the end of list
+End Sub
+
+Private Sub BuildMethods
+	Dim Method As Map = RetrieveMethod("Categories", "GetCategories")
 	Method.Put("Desc", "Read all Categories")
 	ReplaceMethod(Method)
 	
-	Dim index As Int = FindMethod("GetCategoryById")
-	If index > -1 Then
-		Dim Method As Map = AllMethods.Get(index)
-	Else
-		Dim Method As Map = CreateMethodProperties("Categories", "GetCategoryById (Id As Int)")
-	End If
-	'Method.Put("Desc", "Read one Category by id (" & Method.Get("Method") & ")")
+	Dim Method As Map = RetrieveMethod("Categories", "GetCategoryById (id As Int)")
 	Method.Put("Desc", "Read one Category by id")
-	'Method.Put("Elements", $"[":id"]"$)
+	Method.Put("Elements", $"["{id}"]"$)
 	ReplaceMethod(Method)
 	
-	Dim Method As Map = CreateMethodProperties("Products", "GetProductById (Id As Int)")
-	Method.Put("Desc", "Read one Product by id (" & Method.Get("Method") & ")")
-	Method.Put("Elements", $"[":id"]"$)
+	Dim Method As Map = RetrieveMethod("Categories", "CreateNewCategory '#POST")
+	Method.Put("Desc", "Add new Category")
+	Dim BodyMap As Map = CreateMap("name": "category_name")
+	Method.Put("Body", BodyMap.As(JSON).ToString)
 	ReplaceMethod(Method)
 
-	Dim index As Int = FindMethod("CreateNewCategory")
-	If index > -1 Then
-		Dim Method As Map = AllMethods.Get(index)
-	Else ' Force create an endpoint documentation manually even though the method cannot be found
-		' option 1
-		'Dim Method As Map = CreateMethodProperties("Categories", "CreateNewCategory")
-		'Method.Put("Verb", "POST")
-		' option 2
-		Dim Method As Map = CreateMethodProperties("Categories", "CreateNewCategory '#post")
-	End If
-	'Method.Put("Desc", "Add a new Category (" & Method.Get("Method") & ")")
-	Method.Put("Desc", "Add a new Category")
-	' We can use String Literals to create the JSON
-	' whitespace x4 -> &nbsp;&nbsp;
-	' CRLF 			-> <br>
-	Dim BodyJSON As String = $"{
-    "name": "category_name"
-}"$
-	Method.Put("Body", BodyJSON)
-	ReplaceMethod(Method)
-	
-	Dim Method As Map = CreateMethodProperties("Products", "PostProduct")
-	Method.Put("Desc", "Add a new Product (" & Method.Get("Method") & ")")
-	' We can also use Map to convert to JSON
-	'Method.Put("Body", $"{<br>&nbsp; "cat_id": category_id,<br>&nbsp; "code": "product_code",<br>&nbsp; "name": "product_name",<br>&nbsp; "price": 0<br>}"$)
-	Dim BodyMap As Map = CreateMap("cat_id": "category_id", "code": "product_code", "name": "product_name", "price": 0)
+	Dim Method As Map = RetrieveMethod("Categories", "UpdateCategoryById (id As Int) '#PUT")
+	Method.Put("Desc", "Update Category by id")
+	Method.Put("Elements", $"["{id}"]"$)
+	Dim BodyMap As Map = CreateMap("name": "category_name")
 	Method.Put("Body", BodyMap.As(JSON).ToString)
 	ReplaceMethod(Method)
 	
-	Dim index As Int = FindMethod("SearchByKeywords")
-	If index > -1 Then
-		Dim Method As Map = AllMethods.Get(index)
-	Else
-		Dim Method As Map = CreateMethodProperties("Find", "SearchByKeywords")
-		Method.Put("Verb", "POST")
-	End If
-	' Override values if existed
+	Dim Method As Map = RetrieveMethod("Categories", "DeleteCategoryById (id As Int)")
+	Method.Put("Desc", "Delete Category by id")
+	Method.Put("Elements", $"["{id}"]"$)
+	RemoveMethodAndReAdd(Method)
+	
+	Dim Method As Map = RetrieveMethod("Products", "GetProducts")
+	Method.Put("Desc", "Read all Products")
+	ReplaceMethod(Method)
+	
+	Dim Method As Map = RetrieveMethod("Products", "GetProductById (id As Int)")
+	Method.Put("Desc", "Read one Product by id")
+	Method.Put("Elements", $"["{id}"]"$)
+	ReplaceMethod(Method)
+
+	Dim Method As Map = CreateMethodProperties("Products", "PostProduct")
+	Method.Put("Desc", "Add new Product")
+	Method.Put("Body", $"{<br>&nbsp; "cat_id": category_id,<br>&nbsp; "code": "product_code",<br>&nbsp; "name": "product_name",<br>&nbsp; "price": 0<br>}"$)
+	ReplaceMethod(Method)
+	
+	Dim Method As Map = RetrieveMethod("Products", "PutProductById (id As Int)")
+	Method.Put("Desc", "Update Product by id")
+	Method.Put("Body", $"{<br>&nbsp; "cat_id": category_id,<br>&nbsp; "code": "product_code",<br>&nbsp; "name": "product_name",<br>&nbsp; "price": 0<br>}"$)
+	Method.Put("Elements", $"["{id}"]"$)
+	ReplaceMethod(Method)
+	
+	Dim Method As Map = RetrieveMethod("Products", "DeleteProductById (id As Int)")
+	Method.Put("Desc", "Delete Product by id")
+	Method.Put("Elements", $"["{id}"]"$)
+	ReplaceMethod(Method)
+	
+	Dim Method As Map = RetrieveMethod("Find", "GetAllProducts")
+	Method.Put("Desc", "Get all Products (with Category name)")
+	ReplaceMethod(Method)
+	
+	Dim Method As Map = RetrieveMethod("Find", "SearchByKeywords ' #post")
 	Dim BodyMap As Map = CreateMap("keywords": "search words")
 	Method.Put("Body", BodyMap.As(JSON).ToString)
-	Method.Put("Desc", "Read all Products joined by Category and filter by keywords (" & Method.Get("Method") & ")")
+	Method.Put("Desc", "Filter Products (with Category name)")
 	Dim Expected As StringBuilder
 	Expected.Initialize
 	Expected.Append("200 Success")

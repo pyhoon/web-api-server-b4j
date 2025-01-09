@@ -29,7 +29,7 @@ Version=10
 @EndOfDesignText@
 #Region Project Attributes
 ' Product: 			Web API Server
-' Version: 			3.20 beta 4
+' Version: 			3.20 beta 5
 ' Description: 		Server application project template
 ' Developer:		Aeric Poon (https://www.b4x.com/android/forum/members/aeric.74499/)
 ' License:			MIT License
@@ -41,22 +41,22 @@ Version=10
 ' Publish: 			ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&Args=-cMf&Args=Publish.zip&Args=www&Args=*.jar&Args=*.ini '&Args=*.db&Args=*.html (optional db and html)
 #CommandLineArgs:
 #MergeLibraries: True
-'#IgnoreWarnings: 32
-#End Region
 #If MySQL
 #AdditionalJar: mysql-connector-java-8.0.30
 #Else
 #AdditionalJar: sqlite-jdbc-3.39.3.0
 #End If
+#End Region
+
 Sub Process_Globals
 	Public ctx					As Map
-	Private cnn 				As Conn
 	Public srvr 				As Server
 	Public DBConnector			As DatabaseConnector
 	Public Config 				As ServerConfigurations
-	Public Const VERSION_NAME	As String = "3.20 beta 4"
-	Private const COLOR_RED 	As Int = -65536
-	Private const COLOR_BLUE 	As Int = -16776961
+	Private cnn 				As Conn
+	Private Const COLOR_RED 	As Int = -65536
+	Private Const COLOR_BLUE 	As Int = -16776961
+	Private Const VERSION_NAME	As String = "3.20 beta 5"
 	Type ServerConfigurations (EnableCORS As Boolean, EnableHelp As Boolean, EnableSSL As Boolean, Port As Int, SSLPort As Int, RootUrl As String, RootPath As String, ServerUrl As String, ApiName As String, ApiVersioning As Boolean, SslKeystoreDir As String, SslKeystoreFile As String, SslKeystorePassword As String, StaticFilesBrowsable As Boolean, StaticFilesFolder As String, SimpleResponse As SimpleResponse, Version As String)
 End Sub
 
@@ -65,11 +65,6 @@ Sub AppStart (Args() As String)
 	srvr.Initialize("")
 	InitServer
 	InitDatabase
-	ConfigurePort
-	ConfigureCORS
-	ConfigureStaticFiles
-	CreateJSFiles
-	CreateConnection
 	srvr.AddHandler("", "IndexWebHandler", False) 							' Home handler
 	srvr.AddHandler("/categories/*", "CategoriesWebHandler", False) 		' Web handler
 	srvr.AddHandler("/api/categories/*", "CategoriesApiHandler", False) 	' API handler
@@ -85,151 +80,17 @@ Sub AppStart (Args() As String)
 	StartMessageLoop
 End Sub
 
-Private Sub InitServer
-	If File.Exists(File.DirApp, "config.ini") = False Then
-		File.Copy(File.DirAssets, "config.example", File.DirApp, "config.ini")
-	End If
-	ctx = WebApiUtils.ReadMapFile(File.DirApp, "config.ini")
-	Config.Initialize
-	#If DEBUG
-	'Config.EnableSSL = True
-	Config.EnableHelp = True
-	#End If
-	#If Release
-	Config.EnableSSL = True
-	Config.EnableHelp = True
-	#End If
+' Additional Configuration
+Private Sub Configurable
 	Config.EnableCORS = True
-	Config.Port = ctx.GetDefault("ServerPort", 8080)
-	Config.SSLPort = ctx.GetDefault("SSLPort", 0)
-	Config.RootUrl = ctx.GetDefault("ROOT_URL", "http://127.0.0.1")
-	Config.RootPath = ctx.GetDefault("ROOT_PATH", "")
-	Config.ServerUrl = Config.RootUrl
-	Config.ApiName = ctx.GetDefault("API_NAME", "api")
-	Config.ApiVersioning = ctx.GetDefault("API_VERSIONING", "False").As(String).EqualsIgnoreCase("True")
-	Config.SslKeystoreDir = ctx.GetDefault("SSL_KEYSTORE_DIR", "")
-	Config.SslKeystoreFile = ctx.GetDefault("SSL_KEYSTORE_FILE", "")
-	Config.SslKeystorePassword = ctx.GetDefault("SSL_KEYSTORE_PASSWORD", "")
-	Config.SimpleResponse.Initialize
+	Config.EnableHelp = True
+	#If DEBUG
+	Config.EnableSSL = False
+	#Else
+	Config.EnableSSL = True
+	#End If
 	Config.SimpleResponse.Enable = True
-	Config.StaticFilesFolder = File.Combine(File.DirApp, "www")
 	Config.StaticFilesBrowsable = False
-	Config.Version = VERSION_NAME
-	ctx.Put("VERSION", VERSION_NAME)
-End Sub
-
-Private Sub InitDatabase
-	cnn.Initialize
-	cnn.DBDir = ctx.GetDefault("DbDir", "")
-	cnn.DBFile = ctx.GetDefault("DbFile", "")
-	cnn.DBType = ctx.GetDefault("DbType", "")
-	cnn.DBHost = ctx.GetDefault("DbHost", "")
-	cnn.DBPort = ctx.GetDefault("DbPort", "")
-	cnn.DBName = ctx.GetDefault("DbName", "")
-	cnn.DriverClass = ctx.GetDefault("DriverClass", "")
-	cnn.JdbcUrl = ctx.GetDefault("JdbcUrl", "")
-	cnn.User = ctx.GetDefault("User", "")
-	cnn.Password = ctx.GetDefault("Password", "")
-	cnn.MaxPoolSize = ctx.GetDefault("MaxPoolSize", 0)
-End Sub
-
-Private Sub CreateConnection
-	Try
-		LogColor("Checking database...", COLOR_BLUE)
-		#If MySQL
-		Dim DBType As String = "MySQL"
-		#Else
-		Dim DBType As String = "SQLite"
-		#End If
-		If cnn.DBType.EqualsIgnoreCase(DBType) = False Then
-			ShowBuildConfigurationNotMatch(cnn.DBType)
-			Return
-		End If
-		DBConnector.Initialize(cnn)
-		#If MySQL
-		Wait For (DBConnector.DBExist2) Complete (DBFound As Boolean)
-		#Else
-		Dim DBFound As Boolean = DBConnector.DBExist
-		#End If
-		If DBFound Then
-			LogColor($"${cnn.DBType} database found!"$, COLOR_BLUE)
-		Else
-			LogColor($"${cnn.DBType} database not found!"$, COLOR_RED)
-			CreateDatabase
-		End If
-	Catch
-		LogError(LastException.Message)
-		LogColor("Error checking database!", COLOR_RED)
-		Log("Application is terminated.")
-		ExitApplication
-	End Try
-End Sub
-
-Private Sub CreateDatabase
-	Log("Creating database...")
-	Select cnn.DBType.ToUpperCase
-		Case "MYSQL"
-			Wait For (DBConnector.DBCreateMySQL) Complete (Success As Boolean)
-		Case "SQLITE"
-			Wait For (DBConnector.DBCreateSQLite) Complete (Success As Boolean)
-	End Select
-	If Not(Success) Then
-		Log("Database creation failed!")
-		Return
-	End If
-	Log("Creating tables...")
-	Dim MDB As MiniORM
-	MDB.Initialize(DBOpen, DBEngine)
-	MDB.UseTimestamps = True
-	MDB.AddAfterCreate = True
-	MDB.AddAfterInsert = True
-	
-	MDB.Table = "tbl_categories"
-	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "category_name")))
-	MDB.Create
-	
-	MDB.Columns = Array("category_name")
-	MDB.Insert2(Array("Hardwares"))
-	MDB.Insert2(Array("Toys"))
-
-	MDB.Table = "tbl_products"
-	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "category_id", "Type": MDB.INTEGER)))
-	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_code", "Length": "12")))
-	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_name")))
-	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_price", "Type": MDB.DECIMAL, "Length": "10,2", "Default": "0.00")))
-	MDB.Foreign("category_id", "id", "tbl_categories", "", "")
-	MDB.Create
-	
-	MDB.Columns = Array("category_id", "product_code", "product_name", "product_price")
-	MDB.Insert2(Array(2, "T001", "Teddy Bear", 99.9))
-	MDB.Insert2(Array(1, "H001", "Hammer", 15.75))
-	MDB.Insert2(Array(2, "T002", "Optimus Prime", 1000))
-	
-	Wait For (MDB.ExecuteBatch) Complete (Success As Boolean)
-	If Success Then
-		LogColor("Database is created successfully!", COLOR_BLUE)
-	Else
-		LogColor("Database creation failed!", COLOR_RED)
-	End If
-	MDB.Close
-End Sub
-
-' Generate JS files from code to save some file size
-Private Sub CreateJSFiles
-	Dim gen As Boolean = True
-	Dim DirName As String = File.Combine(File.Combine(Config.StaticFilesFolder, "assets"), "scripts")
-	If File.Exists(DirName, "") = False Then
-		File.MakeDir(File.Combine(Config.StaticFilesFolder, "assets"), "scripts")
-	Else
-		#If Release
-		gen = False ' skip overwriting files in release
-		#End If
-	End If
-	If gen Then
-		Utility.GenerateJSFileForCategory(DirName, "category.js", Config.SimpleResponse)
-		Utility.GenerateJSFileForSearch(DirName, "search.js", Config.SimpleResponse)
-		Utility.GenerateJSFileForHelp(DirName, "help.js", Config.SimpleResponse)
-	End If
 End Sub
 
 ' Configure Cross Origin in JavaScript call
@@ -337,6 +198,153 @@ End Sub
 Private Sub ConfigureStaticFiles
 	srvr.StaticFilesFolder = Config.StaticFilesFolder
 	srvr.SetStaticFilesOptions(CreateMap("dirAllowed": Config.StaticFilesBrowsable))
+End Sub
+
+' Setting default values for Server Configurations
+Private Sub InitServer
+	If File.Exists(File.DirApp, "config.ini") = False Then
+		File.Copy(File.DirAssets, "config.example", File.DirApp, "config.ini")
+	End If
+	ctx = WebApiUtils.ReadMapFile(File.DirApp, "config.ini")
+	ctx.Put("VERSION", VERSION_NAME)
+	Config.Initialize
+	Config.Version = VERSION_NAME
+	Config.SimpleResponse.Initialize
+	Config.StaticFilesFolder = File.Combine(File.DirApp, "www")
+	Config.Port = ctx.GetDefault("ServerPort", 8080)
+	Config.SSLPort = ctx.GetDefault("SSLPort", 0)
+	Config.RootUrl = ctx.GetDefault("ROOT_URL", "http://127.0.0.1")
+	Config.RootPath = ctx.GetDefault("ROOT_PATH", "")
+	Config.ServerUrl = Config.RootUrl
+	Config.ApiName = ctx.GetDefault("API_NAME", "api")
+	Config.ApiVersioning = ctx.GetDefault("API_VERSIONING", "False").As(String).EqualsIgnoreCase("True")
+	Config.SslKeystoreDir = ctx.GetDefault("SSL_KEYSTORE_DIR", "")
+	Config.SslKeystoreFile = ctx.GetDefault("SSL_KEYSTORE_FILE", "")
+	Config.SslKeystorePassword = ctx.GetDefault("SSL_KEYSTORE_PASSWORD", "")
+	Configurable
+	ConfigurePort
+	ConfigureCORS
+	ConfigureStaticFiles
+	CreateJSFiles
+End Sub
+
+' Setting default values for Database Configurations
+Private Sub InitDatabase
+	cnn.Initialize
+	cnn.DBDir = ctx.GetDefault("DbDir", "")
+	cnn.DBFile = ctx.GetDefault("DbFile", "")
+	cnn.DBType = ctx.GetDefault("DbType", "")
+	cnn.DBHost = ctx.GetDefault("DbHost", "")
+	cnn.DBPort = ctx.GetDefault("DbPort", "")
+	cnn.DBName = ctx.GetDefault("DbName", "")
+	cnn.DriverClass = ctx.GetDefault("DriverClass", "")
+	cnn.JdbcUrl = ctx.GetDefault("JdbcUrl", "")
+	cnn.User = ctx.GetDefault("User", "")
+	cnn.Password = ctx.GetDefault("Password", "")
+	cnn.MaxPoolSize = ctx.GetDefault("MaxPoolSize", 0)
+	CreateConnection
+End Sub
+
+' Create Database Connection
+Private Sub CreateConnection
+	Try
+		LogColor("Checking database...", COLOR_BLUE)
+		#If MySQL
+		Dim DBType As String = "MySQL"
+		#Else
+		Dim DBType As String = "SQLite"
+		#End If
+		If cnn.DBType.EqualsIgnoreCase(DBType) = False Then
+			ShowBuildConfigurationNotMatch(cnn.DBType)
+			Return
+		End If
+		DBConnector.Initialize(cnn)
+		#If MySQL
+		Wait For (DBConnector.DBExist2) Complete (DBFound As Boolean)
+		#Else
+		Dim DBFound As Boolean = DBConnector.DBExist
+		#End If
+		If DBFound Then
+			LogColor($"${cnn.DBType} database found!"$, COLOR_BLUE)
+		Else
+			LogColor($"${cnn.DBType} database not found!"$, COLOR_RED)
+			CreateDatabase
+		End If
+	Catch
+		LogError(LastException.Message)
+		LogColor("Error checking database!", COLOR_RED)
+		Log("Application is terminated.")
+		ExitApplication
+	End Try
+End Sub
+
+' Create Database Tables and Populate Data
+Private Sub CreateDatabase
+	Log("Creating database...")
+	Select cnn.DBType.ToUpperCase
+		Case "MYSQL"
+			Wait For (DBConnector.DBCreateMySQL) Complete (Success As Boolean)
+		Case "SQLITE"
+			Wait For (DBConnector.DBCreateSQLite) Complete (Success As Boolean)
+	End Select
+	If Not(Success) Then
+		Log("Database creation failed!")
+		Return
+	End If
+	Log("Creating tables...")
+	Dim MDB As MiniORM
+	MDB.Initialize(DBOpen, DBEngine)
+	MDB.UseTimestamps = True
+	MDB.AddAfterCreate = True
+	MDB.AddAfterInsert = True
+	
+	MDB.Table = "tbl_categories"
+	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "category_name")))
+	MDB.Create
+	
+	MDB.Columns = Array("category_name")
+	MDB.Insert2(Array("Hardwares"))
+	MDB.Insert2(Array("Toys"))
+
+	MDB.Table = "tbl_products"
+	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "category_id", "Type": MDB.INTEGER)))
+	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_code", "Length": "12")))
+	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_name")))
+	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_price", "Type": MDB.DECIMAL, "Length": "10,2", "Default": "0.00")))
+	MDB.Foreign("category_id", "id", "tbl_categories", "", "")
+	MDB.Create
+	
+	MDB.Columns = Array("category_id", "product_code", "product_name", "product_price")
+	MDB.Insert2(Array(2, "T001", "Teddy Bear", 99.9))
+	MDB.Insert2(Array(1, "H001", "Hammer", 15.75))
+	MDB.Insert2(Array(2, "T002", "Optimus Prime", 1000))
+	
+	Wait For (MDB.ExecuteBatch) Complete (Success As Boolean)
+	If Success Then
+		LogColor("Database is created successfully!", COLOR_BLUE)
+	Else
+		LogColor("Database creation failed!", COLOR_RED)
+	End If
+	MDB.Close
+End Sub
+
+' Generate JS files from code to save some file size
+Private Sub CreateJSFiles
+	Dim skip As Boolean
+	Dim Parent As String = File.Combine(Config.StaticFilesFolder, "assets")
+	Dim DirName As String = File.Combine(Parent, "scripts")
+	If File.Exists(DirName, "") = False Then
+		File.MakeDir(Parent, "scripts")
+	Else
+	#If Release
+		skip = True ' skip overwriting files in release if scripts folder exists
+	#End If
+	End If
+	If skip = False Then
+		Utility.GenerateJSFileForCategory(DirName, "category.js", Config.SimpleResponse)
+		Utility.GenerateJSFileForSearch(DirName, "search.js", Config.SimpleResponse)
+		Utility.GenerateJSFileForHelp(DirName, "help.js", Config.SimpleResponse)
+	End If
 End Sub
 
 Private Sub ShowBuildConfigurationNotMatch (DBType As String)

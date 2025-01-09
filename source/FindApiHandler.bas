@@ -73,7 +73,6 @@ Private Sub ReturnErrorUnprocessableEntity 'ignore
 End Sub
 
 Public Sub GetAllProducts
-	' #Desc = Read all Products joined by Category
 	DB.Table = "tbl_products p"
 	DB.Select = Array("p.*", "c.category_name")
 	DB.Join = DB.CreateORMJoin("tbl_categories c", "p.category_id = c.id", "")
@@ -85,9 +84,7 @@ Public Sub GetAllProducts
 	ReturnApiResponse
 End Sub
 
-Public Sub SearchByKeywords ' #post
-	'  	#Desc = Read all Products joined by Category and filter by keywords  
-	'#Body = {<br>&nbsp;&nbsp;"keywords": "search words"<br>} 	
+Public Sub SearchByKeywords	
 	Dim Data As Map = WebApiUtils.RequestData(Request)
 	If Not(Data.IsInitialized) Then
 		HRM.ResponseCode = 400

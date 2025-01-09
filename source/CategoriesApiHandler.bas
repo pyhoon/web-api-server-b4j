@@ -45,14 +45,14 @@ Sub Handle (req As ServletRequest, resp As ServletResponse)
 			End If
 		Case "PUT"
 			If ElementMatch("id") Then
-				PutCategoryById(ElementId)
+				UpdateCategoryById(ElementId)
 				Return
 			End If
 		Case "DELETE"
 			If ElementMatch("id") Then
 				DeleteCategoryById(ElementId)
 				Return
-			End If			
+			End If
 		Case Else
 			Log("Unsupported method: " & Method)
 			ReturnMethodNotAllow
@@ -91,8 +91,6 @@ Private Sub ReturnMethodNotAllow
 End Sub
 
 Private Sub GetCategories
-	' #Desc = Read all Categories
-	' #Authenticate = Basic
 	DB.Table = "tbl_categories"
 	DB.Query
 	HRM.ResponseCode = 200
@@ -101,12 +99,9 @@ Private Sub GetCategories
 	DB.Close
 End Sub
 
-Private Sub GetCategoryById (Id As Int)
-	' #Authenticate = Token
-	' #Desc = Read one Category by id
-	' #Elements = [":id"]
+Private Sub GetCategoryById (id As Int)
 	DB.Table = "tbl_categories"
-	DB.Find(Id)
+	DB.Find(id)
 	If DB.Found Then
 		HRM.ResponseCode = 200
 		HRM.ResponseObject = DB.First
@@ -118,10 +113,7 @@ Private Sub GetCategoryById (Id As Int)
 	DB.Close
 End Sub
 
-' Test support for method name which is not starting with verb
-'Private Sub PostCategory
-Private Sub CreateNewCategory ' #post ' this hashtag will tell HelpHandler that this is a POST endpoint
-	' #Authenticate = Token
+Private Sub CreateNewCategory
 	Dim data As Map = WebApiUtils.RequestData(Request)
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
@@ -171,11 +163,7 @@ Private Sub CreateNewCategory ' #post ' this hashtag will tell HelpHandler that 
 	DB.Close
 End Sub
 
-Private Sub PutCategoryById (Id As Int)
-	' #Desc = Update Category by id
-	' #Body = {<br>&nbsp; "name": "category_name"<br>}
-	' #Elements = [":id"]
-	' #Authenticate = Token
+Private Sub UpdateCategoryById (id As Int)
 	Dim data As Map = WebApiUtils.RequestData(Request)
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
@@ -201,7 +189,7 @@ Private Sub PutCategoryById (Id As Int)
 	' Check conflict category name
 	DB.Table = "tbl_categories"
 	DB.Where = Array("category_name = ?", "id <> ?")
-	DB.Parameters = Array As String(data.Get("category_name"), Id)
+	DB.Parameters = Array As String(data.Get("category_name"), id)
 	DB.Query
 	If DB.Found Then
 		HRM.ResponseCode = 409
@@ -211,7 +199,7 @@ Private Sub PutCategoryById (Id As Int)
 		Return
 	End If
 	
-	DB.Find(Id)
+	DB.Find(id)
 	If DB.Found = False Then
 		HRM.ResponseCode = 404
 		HRM.ResponseError = "Category not found"
@@ -225,7 +213,7 @@ Private Sub PutCategoryById (Id As Int)
 	"modified_date")
 	DB.Parameters = Array(data.Get("category_name"), _
 	data.GetDefault("created_date", WebApiUtils.CurrentDateTime))
-	DB.Id = Id
+	DB.Id = id
 	DB.Save
 
 	HRM.ResponseCode = 200
@@ -235,12 +223,9 @@ Private Sub PutCategoryById (Id As Int)
 	DB.Close
 End Sub
 
-Private Sub DeleteCategoryById (Id As Int)
-	' #Desc = Delete Category by id
-	' #Elements = [":id"]
-	' #Authenticate = Basic
+Private Sub DeleteCategoryById (id As Int)
 	DB.Table = "tbl_categories"
-	DB.Find(Id)
+	DB.Find(id)
 	If DB.Found = False Then
 		HRM.ResponseCode = 404
 		HRM.ResponseError = "Category not found"
@@ -250,7 +235,7 @@ Private Sub DeleteCategoryById (Id As Int)
 	End If
 	
 	DB.Reset
-	DB.Id = Id
+	DB.Id = id
 	DB.Delete
 	HRM.ResponseCode = 200
 	HRM.ResponseMessage = "Category deleted successfully"
