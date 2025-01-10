@@ -29,13 +29,17 @@ Version=10
 @EndOfDesignText@
 #Region Project Attributes
 ' Product: 			Web API Server
-' Version: 			3.20 beta 5
+' Version: 			3.20
 ' Description: 		Server application project template
 ' Developer:		Aeric Poon (https://www.b4x.com/android/forum/members/aeric.74499/)
 ' License:			MIT License
+' GitHub:			https://github.com/pyhoon/web-api-server-b4j
+' Forum thread:		https://www.b4x.com/android/forum/threads/project-template-web-api-server-v3.163725/
+' Tutorial:			https://www.b4x.com/android/forum/threads/web-api-server-v3.163824/
 ' Donation:			PayPal (https://paypal.me/aeric80/)
-' Forum thread:		https://www.b4x.com/android/forum/threads/project-template-web-api-server-3.163725/
 
+' AppStart: 		ide://goto?Module=Main&Sub=AppStart
+' Configurable: 	ide://goto?Module=Main&Sub=Configurable
 ' CreateDatabase: 	ide://goto?Module=Main&Sub=CreateDatabase
 ' Objects folder: 	ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\Objects
 ' Publish: 			ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&Args=-cMf&Args=Publish.zip&Args=www&Args=*.jar&Args=*.ini '&Args=*.db&Args=*.html (optional db and html)
@@ -56,7 +60,7 @@ Sub Process_Globals
 	Private cnn 				As Conn
 	Private Const COLOR_RED 	As Int = -65536
 	Private Const COLOR_BLUE 	As Int = -16776961
-	Private Const VERSION_NAME	As String = "3.20 beta 5"
+	Private Const VERSION_NAME	As String = "3.20"
 	Type ServerConfigurations (EnableCORS As Boolean, EnableHelp As Boolean, EnableSSL As Boolean, Port As Int, SSLPort As Int, RootUrl As String, RootPath As String, ServerUrl As String, ApiName As String, ApiVersioning As Boolean, SslKeystoreDir As String, SslKeystoreFile As String, SslKeystorePassword As String, StaticFilesBrowsable As Boolean, StaticFilesFolder As String, SimpleResponse As SimpleResponse, Version As String)
 End Sub
 

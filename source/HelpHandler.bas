@@ -44,10 +44,8 @@ Private Sub ShowHelpPage
 	''If File.Exists(File.DirApp, "help.html") = False Then
 	'WebApiUtils.WriteTextFile("help.html", Contents)
 	''End If
-	#End If
-	
-	#If Release
-	' Read from file
+	#Else
+	''Read from file
 	'If File.Exists(File.DirApp, "help.html") Then
 	'	Contents = File.ReadString(File.DirApp, "help.html")
 	'End If
