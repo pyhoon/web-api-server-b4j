@@ -1,9 +1,12 @@
-# Product:      Web API Server
-# Version:      3.20
-# Developer:    Poon Yip Hoon (Aeric)
-# License:      MIT License
-# Donation:		https://paypal.me/aeric80/ (PayPal)
-# Web Link:     https://www.b4x.com/android/forum/threads/project-template-web-api-server-3.163725/
+' Product: 		Web API Server
+' Version: 		3.20
+' Description: 	Server application project template
+' Developer:	Poon Yip Hoon (Aeric)
+' License:		MIT License
+' GitHub:		https://github.com/pyhoon/web-api-server-b4j
+' Forum:	    https://www.b4x.com/android/forum/threads/project-template-web-api-server-v3.163725/
+' Tutorial:		https://www.b4x.com/android/forum/threads/web-api-server-v3.163824/
+' Donation:		https://paypal.me/aeric80/
 
 # Thanks to Erel, Anywhere Software for the great products and B4X community for encouragement and supports.
 # Please consider to donate to me so I can continue to improve this project
