@@ -28,21 +28,21 @@ NumberOfModules=9
 Version=10
 @EndOfDesignText@
 #Region Project Attributes
-' Product: 			Web API Server
-' Version: 			3.20
-' Description: 		Server application project template
-' Developer:		Aeric Poon (https://www.b4x.com/android/forum/members/aeric.74499/)
-' License:			MIT License
-' GitHub:			https://github.com/pyhoon/web-api-server-b4j
-' Forum thread:		https://www.b4x.com/android/forum/threads/project-template-web-api-server-v3.163725/
-' Tutorial:			https://www.b4x.com/android/forum/threads/web-api-server-v3.163824/
-' Donation:			PayPal (https://paypal.me/aeric80/)
-
-' AppStart: 		ide://goto?Module=Main&Sub=AppStart
-' Configurable: 	ide://goto?Module=Main&Sub=Configurable
-' CreateDatabase: 	ide://goto?Module=Main&Sub=CreateDatabase
-' Objects folder: 	ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\Objects
-' Publish: 			ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&Args=-cMf&Args=Publish.zip&Args=www&Args=*.jar&Args=*.ini '&Args=*.db&Args=*.html (optional db and html)
+' Product: 				Web API Server
+' Version: 				3.20
+' Description: 			Server application project template
+' Developer:			Poon Yip Hoon (Aeric) (https://www.b4x.com/android/forum/members/aeric.74499/)
+' License:				MIT License
+' GitHub:				https://github.com/pyhoon/web-api-server-b4j
+' Forum thread:			https://www.b4x.com/android/forum/threads/project-template-web-api-server-v3.163725/
+' Tutorial:				https://www.b4x.com/android/forum/threads/web-api-server-v3.163824/
+' Donation:				PayPal (https://paypal.me/aeric80/)
+' *** IDE Shorcuts ***
+' 1. AppStart: 			ide://goto?Module=Main&Sub=AppStart
+' 2. Configurable: 		ide://goto?Module=Main&Sub=Configurable
+' 3. CreateDatabase: 	ide://goto?Module=Main&Sub=CreateDatabase
+' Objects folder: 		ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\Objects
+' Publish:				ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&Args=-cMf&Args=Publish.zip&Args=www&Args=*.jar&Args=*.ini '&Args=*.db&Args=*.html (optional db and html)
 #CommandLineArgs:
 #MergeLibraries: True
 #If MySQL
@@ -97,6 +97,57 @@ Private Sub Configurable
 	Config.StaticFilesBrowsable = False
 End Sub
 
+' Create Database Tables and Populate Data
+Private Sub CreateDatabase
+	Log("Creating database...")
+	Select cnn.DBType.ToUpperCase
+		Case "MYSQL"
+			Wait For (DBConnector.DBCreateMySQL) Complete (Success As Boolean)
+		Case "SQLITE"
+			Wait For (DBConnector.DBCreateSQLite) Complete (Success As Boolean)
+	End Select
+	If Not(Success) Then
+		Log("Database creation failed!")
+		Return
+	End If
+	
+	Log("Creating tables...")
+	Dim MDB As MiniORM
+	MDB.Initialize(DBOpen, DBEngine)
+	MDB.UseTimestamps = True
+	MDB.AddAfterCreate = True
+	MDB.AddAfterInsert = True
+	
+	MDB.Table = "tbl_categories"
+	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "category_name")))
+	MDB.Create
+	
+	MDB.Columns = Array("category_name")
+	MDB.Insert2(Array("Hardwares"))
+	MDB.Insert2(Array("Toys"))
+
+	MDB.Table = "tbl_products"
+	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "category_id", "Type": MDB.INTEGER)))
+	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_code", "Length": "12")))
+	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_name")))
+	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_price", "Type": MDB.DECIMAL, "Length": "10,2", "Default": "0.00")))
+	MDB.Foreign("category_id", "id", "tbl_categories", "", "")
+	MDB.Create
+	
+	MDB.Columns = Array("category_id", "product_code", "product_name", "product_price")
+	MDB.Insert2(Array(2, "T001", "Teddy Bear", 99.9))
+	MDB.Insert2(Array(1, "H001", "Hammer", 15.75))
+	MDB.Insert2(Array(2, "T002", "Optimus Prime", 1000))
+	
+	Wait For (MDB.ExecuteBatch) Complete (Success As Boolean)
+	If Success Then
+		LogColor("Database is created successfully!", COLOR_BLUE)
+	Else
+		LogColor("Database creation failed!", COLOR_RED)
+	End If
+	MDB.Close
+End Sub
+
 ' Configure Cross Origin in JavaScript call
 Private Sub ConfigureCORS
 	' =========================================================
@@ -105,7 +156,6 @@ Private Sub ConfigureCORS
 	' allowedOrigins = "*" or "http://google.com"
 	' allowedMethods = "*" or "GET,POST,HEAD"
 	' allowedHeaders = "*" or "X-Requested-With,Content-Type,Accept,Origin"
-	' Eg. ConfigureCORS(ROOT_PATH & "account/*", "*", "", "")
 	' Reference: https://www.b4x.com/android/forum/threads/jetty-cross-origin-filter-to-be-added-to-jserver-library.85641/
 	' =========================================================
 	If Config.EnableCORS = False Then
@@ -114,8 +164,8 @@ Private Sub ConfigureCORS
 	End If
 	Dim Paths As List
 	Paths.Initialize
-	'Paths.Add(CreateMap("path": "*", "origins": "*", "methods": "POST,PUT,DELETE", "headers": "*")) 		' All origins access (* methods not working)
-	Paths.Add(CreateMap("path": "*", "origins": "http://127.0.0.1, http://127.0.0.1:3000", "methods": "POST,PUT,DELETE", "headers": "*"))
+	Paths.Add(CreateMap("path": "*", "origins": "*", "methods": "POST,PUT,DELETE", "headers": "*")) ' All origins access
+	'Paths.Add(CreateMap("path": "*", "origins": "http://127.0.0.1:3000", "methods": "POST,PUT,DELETE", "headers": "*"))
 	
 	For Each Item As Map In Paths
 		Dim path As String = Item.Get("path")
@@ -280,56 +330,6 @@ Private Sub CreateConnection
 		Log("Application is terminated.")
 		ExitApplication
 	End Try
-End Sub
-
-' Create Database Tables and Populate Data
-Private Sub CreateDatabase
-	Log("Creating database...")
-	Select cnn.DBType.ToUpperCase
-		Case "MYSQL"
-			Wait For (DBConnector.DBCreateMySQL) Complete (Success As Boolean)
-		Case "SQLITE"
-			Wait For (DBConnector.DBCreateSQLite) Complete (Success As Boolean)
-	End Select
-	If Not(Success) Then
-		Log("Database creation failed!")
-		Return
-	End If
-	Log("Creating tables...")
-	Dim MDB As MiniORM
-	MDB.Initialize(DBOpen, DBEngine)
-	MDB.UseTimestamps = True
-	MDB.AddAfterCreate = True
-	MDB.AddAfterInsert = True
-	
-	MDB.Table = "tbl_categories"
-	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "category_name")))
-	MDB.Create
-	
-	MDB.Columns = Array("category_name")
-	MDB.Insert2(Array("Hardwares"))
-	MDB.Insert2(Array("Toys"))
-
-	MDB.Table = "tbl_products"
-	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "category_id", "Type": MDB.INTEGER)))
-	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_code", "Length": "12")))
-	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_name")))
-	MDB.Columns.Add(MDB.CreateORMColumn2(CreateMap("Name": "product_price", "Type": MDB.DECIMAL, "Length": "10,2", "Default": "0.00")))
-	MDB.Foreign("category_id", "id", "tbl_categories", "", "")
-	MDB.Create
-	
-	MDB.Columns = Array("category_id", "product_code", "product_name", "product_price")
-	MDB.Insert2(Array(2, "T001", "Teddy Bear", 99.9))
-	MDB.Insert2(Array(1, "H001", "Hammer", 15.75))
-	MDB.Insert2(Array(2, "T002", "Optimus Prime", 1000))
-	
-	Wait For (MDB.ExecuteBatch) Complete (Success As Boolean)
-	If Success Then
-		LogColor("Database is created successfully!", COLOR_BLUE)
-	Else
-		LogColor("Database creation failed!", COLOR_RED)
-	End If
-	MDB.Close
 End Sub
 
 ' Generate JS files from code to save some file size
