@@ -5,7 +5,7 @@ Type=Class
 Version=9.1
 @EndOfDesignText@
 'Help Handler class
-'Version 3.20
+'Version 3.30
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
@@ -66,7 +66,7 @@ Private Sub ShowHelpPage
 	
 	strMain = WebApiUtils.BuildTag(strMain, "HELP", "") ' Hide API icon
 	strMain = WebApiUtils.BuildHtml(strMain, Main.ctx)
-	strMain = WebApiUtils.BuildScript(strMain, $"<script src="${Main.Config.ServerUrl}/assets/scripts/help.js"></script>"$)
+	strMain = WebApiUtils.BuildScript(strMain, $"<script src="${Main.conf.ServerUrl}/assets/scripts/help.js"></script>"$)
 	WebApiUtils.ReturnHtml(strMain, Response)
 End Sub
 
@@ -78,10 +78,8 @@ Private Sub GenerateHtml As String
 	Dim Html As StringBuilder
 	Html.Initialize
 	For Each GroupName As String In AllGroups.Keys
-		'If GroupName = "Categories" Then Continue ' Hide Categories group header for screenshot
 		Html.Append(GenerateHeaderByGroup(GroupName))
 		For Each method As Map In AllMethods
-			'If method.Get("Group") = "Categories" Then Continue ' Hide Categories group methods
 			If method.Get("Group") = GroupName Then
 				If method.ContainsKey("Hide") = False Then ' Skip Hidden sub
 					Html.Append(GenerateDocItem(method))				
@@ -158,7 +156,7 @@ Private Sub BuildMethods
 	
 	Dim Method As Map = RetrieveMethod("Categories", "DeleteCategoryById (id As Int)")
 	Method.Put("Desc", "Delete Category by id")
-	Method.Put("Elements", $"["{id}"]"$)
+	Method.Put("Elements", $"["{id}"]"$)	
 	RemoveMethodAndReAdd(Method)
 	
 	Dim Method As Map = RetrieveMethod("Products", "GetProducts")
@@ -179,11 +177,13 @@ Private Sub BuildMethods
 	Method.Put("Desc", "Update Product by id")
 	Method.Put("Body", $"{<br>&nbsp; "cat_id": category_id,<br>&nbsp; "code": "product_code",<br>&nbsp; "name": "product_name",<br>&nbsp; "price": 0<br>}"$)
 	Method.Put("Elements", $"["{id}"]"$)
+	Method.Put("Authenticate", $"Token"$)
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = RetrieveMethod("Products", "DeleteProductById (id As Int)")
 	Method.Put("Desc", "Delete Product by id")
 	Method.Put("Elements", $"["{id}"]"$)
+	Method.Put("Authenticate", $"Basic"$)
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = RetrieveMethod("Find", "GetAllProducts")
@@ -236,10 +236,7 @@ Private Sub ReadHandlers 'ignore
 		'For Each m As Map In Methods
 		'	Log(" ")
 		'	Log("[" & m.Get("Verb") & "]")
-		'	Log(m.Get("Method"))
-		'	Dim MM(2) As String
-		'	MM = Regex.Split(" As ", m.Get("Method")) ' Ignore return type
-		'	Log("Sub Name: " & MM(0).Trim)
+		'	Log("Method: " & m.Get("Method"))
 		'	Log("Params: " & m.Get("Params"))
 		'	Log("Hide: " & m.Get("Hide"))
 		'	Log("Plural: " & m.Get("Plural"))
@@ -283,9 +280,9 @@ Private Sub ParseHashtags (lineContent As String, methodList As List)
 	For Each Tag As String In HashTags2
 		If lineContent.ToLowerCase.IndexOf("#" & Tag.ToLowerCase) > -1 Then
 			Dim str() As String = Regex.Split("=", lineContent)
-			If str.Length = 2 Then
+			If str.Length > 1 Then ' fixed bug Desc contains equal sign
 				Dim lastMethod As Map = methodList.Get(methodList.Size - 1)
-				lastMethod.Put(Tag, str(1).Trim)
+				lastMethod.Put(Tag, lineContent.SubString(lineContent.IndexOf("=") + 1).Trim)
 			End If
 		End If
 	Next
@@ -295,6 +292,15 @@ Private Sub RemoveComment (Line As String) As String
 	' Clean up comment on the right of a sub
 	If Line.Contains("'") Then
 		Line = Line.SubString2(0, Line.IndexOf("'"))
+	End If
+	Return Line
+End Sub
+
+Private Sub RemoveReturnType (Line As String) As String
+	' Clean up As type on the right of a sub
+	If Line.ToLowerCase.Contains(" as ") Then
+		Dim index As Int = Line.ToLowerCase.IndexOf(" as ")
+		Line = Line.SubString2(0, index)
 	End If
 	Return Line
 End Sub
@@ -316,6 +322,7 @@ End Sub
 Private Sub ExtractMethod (methodLine As String) As String
 	' Take the method name only without arguments
 	methodLine = RemoveComment(methodLine)
+	methodLine = RemoveReturnType(methodLine)
 	Dim index As Int = methodLine.IndexOf("(")
 	If index > -1 Then
 		Return methodLine.SubString2(0, index).Trim
@@ -372,10 +379,10 @@ Private Sub ExtractParams (methodLine As String) As String
 End Sub
 
 Private Sub GenerateLink (ApiVersion As String, Handler As String, Elements As List) As String
-	Dim Link As String = "$SERVER_URL$/" & Main.Config.ApiName
+	Dim Link As String = "$SERVER_URL$/" & Main.conf.ApiName
 	If Link.EndsWith("/") = False Then Link = Link & "/"
 	If ApiVersion.EqualsIgnoreCase("null") = False Then
-		If Main.Config.ApiVersioning Then Link = Link & ApiVersion
+		If Main.conf.ApiVersioning Then Link = Link & ApiVersion
 		If Link.EndsWith("/") = False Then Link = Link & "/"
 	End If
 	Link = Link & Handler.ToLowerCase

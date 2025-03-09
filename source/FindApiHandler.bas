@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 'Api Handler class
-'Version 3.20
+'Version 3.30
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -17,7 +17,7 @@ End Sub
 
 Public Sub Initialize
 	HRM.Initialize
-	HRM.SimpleResponse = Main.Config.SimpleResponse
+	HRM.SimpleResponse = Main.conf.SimpleResponse
 	DB.Initialize(Main.DBOpen, Main.DBEngine)
 End Sub
 
@@ -75,7 +75,7 @@ End Sub
 Public Sub GetAllProducts
 	DB.Table = "tbl_products p"
 	DB.Select = Array("p.*", "c.category_name")
-	DB.Join = DB.CreateORMJoin("tbl_categories c", "p.category_id = c.id", "")
+	DB.Join = DB.CreateJoin("tbl_categories c", "p.category_id = c.id", "")
 	DB.OrderBy = CreateMap("p.id": "")
 	DB.Query
 	HRM.ResponseCode = 200
@@ -105,7 +105,7 @@ Public Sub SearchByKeywords
 	
 	DB.Table = "tbl_products p"
 	DB.Select = Array("p.*", "c.category_name")
-	DB.Join = DB.CreateORMJoin("tbl_categories c", "p.category_id = c.id", "")
+	DB.Join = DB.CreateJoin("tbl_categories c", "p.category_id = c.id", "")
 	If SearchForText <> "" Then
 		DB.Where = Array("p.product_code LIKE ? Or UPPER(p.product_name) LIKE ? Or UPPER(c.category_name) LIKE ?")
 		DB.Parameters = Array("%" & SearchForText & "%", "%" & SearchForText.ToUpperCase & "%", "%" & SearchForText.ToUpperCase & "%")

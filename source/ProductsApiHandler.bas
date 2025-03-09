@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 'Api Handler class
-'Version 3.20
+'Version 3.30
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -18,7 +18,7 @@ End Sub
 
 Public Sub Initialize
 	HRM.Initialize
-	HRM.SimpleResponse = Main.Config.SimpleResponse
+	HRM.SimpleResponse = Main.conf.SimpleResponse
 	DB.Initialize(Main.DBOpen, Main.DBEngine)
 End Sub
 
