@@ -56,7 +56,6 @@ Sub Process_Globals
 	Public ctx					As Map
 	Public info 				As ConnectionInfo
 	Public srvr 				As Server
-	'Public DB					As MiniORM
 	Public conn					As ORMConnector
 	Public conf 				As ServerConfigurations
 	Private Const COLOR_RED 	As Int = -65536
@@ -142,7 +141,7 @@ Private Sub CreateDatabase
 	Else
 		LogColor("Database creation failed!", COLOR_RED)
 	End If
-	'DB.Close
+	DB.Close
 End Sub
 
 ' Configure Cross Origin in JavaScript call
@@ -332,12 +331,8 @@ Private Sub InitDatabase
 			#If MySQL
 			conn.InitPool
 			#End If
-			'DB.Initialize(DBOpen, info.DBType)
-			'DB.ShowExtraLogs = True
 		Else
 			LogColor($"${info.DBType} database not found!"$, COLOR_RED)
-			'DB.Initialize(Null, info.DBType)
-			'DB.ShowExtraLogs = True
 			CreateDatabase
 		End If
 	Catch
