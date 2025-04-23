@@ -2,7 +2,7 @@
 Group=Handlers
 ModulesStructureVersion=1
 Type=Class
-Version=9.1
+Version=10.2
 @EndOfDesignText@
 'Help Handler class
 'Version 3.42

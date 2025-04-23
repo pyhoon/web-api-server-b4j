@@ -2,7 +2,7 @@
 Group=App
 ModulesStructureVersion=1
 Type=StaticCode
-Version=10
+Version=10.2
 @EndOfDesignText@
 'Utility code module
 'Version 3.42
