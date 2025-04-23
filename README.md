@@ -1,6 +1,6 @@
 # Web API Server
 
-Version: 3.30
+Version: 3.40
 
 Create Web API Server using B4X project template
 
@@ -30,11 +30,10 @@ Create Web API Server using B4X project template
 
 ### Code Example
 ```basic
-Private Sub GetCategoryById (Id As Int)
-	' #Desc = Read one Category by id
-	' #Elements = [":id"]
+Private Sub GetCategoryById (id As Int)
+	DB.Initialize(Main.DBType, Main.DBOpen)
 	DB.Table = "tbl_categories"
-	DB.Find(Id)
+	DB.Find(id)
 	If DB.Found Then
 		HRM.ResponseCode = 200
 		HRM.ResponseObject = DB.First
