@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 'Api Handler class
-'Version 3.41
+'Version 3.42
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse

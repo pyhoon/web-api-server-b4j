@@ -5,7 +5,7 @@ Type=StaticCode
 Version=10
 @EndOfDesignText@
 'Utility code module
-'Version 3.41
+'Version 3.42
 Sub Process_Globals
 	
 End Sub

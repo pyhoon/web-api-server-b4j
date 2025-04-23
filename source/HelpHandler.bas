@@ -5,7 +5,7 @@ Type=Class
 Version=9.1
 @EndOfDesignText@
 'Help Handler class
-'Version 3.41
+'Version 3.42
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
@@ -148,15 +148,15 @@ Private Sub BuildMethods
 	
 	Dim Method As Map = RetrieveMethod("Products", "PutProductById (id As Int)")
 	Method.Put("Desc", "Update Product by id")
-	Method.Put("Body", $"{<br>&nbsp; "category_id": 1,<br>&nbsp; "product_code": "CODE",<br>&nbsp; "product_name": "NewProductName",<br>&nbsp; "product_price": 10<br>}"$)
+	Method.Put("Body", $"{<br>&nbsp; "category_id": 1,<br>&nbsp; "product_code": "CODE",<br>&nbsp; "product_name": "ProductName",<br>&nbsp; "product_price": 10<br>}"$)
 	Method.Put("Elements", $"["{id}"]"$)
-	Method.Put("Authenticate", $"Token"$)
+	'Method.Put("Authenticate", $"Token"$)
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = RetrieveMethod("Products", "DeleteProductById (id As Int)")
 	Method.Put("Desc", "Delete Product by id")
 	Method.Put("Elements", $"["{id}"]"$)
-	Method.Put("Authenticate", $"Basic"$)
+	'Method.Put("Authenticate", $"Basic"$)
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = RetrieveMethod("Find", "GetAllProducts")
