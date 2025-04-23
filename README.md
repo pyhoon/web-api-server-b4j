@@ -14,7 +14,7 @@ Create Web API Server using B4X project template
 ---
 
 ## Template:
-- Web API Server (3.30).b4xtemplate
+- Web API Server (3.40).b4xtemplate
 
 ## Depends on:
 - [WebApiUtils.b4xlib](https://github.com/pyhoon/WebApiUtils-B4J)
