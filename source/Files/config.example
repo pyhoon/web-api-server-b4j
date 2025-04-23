@@ -1,5 +1,5 @@
 # Product: 		Web API Server
-# Version: 		3.30
+# Version: 		3.40
 # Description: 	Server application project template
 # Developer:	Poon Yip Hoon (Aeric)
 # License:		MIT License
@@ -54,8 +54,6 @@ SSL_KEYSTORE_PASSWORD=xxxxxxxxx
 DbType=SQLite
 DbFile=webapi3.db
 DbDir=
-DriverClass=org.sqlite.JDBC
-JdbcUrl=jdbc:sqlite:{DbDir}/{DbFile}
 
 ## MySQL configuration:
 #DbType=MySQL

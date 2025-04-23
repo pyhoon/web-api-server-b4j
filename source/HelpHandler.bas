@@ -5,7 +5,7 @@ Type=Class
 Version=9.1
 @EndOfDesignText@
 'Help Handler class
-'Version 3.30
+'Version 3.40
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
@@ -33,37 +33,11 @@ End Sub
 Private Sub ShowHelpPage
 	#If Debug
 	'ReadHandlers ' Read from source (optional) - comment hashtags are required
-	BuildMethods
-	#Else
-	BuildMethods ' Build programatically
 	#End If
-
+	BuildMethods ' Build page programatically
 	Dim Contents As String = GenerateHtml
-	
-	#If Debug
-	''If File.Exists(File.DirApp, "help.html") = False Then
-	'WebApiUtils.WriteTextFile("help.html", Contents)
-	''End If
-	#Else
-	''Read from file
-	'If File.Exists(File.DirApp, "help.html") Then
-	'	Contents = File.ReadString(File.DirApp, "help.html")
-	'End If
-	#End If
-	
 	Dim strMain As String = WebApiUtils.ReadTextFile("main.html")
 	strMain = WebApiUtils.BuildDocView(strMain, Contents)
-	
-	#Region CSRF TOKEN
-	' Store csrf_token inside server session variables
-	'Dim HSR As Hasher
-	'HSR.Initialize
-	'Dim csrf_token As String = HSR.RandomHash2
-	'Request.GetSession.SetAttribute(Main.PREFIX & "csrf_token", csrf_token)
-	' Append csrf_token into page header. Comment this line to check
-	'strMain = WebApiUtils.BuildCsrfToken(strMain, csrf_token)
-	#End Region
-	
 	strMain = WebApiUtils.BuildTag(strMain, "HELP", "") ' Hide API icon
 	strMain = WebApiUtils.BuildHtml(strMain, Main.ctx)
 	strMain = WebApiUtils.BuildScript(strMain, $"<script src="${Main.conf.ServerUrl}/assets/scripts/help.js"></script>"$)
@@ -74,7 +48,6 @@ Private Sub GenerateHtml As String
 	For Each method As Map In AllMethods ' Avoid duplicate groups
 		AllGroups.Put(method.Get("Group"), "unused")
 	Next
-	
 	Dim Html As StringBuilder
 	Html.Initialize
 	For Each GroupName As String In AllGroups.Keys

@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 'Web Handler class
-'Version 3.30
+'Version 3.40
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse

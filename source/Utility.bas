@@ -5,7 +5,7 @@ Type=StaticCode
 Version=10
 @EndOfDesignText@
 'Utility code module
-'Version 3.30
+'Version 3.40
 Sub Process_Globals
 	
 End Sub
@@ -230,12 +230,12 @@ Public Sub GenerateJSFileForCategory (DirName As String, FileName As String, Sim
 	Dim jsonResponse As String = "response.r"
 	If SimpleResponse.Enable Then
 		If SimpleResponse.Format = "Map" Then
-			jsonResponse = "response.data"
+			jsonResponse = "response." & SimpleResponse.DataKey
 		Else
 			jsonResponse = "response"
 		End If
 	End If
-	Dim script1 As String = $"  $.getJSON("/api/categories", function (response) {
+	Dim script1 As String = $"  $.getJSON("/${Main.conf.ApiName}/categories", function (response) {
     var tbl_head = ""
     var tbl_body = ""
     if (${jsonResponse}.length) {
@@ -299,7 +299,7 @@ Public Sub GenerateJSFileForCategory (DirName As String, FileName As String, Sim
       var data = JSON.stringify(convertFormToJSON(form), undefined, 2)
       $.ajax({
         type: "POST",
-        url: "/api/categories",
+        url: "/${Main.conf.ApiName}/categories",
         data: data,
         dataType: "json",
         success: function (response) {
@@ -336,7 +336,7 @@ Public Sub GenerateJSFileForCategory (DirName As String, FileName As String, Sim
         data: data,
         dataType: "json",
         type: "put",
-        url: "/api/categories/" + $("#id1").val(),
+        url: "/${Main.conf.ApiName}/categories/" + $("#id1").val(),
         success: function (response) {
           $("#edit").modal("hide")
 		  ${ReturnAlertScript2(SimpleResponse.Enable, "Category updated successfully !", 200)}
@@ -357,7 +357,7 @@ Public Sub GenerateJSFileForCategory (DirName As String, FileName As String, Sim
     data: data,
     dataType: "json",
     type: "delete",
-    url: "/api/categories/" + $("#id2").val(),
+    url: "/${Main.conf.ApiName}/categories/" + $("#id2").val(),
     success: function (response) {
       $("#delete").modal("hide")
 	  ${ReturnAlertScript3(SimpleResponse.Enable, "Category deleted successfully !", 200)}
@@ -523,12 +523,12 @@ Public Sub GenerateJSFileForSearch (DirName As String, FileName As String, Simpl
 	Dim jsonResponse As String = "response.r"
 	If SimpleResponse.Enable Then
 		If SimpleResponse.Format = "Map" Then
-			jsonResponse = "response.data"
+			jsonResponse = "response." & SimpleResponse.DataKey
 		Else
 			jsonResponse = "response"
 		End If
 	End If
-	Dim script1 As String = $"  $.getJSON("/api/categories", function (response) {
+	Dim script1 As String = $"  $.getJSON("/${Main.conf.ApiName}/categories", function (response) {
     var item = ${jsonResponse}
     var $category1 = $("#category1")
     var $category2 = $("#category2")
@@ -537,7 +537,7 @@ Public Sub GenerateJSFileForSearch (DirName As String, FileName As String, Simpl
       $category2.append($("<option />").val(category.id).text(category.category_name))
     })
   })"$
-	Dim script2 As String = $"  $.getJSON("/api/find", function (response) {
+	Dim script2 As String = $"  $.getJSON("/${Main.conf.ApiName}/find", function (response) {
     var tbl_head = ""
     var tbl_body = ""
     if (${jsonResponse}.length) {
@@ -595,7 +595,7 @@ Public Sub GenerateJSFileForSearch (DirName As String, FileName As String, Simpl
   var data = JSON.stringify(convertFormToJSON(form), undefined, 2)
   $.ajax({
     type: "POST",
-    url: "/api/find",
+    url: "/${Main.conf.ApiName}/find",
     data: data,
     dataType: "json",
 	${ReturnSuccessTableScript(SimpleResponse.Enable, jsonResponse)}
@@ -652,7 +652,7 @@ Public Sub GenerateJSFileForSearch (DirName As String, FileName As String, Simpl
       var data = JSON.stringify(convertFormToJSON(form), undefined, 2)
       $.ajax({
         type: "POST",
-        url: "/api/products",
+        url: "/${Main.conf.ApiName}/products",
         data: data,
         dataType: "json",
         success: function (response) {
@@ -696,7 +696,7 @@ Public Sub GenerateJSFileForSearch (DirName As String, FileName As String, Simpl
         data: data,
         dataType: "json",
         type: "put",
-        url: "/api/products/" + $("#id1").val(),
+        url: "/${Main.conf.ApiName}/products/" + $("#id1").val(),
         success: function (response) {
           $("#edit").modal("hide")
 		  ${ReturnAlertScript2(SimpleResponse.Enable, "Product updated successfully !", 200)}
@@ -716,7 +716,7 @@ Public Sub GenerateJSFileForSearch (DirName As String, FileName As String, Simpl
     data: data,
     dataType: "json",
     type: "delete",
-    url: "/api/products/" + $("#id2").val(),
+    url: "/${Main.conf.ApiName}/products/" + $("#id2").val(),
     success: function (response) {
       $("#delete").modal("hide")
 	  ${ReturnAlertScript3(SimpleResponse.Enable, "Product deleted successfully !", 200)}

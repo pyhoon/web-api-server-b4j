@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 'Api Handler class
-'Version 3.30
+'Version 3.40
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -19,7 +19,6 @@ End Sub
 Public Sub Initialize
 	HRM.Initialize
 	HRM.SimpleResponse = Main.conf.SimpleResponse
-	DB.Initialize(Main.DBOpen, Main.DBEngine)
 End Sub
 
 Sub Handle (req As ServletRequest, resp As ServletResponse)
@@ -91,6 +90,7 @@ Private Sub ReturnMethodNotAllow
 End Sub
 
 Private Sub GetCategories
+	DB.Initialize(Main.DBType, Main.DBOpen)
 	DB.Table = "tbl_categories"
 	DB.Query
 	HRM.ResponseCode = 200
@@ -100,6 +100,7 @@ Private Sub GetCategories
 End Sub
 
 Private Sub GetCategoryById (id As Int)
+	DB.Initialize(Main.DBType, Main.DBOpen)
 	DB.Table = "tbl_categories"
 	DB.Find(id)
 	If DB.Found Then
@@ -121,12 +122,6 @@ Private Sub CreateNewCategory
 		ReturnApiResponse
 		Return
 	End If
-
-	' Deprecated: Make it compatible with Web API Client v1 (will be removed)
-	If data.ContainsKey("name") Then
-		data.Put("category_name", data.Get("name"))
-		data.Remove("name")
-	End If
 	
 	' Check whether required keys are provided
 	If data.ContainsKey("category_name") = False Then
@@ -137,6 +132,7 @@ Private Sub CreateNewCategory
 	End If
 	
 	' Check conflict category name
+	DB.Initialize(Main.DBType, Main.DBOpen)
 	DB.Table = "tbl_categories"
 	DB.Where = Array("category_name = ?")
 	DB.Parameters = Array As String(data.Get("category_name"))
@@ -171,12 +167,6 @@ Private Sub UpdateCategoryById (id As Int)
 		ReturnApiResponse
 		Return
 	End If
-
-	' Deprecated: Make it compatible with Web API Client v1 (will be removed)
-	If data.ContainsKey("name") Then
-		data.Put("category_name", data.Get("name"))
-		data.Remove("name")
-	End If
 	
 	' Check whether required keys are provided
 	If data.ContainsKey("category_name") = False Then
@@ -187,6 +177,7 @@ Private Sub UpdateCategoryById (id As Int)
 	End If
 	
 	' Check conflict category name
+	DB.Initialize(Main.DBType, Main.DBOpen)
 	DB.Table = "tbl_categories"
 	DB.Where = Array("category_name = ?", "id <> ?")
 	DB.Parameters = Array As String(data.Get("category_name"), id)
@@ -224,6 +215,7 @@ Private Sub UpdateCategoryById (id As Int)
 End Sub
 
 Private Sub DeleteCategoryById (id As Int)
+	DB.Initialize(Main.DBType, Main.DBOpen)
 	DB.Table = "tbl_categories"
 	DB.Find(id)
 	If DB.Found = False Then

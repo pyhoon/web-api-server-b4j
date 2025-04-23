@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 'Api Handler class
-'Version 3.30
+'Version 3.40
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -19,7 +19,6 @@ End Sub
 Public Sub Initialize
 	HRM.Initialize
 	HRM.SimpleResponse = Main.conf.SimpleResponse
-	DB.Initialize(Main.DBOpen, Main.DBEngine)
 End Sub
 
 Sub Handle (req As ServletRequest, resp As ServletResponse)
@@ -91,6 +90,7 @@ Private Sub ReturnMethodNotAllow
 End Sub
 
 Private Sub GetProducts
+	DB.Initialize(Main.DBType, Main.DBOpen)
 	DB.Table = "tbl_products"
 	DB.Query
 	HRM.ResponseCode = 200
@@ -100,6 +100,7 @@ Private Sub GetProducts
 End Sub
 
 Private Sub GetProductById (id As Int)
+	DB.Initialize(Main.DBType, Main.DBOpen)
 	DB.Table = "tbl_products"
 	DB.Find(id)
 	If DB.Found Then
@@ -121,24 +122,6 @@ Private Sub PostProduct
 		ReturnApiResponse
 		Return
 	End If
-
-	' Deprecated: Make it compatible with Web API Client v1 (will be removed)
-	If data.ContainsKey("cat_id") Then
-		data.Put("category_id", data.Get("cat_id"))
-		data.Remove("cat_id")
-	End If
-	If data.ContainsKey("code") Then
-		data.Put("product_code", data.Get("code"))
-		data.Remove("code")
-	End If
-	If data.ContainsKey("name") Then
-		data.Put("product_name", data.Get("name"))
-		data.Remove("name")
-	End If
-	If data.ContainsKey("price") Then
-		data.Put("product_price", data.Get("price"))
-		data.Remove("price")
-	End If
 	
 	' Check whether required keys are provided
 	Dim RequiredKeys As List = Array As String("category_id", "product_code", "product_name") ' "product_price" is optional
@@ -152,6 +135,7 @@ Private Sub PostProduct
 	Next
 	
 	' Check conflict product code
+	DB.Initialize(Main.DBType, Main.DBOpen)
 	DB.Table = "tbl_products"
 	DB.Where = Array("product_code = ?")
 	DB.Parameters = Array As String(data.Get("product_code"))
@@ -195,25 +179,8 @@ Private Sub PutProductById (id As Int)
 		Return
 	End If
 
-	' Deprecated: Make it compatible with Web API Client v1 (will be removed)
-	If data.ContainsKey("cat_id") Then
-		data.Put("category_id", data.Get("cat_id"))
-		data.Remove("cat_id")
-	End If
-	If data.ContainsKey("code") Then
-		data.Put("product_code", data.Get("code"))
-		data.Remove("code")
-	End If
-	If data.ContainsKey("name") Then
-		data.Put("product_name", data.Get("name"))
-		data.Remove("name")
-	End If
-	If data.ContainsKey("price") Then
-		data.Put("product_price", data.Get("price"))
-		data.Remove("price")
-	End If
-
 	' Check conflict product code
+	DB.Initialize(Main.DBType, Main.DBOpen)
 	DB.Table = "tbl_products"
 	DB.Where = Array("product_code = ?", "id <> ?")
 	DB.Parameters = Array As String(data.Get("product_code"), id)
@@ -257,6 +224,7 @@ Private Sub PutProductById (id As Int)
 End Sub
 
 Private Sub DeleteProductById (id As Int)
+	DB.Initialize(Main.DBType, Main.DBOpen)
 	DB.Table = "tbl_products"
 	DB.Find(id)
 	If DB.Found = False Then

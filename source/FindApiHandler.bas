@@ -5,7 +5,7 @@ Type=Class
 Version=10
 @EndOfDesignText@
 'Api Handler class
-'Version 3.30
+'Version 3.40
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -18,7 +18,6 @@ End Sub
 Public Sub Initialize
 	HRM.Initialize
 	HRM.SimpleResponse = Main.conf.SimpleResponse
-	DB.Initialize(Main.DBOpen, Main.DBEngine)
 End Sub
 
 Sub Handle (req As ServletRequest, resp As ServletResponse)
@@ -68,11 +67,8 @@ Private Sub ReturnMethodNotAllow
 	WebApiUtils.ReturnMethodNotAllow(HRM, Response)
 End Sub
 
-Private Sub ReturnErrorUnprocessableEntity 'ignore
-	WebApiUtils.ReturnErrorUnprocessableEntity(HRM, Response)
-End Sub
-
 Public Sub GetAllProducts
+	DB.Initialize(Main.DBType, Main.DBOpen)
 	DB.Table = "tbl_products p"
 	DB.Select = Array("p.*", "c.category_name")
 	DB.Join = DB.CreateJoin("tbl_categories c", "p.category_id = c.id", "")
@@ -103,6 +99,7 @@ Public Sub SearchByKeywords
 	
 	Dim SearchForText As String = Data.Get("keywords")
 	
+	DB.Initialize(Main.DBType, Main.DBOpen)
 	DB.Table = "tbl_products p"
 	DB.Select = Array("p.*", "c.category_name")
 	DB.Join = DB.CreateJoin("tbl_categories c", "p.category_id = c.id", "")
