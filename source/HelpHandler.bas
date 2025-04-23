@@ -5,7 +5,7 @@ Type=Class
 Version=9.1
 @EndOfDesignText@
 'Help Handler class
-'Version 3.40
+'Version 3.41
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
@@ -55,9 +55,9 @@ Private Sub GenerateHtml As String
 		For Each method As Map In AllMethods
 			If method.Get("Group") = GroupName Then
 				If method.ContainsKey("Hide") = False Then ' Skip Hidden sub
-					Html.Append(GenerateDocItem(method))				
+					Html.Append(GenerateDocItem(method))
 				End If
-			End If			
+			End If
 		Next
 	Next
 	Return Html.ToString
@@ -116,20 +116,20 @@ Private Sub BuildMethods
 	
 	Dim Method As Map = RetrieveMethod("Categories", "CreateNewCategory '#POST")
 	Method.Put("Desc", "Add new Category")
-	Dim BodyMap As Map = CreateMap("name": "category_name")
+	Dim BodyMap As Map = CreateMap("category_name": "category_name")
 	Method.Put("Body", BodyMap.As(JSON).ToString)
 	ReplaceMethod(Method)
 
 	Dim Method As Map = RetrieveMethod("Categories", "UpdateCategoryById (id As Int) '#PUT")
 	Method.Put("Desc", "Update Category by id")
 	Method.Put("Elements", $"["{id}"]"$)
-	Dim BodyMap As Map = CreateMap("name": "category_name")
+	Dim BodyMap As Map = CreateMap("category_name": "category_name")
 	Method.Put("Body", BodyMap.As(JSON).ToString)
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = RetrieveMethod("Categories", "DeleteCategoryById (id As Int)")
 	Method.Put("Desc", "Delete Category by id")
-	Method.Put("Elements", $"["{id}"]"$)	
+	Method.Put("Elements", $"["{id}"]"$)
 	RemoveMethodAndReAdd(Method)
 	
 	Dim Method As Map = RetrieveMethod("Products", "GetProducts")
@@ -143,12 +143,12 @@ Private Sub BuildMethods
 
 	Dim Method As Map = CreateMethodProperties("Products", "PostProduct")
 	Method.Put("Desc", "Add new Product")
-	Method.Put("Body", $"{<br>&nbsp; "cat_id": category_id,<br>&nbsp; "code": "product_code",<br>&nbsp; "name": "product_name",<br>&nbsp; "price": 0<br>}"$)
+	Method.Put("Body", $"{<br>&nbsp; "category_id": 1,<br>&nbsp; "product_code": "CODE",<br>&nbsp; "product_name": "ProductName",<br>&nbsp; "product_price": 0<br>}"$)
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = RetrieveMethod("Products", "PutProductById (id As Int)")
 	Method.Put("Desc", "Update Product by id")
-	Method.Put("Body", $"{<br>&nbsp; "cat_id": category_id,<br>&nbsp; "code": "product_code",<br>&nbsp; "name": "product_name",<br>&nbsp; "price": 0<br>}"$)
+	Method.Put("Body", $"{<br>&nbsp; "category_id": 1,<br>&nbsp; "product_code": "CODE",<br>&nbsp; "product_name": "NewProductName",<br>&nbsp; "product_price": 10<br>}"$)
 	Method.Put("Elements", $"["{id}"]"$)
 	Method.Put("Authenticate", $"Token"$)
 	ReplaceMethod(Method)

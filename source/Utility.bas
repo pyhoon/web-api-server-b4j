@@ -5,7 +5,7 @@ Type=StaticCode
 Version=10
 @EndOfDesignText@
 'Utility code module
-'Version 3.40
+'Version 3.41
 Sub Process_Globals
 	
 End Sub
@@ -628,21 +628,21 @@ Public Sub GenerateJSFileForSearch (DirName As String, FileName As String, Simpl
   var form = $("#add_form")
   form.validate({
     rules: {
-      code: {
+      product_code: {
         required: true,
         minlength: 3
       },
-      name: {
+      product_name: {
         required: true
       },
       action: "required"
     },
     messages: {
-      code: {
+      product_code: {
         required: "Please enter Product Code",
         minlength: "Value must be at least 3 characters"
       },
-      name: {
+      product_name: {
         required: "Please enter Product Name"
       },
       action: "Please provide some data"
@@ -670,21 +670,21 @@ Public Sub GenerateJSFileForSearch (DirName As String, FileName As String, Simpl
   var form = $("#update_form")
   form.validate({
     rules: {
-      code: {
+      product_code: {
         required: true,
         minlength: 3
       },
-      name: {
+      product_name: {
         required: true
       },
       action: "required"
     },
     messages: {
-      code: {
+      product_code: {
         required: "Please enter Product Code",
         minlength: "Value must be at least 3 characters"
       },
-      name: {
+      product_name: {
         required: "Please enter Product Name"
       },
       action: "Please provide some data"

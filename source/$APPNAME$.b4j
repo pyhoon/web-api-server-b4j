@@ -29,7 +29,7 @@ Version=10.2
 @EndOfDesignText@
 #Region Project Attributes
 ' Product: 				Web API Server
-' Version: 				3.40
+' Version: 				3.41
 ' Description: 			Server application project template
 ' Developer:			Poon Yip Hoon (Aeric) (https://www.b4x.com/android/forum/members/aeric.74499/)
 ' License:				MIT License
@@ -60,7 +60,7 @@ Sub Process_Globals
 	Public conf 				As ServerConfigurations
 	Private Const COLOR_RED 	As Int = -65536
 	Private Const COLOR_BLUE 	As Int = -16776961
-	Private Const VERSION_NAME	As String = "3.40"
+	Private Const VERSION_NAME	As String = "3.41"
 	Type ServerConfigurations (EnableCORS As Boolean, EnableHelp As Boolean, EnableSSL As Boolean, Port As Int, SSLPort As Int, RootUrl As String, RootPath As String, ServerUrl As String, ApiName As String, ApiVersioning As Boolean, SslKeystoreDir As String, SslKeystoreFile As String, SslKeystorePassword As String, StaticFilesBrowsable As Boolean, StaticFilesFolder As String, SimpleResponse As SimpleResponse, Version As String)
 End Sub
 
@@ -315,7 +315,7 @@ Private Sub InitDatabase
 				#If SQLite
 				info.DBDir = ctx.GetDefault("DbDir", "")
 				info.DBFile = ctx.GetDefault("DbFile", "")
-				'info.JournalMode = "WAL"
+				info.JournalMode = "WAL"
 				conn.Initialize(info)
 				Dim DBFound As Boolean = conn.DBExist
 				#Else
