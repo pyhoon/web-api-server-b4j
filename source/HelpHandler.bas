@@ -5,7 +5,7 @@ Type=Class
 Version=10.2
 @EndOfDesignText@
 'Help Handler class
-'Version 3.42
+'Version 3.50
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
@@ -161,6 +161,11 @@ Private Sub BuildMethods
 	
 	Dim Method As Map = RetrieveMethod("Find", "GetAllProducts")
 	Method.Put("Desc", "Get all Products (with Category name)")
+	ReplaceMethod(Method)
+	
+	Dim Method As Map = RetrieveMethod("Find", "GetProductsByCategoryId (id As Int)")
+	Method.Put("Desc", "Get all Products by Category Id (with Category name)")
+	Method.Put("Elements", $"["products-by-category_id", "{id}"]"$)
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = RetrieveMethod("Find", "SearchByKeywords ' #post")

@@ -5,7 +5,7 @@ Type=Class
 Version=10.2
 @EndOfDesignText@
 'Api Handler class
-'Version 3.42
+'Version 3.50
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -13,6 +13,8 @@ Sub Class_Globals
 	Private DB As MiniORM
 	Private Method As String
 	Private Elements() As String
+	Private ElementKey As String
+	Private ElementId As Int
 End Sub
 
 Public Sub Initialize
@@ -32,6 +34,12 @@ Sub Handle (req As ServletRequest, resp As ServletResponse)
 				GetAllProducts
 				Return
 			End If
+			If ElementMatch("key/id") Then
+				If ElementKey = "products-by-category_id" Then
+				GetProductsByCategoryId(ElementId)
+				Return
+				End If
+			End If
 		Case "POST"
 			If ElementMatch("") Then
 				SearchByKeywords
@@ -50,6 +58,21 @@ Private Sub ElementMatch (Pattern As String) As Boolean
 		Case ""
 			If Elements.Length = 0 Then
 				Return True
+			End If
+		Case "id"
+			If Elements.Length = 1 Then
+				If IsNumber(Elements(0)) Then
+					ElementId = Elements(0)
+					Return True
+				End If
+			End If
+		Case "key/id"
+			If Elements.Length = 2 Then
+				ElementKey = Elements(0)
+				If IsNumber(Elements(1)) Then
+					ElementId = Elements(1)
+					Return True
+				End If
 			End If
 	End Select
 	Return False
@@ -72,6 +95,20 @@ Public Sub GetAllProducts
 	DB.Table = "tbl_products p"
 	DB.Select = Array("p.*", "c.category_name")
 	DB.Join = DB.CreateJoin("tbl_categories c", "p.category_id = c.id", "")
+	DB.OrderBy = CreateMap("p.id": "")
+	DB.Query
+	HRM.ResponseCode = 200
+	HRM.ResponseData = DB.Results
+	DB.Close
+	ReturnApiResponse
+End Sub
+
+Public Sub GetProductsByCategoryId (id As Int)
+	DB.Initialize(Main.DBType, Main.DBOpen)
+	DB.Table = "tbl_products p"
+	DB.Select = Array("p.*", "c.category_name")
+	DB.Join = DB.CreateJoin("tbl_categories c", "p.category_id = c.id", "")
+	DB.WhereParam("c.id = ?", id)
 	DB.OrderBy = CreateMap("p.id": "")
 	DB.Query
 	HRM.ResponseCode = 200
