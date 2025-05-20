@@ -5,7 +5,7 @@ Type=Class
 Version=10.2
 @EndOfDesignText@
 'Help Handler class
-'Version 4.00 beta 1
+'Version 4.00 beta 2
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
@@ -118,6 +118,11 @@ Private Sub BuildMethods
 	Method.Put("Desc", "Add new Category")
 	Dim BodyMap As Map = CreateMap("category_name": "category_name")
 	Method.Put("Body", BodyMap.As(JSON).ToString)
+	'Dim BodyMap As Map = CreateMap("root": CreateMap("category_name": "category_name"))
+	'Dim m2x As Map2Xml
+	'm2x.Initialize
+	'Dim xml As String = m2x.MapToXml(BodyMap)
+	'Method.Put("Body", EscapeXml(xml))
 	ReplaceMethod(Method)
 
 	Dim Method As Map = RetrieveMethod("Categories", "UpdateCategoryById (id As Int) '#PUT")
@@ -125,6 +130,11 @@ Private Sub BuildMethods
 	Method.Put("Elements", $"["{id}"]"$)
 	Dim BodyMap As Map = CreateMap("category_name": "category_name")
 	Method.Put("Body", BodyMap.As(JSON).ToString)
+	'Dim BodyMap As Map = CreateMap("root": CreateMap("category_name": "category_name"))
+	'Dim m2x As Map2Xml
+	'm2x.Initialize
+	'Dim xml As String = m2x.MapToXml(BodyMap)
+	'Method.Put("Body", EscapeXml(xml))
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = RetrieveMethod("Categories", "DeleteCategoryById (id As Int)")
@@ -144,19 +154,31 @@ Private Sub BuildMethods
 	Dim Method As Map = CreateMethodProperties("Products", "PostProduct")
 	Method.Put("Desc", "Add new Product")
 	Method.Put("Body", $"{<br>&nbsp; "category_id": 1,<br>&nbsp; "product_code": "CODE",<br>&nbsp; "product_name": "ProductName",<br>&nbsp; "product_price": 0<br>}"$)
+'	Dim xml As String = $"<root>
+'  <category_id>1</category_id>
+'  <product_code>CODE</product_code>
+'  <product_name>ProductName</product_name>
+'  <product_price>0</product_price>
+'</root>"$
+	'Method.Put("Body", EscapeXml(xml))
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = RetrieveMethod("Products", "PutProductById (id As Int)")
 	Method.Put("Desc", "Update Product by id")
 	Method.Put("Body", $"{<br>&nbsp; "category_id": 1,<br>&nbsp; "product_code": "CODE",<br>&nbsp; "product_name": "ProductName",<br>&nbsp; "product_price": 10<br>}"$)
+	'Dim xml As String = $"<root>
+'  <category_id>1</category_id>
+'  <product_code>CODE</product_code>
+'  <product_name>ProductName</product_name>
+'  <product_price>10</product_price>
+'</root>"$
+	'Method.Put("Body", EscapeXml(xml))
 	Method.Put("Elements", $"["{id}"]"$)
-	'Method.Put("Authenticate", $"Token"$)
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = RetrieveMethod("Products", "DeleteProductById (id As Int)")
 	Method.Put("Desc", "Delete Product by id")
 	Method.Put("Elements", $"["{id}"]"$)
-	'Method.Put("Authenticate", $"Basic"$)
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = RetrieveMethod("Find", "GetAllProducts")
@@ -168,14 +190,14 @@ Private Sub BuildMethods
 	Method.Put("Elements", $"["products-by-category_id", "{id}"]"$)
 	ReplaceMethod(Method)
 	
-	Dim Method As Map = RetrieveMethod("Find", "SearchByKeywords ' #post")
-	'Dim BodyMap As Map = CreateMap("keyword": "text")
-	'Method.Put("Body", BodyMap.As(JSON).ToString)
-	Dim BodyMap As Map = CreateMap("root": CreateMap("keyword": "text")) ' valid XML requires root element
-	Dim m2x As Map2Xml
-	m2x.Initialize
-	Dim xml As String = m2x.MapToXml(BodyMap)
-	Method.Put("Body", EscapeXml(xml))
+	Dim Method As Map = RetrieveMethod("Find", "SearchByKeywords ' #POST")
+	Dim BodyMap As Map = CreateMap("keyword": "text")
+	Method.Put("Body", BodyMap.As(JSON).ToString)
+	'Dim BodyMap As Map = CreateMap("root": CreateMap("keyword": "text")) ' valid XML requires root element
+	'Dim m2x As Map2Xml
+	'm2x.Initialize
+	'Dim xml As String = m2x.MapToXml(BodyMap)
+	'Method.Put("Body", EscapeXml(xml))
 	Method.Put("Desc", "Filter Products (with Category name)")
 	Dim Expected As StringBuilder
 	Expected.Initialize

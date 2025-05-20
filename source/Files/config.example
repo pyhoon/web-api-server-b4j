@@ -52,12 +52,12 @@ SSL_KEYSTORE_PASSWORD=xxxxxxxxx
 
 ## SQLite configuration:
 DbType=SQLite
-DbFile=webapi3.db
+DbFile=webapi.db
 DbDir=
 
 ## MySQL configuration:
 #DbType=MySQL
-#DbName=webapi3
+#DbName=webapi
 #DbHost=localhost
 #DbPort=
 #DriverClass=com.mysql.cj.jdbc.Driver
