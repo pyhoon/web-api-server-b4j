@@ -274,7 +274,7 @@ Private Sub InitServer
 	ConfigurePort
 	ConfigureCORS
 	ConfigureStaticFiles
-	CreateJSFiles(WebApiUtils.CONTENT_TYPE_XML)
+	CreateJSFiles(WebApiUtils.CONTENT_TYPE_JSON)
 End Sub
 
 ' Create Database Connection
