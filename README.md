@@ -23,8 +23,7 @@ Create Web API Server using B4X project template
 - mysql-connector-java-8.0.30.jar (or your preferred version)
 
 ## Features:
-- Code simplified
-- Back to basics - use multiple Server Handlers
+- Use Server Handlers
 - Improved API documentation
 - Built-in web front-end (bootstrap 4)
 - Supports JSON and XML formats
