@@ -1,5 +1,5 @@
 ﻿AppType=StandardJava
-Build1=Default,b4j.webapi,SQLite,WAL,hu2_acceptall
+Build1=Default,b4j.webapi,SQLite,hu2_acceptall
 Build2=MySQL,b4j.webapi,MySQL,hu2_acceptall
 File1=category.html
 File2=config.example
@@ -29,19 +29,20 @@ Version=10.2
 @EndOfDesignText@
 #Region Project Attributes
 ' Product: 				Web API Server
-' Version: 				3.50
+' Version: 				4.00 beta 1
 ' Description: 			Server application project template
 ' Developer:			Poon Yip Hoon (Aeric) (https://www.b4x.com/android/forum/members/aeric.74499/)
 ' License:				MIT License
-' GitHub:				https://github.com/pyhoon/web-api-server-b4j
-' Forum thread:			https://www.b4x.com/android/forum/threads/project-template-web-api-server-v3.163725/
-' Tutorial:				https://www.b4x.com/android/forum/threads/web-api-server-v3.163824/
+' GitHub:				https://github.com/pyhoon/web-api-server-b4j/tree/v4.00beta
+' Forum thread:			https://www.b4x.com/android/forum/threads/project-template-web-api-server-v4-beta.167080/
+' Tutorial:				Not available
 ' Donation:				PayPal (https://paypal.me/aeric80/)
 ' *** IDE Shorcuts ***
 ' 1. AppStart: 			ide://goto?Module=Main&Sub=AppStart
 ' 2. Configurable: 		ide://goto?Module=Main&Sub=Configurable
 ' 3. CreateDatabase: 	ide://goto?Module=Main&Sub=CreateDatabase
 ' Objects folder: 		ide://run?file=%WINDIR%\SysWOW64\explorer.exe&Args=%PROJECT%\Objects
+' LibDownloader: 		ide://run?file=%JAVABIN%\java.exe&Args=-jar&Args=%ADDITIONAL%\..\B4X\libget-non-ui.jar&Args=%PROJECT%&Args=true
 ' Publish:				ide://run?file=%JAVABIN%\jar.exe&WorkingDirectory=../Objects&Args=-cMf&Args=Publish.zip&Args=www&Args=*.jar&Args=*.ini '&Args=*.db&Args=*.html (optional db and html)
 #CommandLineArgs:
 #MergeLibraries: True
@@ -60,8 +61,8 @@ Sub Process_Globals
 	Public conf 				As ServerConfigurations
 	Private Const COLOR_RED 	As Int = -65536
 	Private Const COLOR_BLUE 	As Int = -16776961
-	Private Const VERSION_NAME	As String = "3.50"
-	Type ServerConfigurations (EnableCORS As Boolean, EnableHelp As Boolean, EnableSSL As Boolean, Port As Int, SSLPort As Int, RootUrl As String, RootPath As String, ServerUrl As String, ApiName As String, ApiVersioning As Boolean, SslKeystoreDir As String, SslKeystoreFile As String, SslKeystorePassword As String, StaticFilesBrowsable As Boolean, StaticFilesFolder As String, SimpleResponse As SimpleResponse, Version As String)
+	Private Const VERSION_NAME	As String = "4.00 beta 1"
+	Type ServerConfigurations (EnableCORS As Boolean, EnableHelp As Boolean, EnableSSL As Boolean, Port As Int, SSLPort As Int, RootUrl As String, RootPath As String, ServerUrl As String, ApiName As String, ApiVersioning As Boolean, VerboseMode As Boolean, SslKeystoreDir As String, SslKeystoreFile As String, SslKeystorePassword As String, StaticFilesBrowsable As Boolean, StaticFilesFolder As String, Version As String, SmtpUserName As String, SmtpPassword As String, SmtpServer As String, SmtpUseSsl As String, SmtpPort As Int)
 End Sub
 
 ' <link>Open in browser|http://127.0.0.1:8080</link>
@@ -92,7 +93,7 @@ Private Sub Configurable
 	conf.EnableSSL = True
 	#End If
 	conf.EnableCORS = True
-	conf.SimpleResponse.Enable = True
+	conf.VerboseMode = True
 	conf.StaticFilesBrowsable = False
 End Sub
 
@@ -258,7 +259,6 @@ Private Sub InitServer
 	ctx.Put("VERSION", VERSION_NAME)
 	conf.Initialize
 	conf.Version = VERSION_NAME
-	conf.SimpleResponse.Initialize
 	conf.StaticFilesFolder = File.Combine(File.DirApp, "www")
 	conf.Port = ctx.GetDefault("ServerPort", 8080)
 	conf.SSLPort = ctx.GetDefault("SSLPort", 0)
@@ -274,7 +274,7 @@ Private Sub InitServer
 	ConfigurePort
 	ConfigureCORS
 	ConfigureStaticFiles
-	CreateJSFiles
+	CreateJSFiles(WebApiUtils.CONTENT_TYPE_XML)
 End Sub
 
 ' Create Database Connection
@@ -341,7 +341,7 @@ Private Sub InitDatabase
 End Sub
 
 ' Generate JS files from code to save some file size
-Private Sub CreateJSFiles
+Private Sub CreateJSFiles (ContentType As String)
 	Dim skip As Boolean
 	Dim Parent As String = File.Combine(conf.StaticFilesFolder, "assets")
 	Dim DirName As String = File.Combine(Parent, "scripts")
@@ -353,9 +353,9 @@ Private Sub CreateJSFiles
 	#End If
 	End If
 	If skip = False Then
-		Utility.GenerateJSFileForCategory(DirName, "category.js", conf.SimpleResponse)
-		Utility.GenerateJSFileForSearch(DirName, "search.js", conf.SimpleResponse)
-		Utility.GenerateJSFileForHelp(DirName, "help.js", conf.SimpleResponse)
+		Utility.GenerateJSFileForCategory(DirName, "category.js", ContentType, conf.VerboseMode)
+		Utility.GenerateJSFileForSearch(DirName, "search.js", ContentType, conf.VerboseMode)
+		Utility.GenerateJSFileForHelp(DirName, "help.js", ContentType, conf.VerboseMode)
 	End If
 End Sub
 

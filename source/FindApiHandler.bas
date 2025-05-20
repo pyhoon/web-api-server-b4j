@@ -5,7 +5,7 @@ Type=Class
 Version=10.2
 @EndOfDesignText@
 'Api Handler class
-'Version 3.50
+'Version 4.00 beta 1
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -19,7 +19,8 @@ End Sub
 
 Public Sub Initialize
 	HRM.Initialize
-	HRM.SimpleResponse = Main.conf.SimpleResponse
+	HRM.VerboseMode = Main.conf.VerboseMode
+	HRM.ContentType = WebApiUtils.CONTENT_TYPE_XML
 End Sub
 
 Sub Handle (req As ServletRequest, resp As ServletResponse)
@@ -117,24 +118,30 @@ Public Sub GetProductsByCategoryId (id As Int)
 	ReturnApiResponse
 End Sub
 
-Public Sub SearchByKeywords	
-	Dim Data As Map = WebApiUtils.RequestData(Request)
-	If Not(Data.IsInitialized) Then
-		HRM.ResponseCode = 400
-		HRM.ResponseError = "Invalid json object"
-		ReturnApiResponse
-		Return
+Public Sub SearchByKeywords
+	Dim data As Map
+	If HRM.ContentType = WebApiUtils.CONTENT_TYPE_XML Then
+		data = WebApiUtils.RequestDataXml(Request)
+		data = data.Get("root")
+	Else
+		data = WebApiUtils.RequestDataJson(Request)
 	End If
-
-	' Check whether required keys are provided
-	If Data.ContainsKey("keywords") = False Then
+	
+	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
-		HRM.ResponseError = "Key 'keywords' not found"
+		HRM.ResponseError = $"Invalid ${IIf(HRM.ContentType = WebApiUtils.CONTENT_TYPE_XML, "xml", "json")} object"$
 		ReturnApiResponse
 		Return
 	End If
 	
-	Dim SearchForText As String = Data.Get("keywords")
+	' Check whether required keys are provided
+	If data.ContainsKey("keyword") = False Then
+		HRM.ResponseCode = 400
+		HRM.ResponseError = "Key 'keyword' not found"
+		ReturnApiResponse
+		Return
+	End If
+	Dim SearchForText As String = data.Get("keyword")
 	
 	DB.Initialize(Main.DBType, Main.DBOpen)
 	DB.Table = "tbl_products p"
