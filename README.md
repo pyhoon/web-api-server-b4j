@@ -27,6 +27,7 @@ Create Web API Server using B4X project template
 - Back to basics - use multiple Server Handlers
 - Improved API documentation
 - Built-in web front-end (bootstrap 4)
+- Supports JSON and XML formats
 
 ### Code Example
 ```basic
