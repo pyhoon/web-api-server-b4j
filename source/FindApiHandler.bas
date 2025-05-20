@@ -5,7 +5,7 @@ Type=Class
 Version=10.2
 @EndOfDesignText@
 'Api Handler class
-'Version 4.00 beta 1
+'Version 4.00 beta 2
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -20,7 +20,6 @@ End Sub
 Public Sub Initialize
 	HRM.Initialize
 	HRM.VerboseMode = Main.conf.VerboseMode
-	HRM.ContentType = WebApiUtils.CONTENT_TYPE_XML
 End Sub
 
 Sub Handle (req As ServletRequest, resp As ServletResponse)
@@ -119,14 +118,7 @@ Public Sub GetProductsByCategoryId (id As Int)
 End Sub
 
 Public Sub SearchByKeywords
-	Dim data As Map
-	If HRM.ContentType = WebApiUtils.CONTENT_TYPE_XML Then
-		data = WebApiUtils.RequestDataXml(Request)
-		data = data.Get("root")
-	Else
-		data = WebApiUtils.RequestDataJson(Request)
-	End If
-	
+	Dim data As Map = WebApiUtils.RequestData(Request)
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
 		HRM.ResponseError = $"Invalid ${IIf(HRM.ContentType = WebApiUtils.CONTENT_TYPE_XML, "xml", "json")} object"$
@@ -134,6 +126,9 @@ Public Sub SearchByKeywords
 		Return
 	End If
 	
+	'If HRM.ContentType = WebApiUtils.CONTENT_TYPE_XML Then
+	'	data = data.Get("root")		
+	'End If
 	' Check whether required keys are provided
 	If data.ContainsKey("keyword") = False Then
 		HRM.ResponseCode = 400
