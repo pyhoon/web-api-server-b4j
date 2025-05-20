@@ -1,0 +1,16 @@
+{
+    "Libraries": [
+        {
+            "Name": "MiniORMUtils.b4xlib",
+            "Platform": "B4X",
+            "Version": 2.63,
+            "Link": "https://github.com/pyhoon/MiniORMUtils-B4X/releases/download/v2.63/MiniORMUtils.b4xlib"
+        },
+        {
+            "Name": "WebApiUtils.b4xlib",
+            "Platform": "B4J",
+            "Version": 4.20,
+            "Link": "https://github.com/pyhoon/WebApiUtils-B4J/releases/download/v4.20/WebApiUtils.b4xlib"
+        }
+    ]
+}

@@ -5,7 +5,7 @@ Type=Class
 Version=10.2
 @EndOfDesignText@
 'Web Handler class
-'Version 3.50
+'Version 4.00 beta 1
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -50,7 +50,7 @@ Private Sub ReturnHelpElement As String
 	If Main.conf.EnableHelp = False Then
 		Return ""
 	End If
-	Return $"${CRLF & TAB & TAB}<li class="nav-item">
-${TAB & TAB & TAB}<a class="nav-link mr-3 font-weight-bold text-white" href="${Main.conf.ServerUrl}/help"><i class="fas fa-cog" title="API"></i> API</a>
+	Return $"${CRLF & TAB & TAB}<li class="nav-item mt-1">
+${TAB & TAB & TAB}<a class="nav-link mr-3 font-weight-bold text-dark" href="${Main.conf.ServerUrl}/help"><i class="fas fa-cog" title="API"></i> API</a>
 ${TAB & TAB}</li>"$
 End Sub

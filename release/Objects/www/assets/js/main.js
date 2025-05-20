@@ -1,5 +1,5 @@
 /*!
- * Web API Server B4J Project Template v3.20 by @pyhoon (https://github.com/pyhoon/web-api-server-b4j)
+ * Web API Server B4J Project Template v4.00 by @pyhoon (https://github.com/pyhoon/web-api-server-b4j)
  * Copyright (c) 2022-2025 Poon Yip Hoon (Aeric)
  * Licensed under MIT (https://github.com/pyhoon/web-api-server-b4j/blob/main/LICENSE)
  */

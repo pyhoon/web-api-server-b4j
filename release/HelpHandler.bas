@@ -5,7 +5,7 @@ Type=Class
 Version=10.2
 @EndOfDesignText@
 'Help Handler class
-'Version 3.50
+'Version 4.00 beta 1
 Sub Class_Globals
 	Private Request As ServletRequest 'ignore
 	Private Response As ServletResponse
@@ -169,8 +169,13 @@ Private Sub BuildMethods
 	ReplaceMethod(Method)
 	
 	Dim Method As Map = RetrieveMethod("Find", "SearchByKeywords ' #post")
-	Dim BodyMap As Map = CreateMap("keywords": "search words")
-	Method.Put("Body", BodyMap.As(JSON).ToString)
+	'Dim BodyMap As Map = CreateMap("keyword": "text")
+	'Method.Put("Body", BodyMap.As(JSON).ToString)
+	Dim BodyMap As Map = CreateMap("root": CreateMap("keyword": "text")) ' valid XML requires root element
+	Dim m2x As Map2Xml
+	m2x.Initialize
+	Dim xml As String = m2x.MapToXml(BodyMap)
+	Method.Put("Body", EscapeXml(xml))
 	Method.Put("Desc", "Filter Products (with Category name)")
 	Dim Expected As StringBuilder
 	Expected.Initialize
@@ -497,4 +502,28 @@ Private Sub GetExpectedResponse (verb As String) As String
 	Expected.Append("<br/>405 Method not allowed")
 	Expected.Append("<br/>422 Error execute query")
 	Return Expected.ToString
+End Sub
+
+' Reference: https://www.b4x.com/android/forum/threads/escapexml-code-snippet.35720/
+Public Sub EscapeXml (Raw As String) As String
+	Dim sb As StringBuilder
+	sb.Initialize
+	For i = 0 To Raw.Length - 1
+		Dim c As Char = Raw.CharAt(i)
+		Select c
+			Case QUOTE
+				sb.Append("&quot;")
+			Case "'"
+				sb.Append("&apos;")
+			Case "<"
+				sb.Append("&lt;")
+			Case ">"
+				sb.Append("&gt;")
+			Case "&"
+				sb.Append("&amp;")
+			Case Else
+				sb.Append(c)
+		End Select
+	Next
+	Return sb.ToString
 End Sub

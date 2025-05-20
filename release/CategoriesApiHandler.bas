@@ -5,7 +5,7 @@ Type=Class
 Version=10.2
 @EndOfDesignText@
 'Api Handler class
-'Version 3.50
+'Version 4.00 beta 1
 Sub Class_Globals
 	Private Request As ServletRequest
 	Private Response As ServletResponse
@@ -18,7 +18,8 @@ End Sub
 
 Public Sub Initialize
 	HRM.Initialize
-	HRM.SimpleResponse = Main.conf.SimpleResponse
+	HRM.VerboseMode = Main.conf.VerboseMode
+	HRM.ContentType = WebApiUtils.CONTENT_TYPE_XML
 End Sub
 
 Sub Handle (req As ServletRequest, resp As ServletResponse)
@@ -115,7 +116,12 @@ Private Sub GetCategoryById (id As Int)
 End Sub
 
 Private Sub CreateNewCategory
-	Dim data As Map = WebApiUtils.RequestData(Request)
+	Dim data As Map
+	If HRM.ContentType = WebApiUtils.CONTENT_TYPE_XML Then
+		data = WebApiUtils.RequestDataXml(Request)
+	Else
+		data = WebApiUtils.RequestDataJson(Request)
+	End If
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
 		HRM.ResponseError = "Invalid json object"
@@ -160,7 +166,12 @@ Private Sub CreateNewCategory
 End Sub
 
 Private Sub UpdateCategoryById (id As Int)
-	Dim data As Map = WebApiUtils.RequestData(Request)
+	Dim data As Map
+	If HRM.ContentType = WebApiUtils.CONTENT_TYPE_XML Then
+		data = WebApiUtils.RequestDataXml(Request)
+	Else
+		data = WebApiUtils.RequestDataJson(Request)
+	End If
 	If Not(data.IsInitialized) Then
 		HRM.ResponseCode = 400
 		HRM.ResponseError = "Invalid json object"
