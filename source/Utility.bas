@@ -5,7 +5,7 @@ Type=StaticCode
 Version=10.2
 @EndOfDesignText@
 'Utility code module
-'Version 4.00 beta 2
+'Version 4.00 beta 3
 Sub Process_Globals
 	
 End Sub
@@ -179,7 +179,7 @@ Private Sub ReturnSuccessScript (ContentType As String, Verbose As Boolean, Expe
 		If Verbose Then
 			Return $"success: function (response) {
 					if (response.s == "ok" || response.s == "success") {
-						var content = JSON.stringify(response.r, undefined, 2)
+						var content = JSON.stringify(response, undefined, 2)
 						$("#alert" + id).fadeOut("fast", function () {
 							$("#response" + id).val(content)
 							$("#alert" + id).html(response.a + " " + response.m)
@@ -196,7 +196,7 @@ Private Sub ReturnSuccessScript (ContentType As String, Verbose As Boolean, Expe
 						}"$, "")}
 					}
 					else {
-						var content = JSON.stringify(response.r, undefined, 2)
+						var content = JSON.stringify(response, undefined, 2)
 						$("#alert" + id).fadeOut("fast", function () {
 							$("#response" + id).val(content)
 							$("#alert" + id).html(response.a + " " + response.e)
