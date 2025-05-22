@@ -412,11 +412,11 @@ function setOptions(id) {
 				dataType: "${IIf(ContentType = WebApiUtils.CONTENT_TYPE_XML, "xml", "json")}",
 				headers: headers,
 				${ReturnSuccessScript(ContentType, Verbose, True)}
-				error: function (xhr, textStatus, thrownError) {
+				error: function (xhr, textStatus, errorThrown) {
 					var content = xhr.responseText			
 					$("#alert" + id).fadeOut("fast", function () {
 						$("#response" + id).val(content)
-						$("#alert" + id).html(xhr.status + " " + thrownError)
+						$("#alert" + id).html(xhr.status + " " + errorThrown)
 						$("#alert" + id).removeClass("alert-success")
 						$("#alert" + id).addClass("alert-danger")
 						$("#alert" + id).fadeIn()
@@ -431,11 +431,11 @@ function setOptions(id) {
 				dataType: "${IIf(ContentType = WebApiUtils.CONTENT_TYPE_XML, "xml", "json")}",
 				headers: headers,
 				${ReturnSuccessScript(ContentType, Verbose, False)}
-				error: function (xhr, textStatus, thrownError) {
+				error: function (xhr, textStatus, errorThrown) {
 					var content = xhr.responseText
 					$("#alert" + id).fadeOut("fast", function () {
 						$("#response" + id).val(content)
-						$("#alert" + id).html(xhr.status + " " + thrownError)
+						$("#alert" + id).html(xhr.status + " " + errorThrown)
 						$("#alert" + id).removeClass("alert-success")
 						$("#alert" + id).addClass("alert-danger")
 						$("#alert" + id).fadeIn()
@@ -449,11 +449,11 @@ function setOptions(id) {
 				dataType: "${IIf(ContentType = WebApiUtils.CONTENT_TYPE_XML, "xml", "json")}",
 				headers: headers,
 				${ReturnSuccessScript(ContentType, Verbose, False)}
-				error: function (xhr, textStatus, thrownError) {
+				error: function (xhr, textStatus, errorThrown) {
 					var content = xhr.responseText
 					$("#alert" + id).fadeOut("fast", function () {
 						$("#response" + id).val(content)
-						$("#alert" + id).html(xhr.status + " " + thrownError)
+						$("#alert" + id).html(xhr.status + " " + errorThrown)
 						$("#alert" + id).removeClass("alert-success")
 						$("#alert" + id).addClass("alert-danger")
 						$("#alert" + id).fadeIn()
@@ -529,8 +529,8 @@ Public Sub GenerateJSFileForCategory (DirName As String, FileName As String, Con
 	  tbl_body += "</tbody>"
 	  $("#results table").html(tbl_head + tbl_body)
 	},
-    error: function (xhr, ajaxOptions, thrownError) {
-      alert(thrownError)
+    error: function (xhr, ajaxOptions, errorThrown) {
+      alert(errorThrown)
     }
   })"$
 		Dim script2 As String = $"$(document).on("click", ".edit", function (e) {
@@ -573,8 +573,8 @@ Public Sub GenerateJSFileForCategory (DirName As String, FileName As String, Con
           $("#new").modal("hide")
           ${ReturnAlertScript(WebApiUtils.CONTENT_TYPE_XML, Verbose, "New category added !", 201)}
         },
-        error: function (xhr, ajaxOptions, thrownError) {
-          alert(thrownError)
+        error: function (xhr, ajaxOptions, errorThrown) {
+          alert(errorThrown)
         }
       })
       // return false // required to block normal submit since you used ajax
@@ -608,8 +608,8 @@ Public Sub GenerateJSFileForCategory (DirName As String, FileName As String, Con
           $("#edit").modal("hide")
 		  ${ReturnAlertScript2(WebApiUtils.CONTENT_TYPE_XML, Verbose, "Category updated successfully !", 200)}
         },
-        error: function (xhr, ajaxOptions, thrownError) {
-          alert(thrownError)
+        error: function (xhr, ajaxOptions, errorThrown) {
+          alert(errorThrown)
         }
       })
       // return false // required to block normal submit since you used ajax
@@ -626,8 +626,8 @@ Public Sub GenerateJSFileForCategory (DirName As String, FileName As String, Con
       $("#delete").modal("hide")
 	  ${ReturnAlertScript3(WebApiUtils.CONTENT_TYPE_XML, Verbose, "Category deleted successfully !", 200)}
     },
-    error: function (xhr, ajaxOptions, thrownError) {
-      alert(thrownError)
+    error: function (xhr, ajaxOptions, errorThrown) {
+      alert(errorThrown)
     }
   })
 })"$
@@ -711,8 +711,8 @@ Public Sub GenerateJSFileForCategory (DirName As String, FileName As String, Con
           $("#new").modal("hide")
           ${ReturnAlertScript(WebApiUtils.CONTENT_TYPE_JSON, Verbose, "New category added !", 201)}
         },
-        error: function (xhr, ajaxOptions, thrownError) {
-          alert(thrownError)
+        error: function (xhr, ajaxOptions, errorThrown) {
+          alert(errorThrown)
         }
       })
       // return false // required to block normal submit since you used ajax
@@ -746,8 +746,8 @@ Public Sub GenerateJSFileForCategory (DirName As String, FileName As String, Con
           $("#edit").modal("hide")
 		  ${ReturnAlertScript2(WebApiUtils.CONTENT_TYPE_JSON, Verbose, "Category updated successfully !", 200)}
         },
-        error: function (xhr, ajaxOptions, thrownError) {
-          alert(thrownError)
+        error: function (xhr, ajaxOptions, errorThrown) {
+          alert(errorThrown)
         }
       })
       // return false // required to block normal submit since you used ajax
@@ -764,8 +764,8 @@ Public Sub GenerateJSFileForCategory (DirName As String, FileName As String, Con
       $("#delete").modal("hide")
 	  ${ReturnAlertScript3(WebApiUtils.CONTENT_TYPE_JSON, Verbose, "Category deleted successfully !", 200)}
     },
-    error: function (xhr, ajaxOptions, thrownError) {
-      alert(thrownError)
+    error: function (xhr, ajaxOptions, errorThrown) {
+      alert(errorThrown)
     }
   })
 })"$
@@ -814,8 +814,8 @@ Public Sub GenerateJSFileForSearch (DirName As String, FileName As String, Conte
         $category2.append($("<option />").val(id).text(name))
       })
     },
-    error: function (xhr, ajaxOptions, thrownError) {
-      alert(thrownError)
+    error: function (xhr, ajaxOptions, errorThrown) {
+      alert(errorThrown)
     }
   })"$
 		Dim script2 As String = $"  var tbl_head = ""
@@ -864,8 +864,8 @@ Public Sub GenerateJSFileForSearch (DirName As String, FileName As String, Conte
     dataType: "xml",
     url: "/${Main.conf.ApiName}/find",
 	${ReturnSuccessTableScript(ContentType, Verbose)}
-    error: function (xhr, ajaxOptions, thrownError) {
-      $(".alert").html(thrownError)
+    error: function (xhr, ajaxOptions, errorThrown) {
+      $(".alert").html(errorThrown)
       $(".alert").fadeIn()
     }
   })
@@ -924,8 +924,8 @@ Public Sub GenerateJSFileForSearch (DirName As String, FileName As String, Conte
           $("#new").modal("hide")
 		  ${ReturnAlertScript2(WebApiUtils.CONTENT_TYPE_JSON, Verbose, "New product added !", 201)}
         },
-        error: function (xhr, ajaxOptions, thrownError) {
-          alert(thrownError)
+        error: function (xhr, ajaxOptions, errorThrown) {
+          alert(errorThrown)
         }
       })
     }
@@ -966,8 +966,8 @@ Public Sub GenerateJSFileForSearch (DirName As String, FileName As String, Conte
           $("#edit").modal("hide")
 		  ${ReturnAlertScript2(WebApiUtils.CONTENT_TYPE_JSON, Verbose, "Product updated successfully !", 200)}
         },
-        error: function (xhr, ajaxOptions, thrownError) {
-          alert(thrownError)
+        error: function (xhr, ajaxOptions, errorThrown) {
+          alert(errorThrown)
         }
       })
     }
@@ -983,8 +983,8 @@ Public Sub GenerateJSFileForSearch (DirName As String, FileName As String, Conte
       $("#delete").modal("hide")
 	  ${ReturnAlertScript3(WebApiUtils.CONTENT_TYPE_JSON, Verbose, "Product deleted successfully !", 200)}
     },
-    error: function (xhr, ajaxOptions, thrownError) {
-      alert(thrownError)
+    error: function (xhr, ajaxOptions, errorThrown) {
+      alert(errorThrown)
     }
   })
 })"$
@@ -1085,8 +1085,8 @@ function escapeXml(unsafe) {
     dataType: "json",
     url: "/${Main.conf.ApiName}/find",
 	${ReturnSuccessTableScript(ContentType, Verbose)}
-    error: function (xhr, ajaxOptions, thrownError) {
-      $(".alert").html(thrownError)
+    error: function (xhr, ajaxOptions, errorThrown) {
+      $(".alert").html(errorThrown)
       $(".alert").fadeIn()
     }
   })
@@ -1145,8 +1145,8 @@ function escapeXml(unsafe) {
           $("#new").modal("hide")
 		  ${ReturnAlertScript2(WebApiUtils.CONTENT_TYPE_JSON, Verbose, "New product added !", 201)}
         },
-        error: function (xhr, ajaxOptions, thrownError) {
-          alert(thrownError)
+        error: function (xhr, ajaxOptions, errorThrown) {
+          alert(errorThrown)
         }
       })
     }
@@ -1187,8 +1187,8 @@ function escapeXml(unsafe) {
           $("#edit").modal("hide")
 		  ${ReturnAlertScript2(WebApiUtils.CONTENT_TYPE_JSON, Verbose, "Product updated successfully !", 200)}
         },
-        error: function (xhr, ajaxOptions, thrownError) {
-          alert(thrownError)
+        error: function (xhr, ajaxOptions, errorThrown) {
+          alert(errorThrown)
         }
       })
     }
@@ -1204,8 +1204,8 @@ function escapeXml(unsafe) {
       $("#delete").modal("hide")
 	  ${ReturnAlertScript3(WebApiUtils.CONTENT_TYPE_JSON, Verbose, "Product deleted successfully !", 200)}
     },
-    error: function (xhr, ajaxOptions, thrownError) {
-      alert(thrownError)
+    error: function (xhr, ajaxOptions, errorThrown) {
+      alert(errorThrown)
     }
   })
 })"$
